@@ -1,8 +1,8 @@
+import 'package:cashify/features/transaction/domain/entities/category_entity.dart';
 import 'package:cashify/features/transaction/domain/entities/movement_entity.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 class MovementFormScreen extends StatefulWidget {
@@ -12,18 +12,28 @@ class MovementFormScreen extends StatefulWidget {
   State<MovementFormScreen> createState() => _MovementFormScreenState();
 }
 
+/* TODO: Get from DB */
 final Map<String, String> _paymentOptions = {
-  'Efectivo': 'CASH',
-  'Débito': 'DEBIT',
-  'Crédito': 'CREDIT',
+  'CASH': 'Efectivo',
+  'DEBIT': 'Débito',
+  'CREDIT': 'Crédito',
 };
+/* TODO: Get from DB */
+final List<CategoryEntity> _categories = [
+  CategoryEntity(id: 'cat_01', userId: 'user_123', name: 'Alimentación', isExpense: true),
+  CategoryEntity(id: 'cat_02', userId: 'user_123', name: 'Sueldo', isExpense: false),
+  CategoryEntity(id: 'cat_03', userId: 'user_123', name: 'Transporte', isExpense: true),
+];
+final String currentUserId = "user_123";
+String? _selectedCategoryId;
 String? _selectedPaymentMethod;
 
 class _MovementFormScreenState extends State<MovementFormScreen> {
-  DateTime _selectedDate = DateTime.now(); // Fecha inicial
+  DateTime _selectedDate = DateTime.now();
 
   final _formKey = GlobalKey<FormState>();
 
+  final _categoryController = TextEditingController();
   final _descController = TextEditingController();
   final _sourceController = TextEditingController();
   final _qtyController = TextEditingController();
@@ -46,6 +56,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
 
   @override
   void dispose() {
+    _categoryController.dispose();
     _descController.dispose();
     _sourceController.dispose();
     _qtyController.dispose();
@@ -62,6 +73,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
   void _save(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
       final movement = MovementEntity(
+        categoryId: _selectedCategoryId!, // 'cat_01'
         description: _descController.text,
         source: _sourceController.text,
         quantity: _qtyController.text,
@@ -86,6 +98,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
       _currentInstallmentController.clear();
       _totalInstallmentsController.clear();
       setState(() {
+        _selectedCategoryId = null;
         _selectedPaymentMethod = null;
       });
     }
@@ -104,6 +117,33 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              DropdownButtonFormField<String>(
+                initialValue: _selectedCategoryId,
+                decoration: InputDecoration(
+                  labelText: "Categoría",
+                  prefixIcon: const Icon(Icons.category_outlined),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                items: _categories.map((cat) {
+                  return DropdownMenuItem<String>(
+                    value: cat.id,
+                    child: Row(
+                      children: [
+                        Icon(
+                          cat.isExpense ? Icons.remove_circle_outline : Icons.add_circle_outline,
+                          color: cat.isExpense ? Colors.red : Colors.green,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 10),
+                        Text(cat.name),
+                      ],
+                    ),
+                  );
+                }).toList(),
+                onChanged: (value) => setState(() => _selectedCategoryId = value),
+                validator: (value) => value == null ? "Selecciona una categoría" : null,
+              ),
+              const SizedBox(height: 15),
               _buildTextField(
                 controller: _descController,
                 label: "Descripción",
@@ -172,30 +212,26 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
               ),
               const SizedBox(height: 15),
               DropdownButtonFormField<String>(
-                initialValue: _selectedPaymentMethod,
+                initialValue: _selectedPaymentMethod, 
                 decoration: InputDecoration(
                   labelText: "Método de Pago",
                   prefixIcon: const Icon(Icons.payment),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                   filled: true,
                   fillColor: Colors.grey[50],
                 ),
                 items: _paymentOptions.entries.map((entry) {
                   return DropdownMenuItem<String>(
-                    value: entry.value,
-                    /* CASH, DEBIT, CREDIT */
-                    child: Text(entry.key) /* Efectivo, Débito, Crédito */,
+                    value: entry.key,
+                    child: Text(entry.value),
                   );
                 }).toList(),
                 onChanged: (value) {
                   setState(() {
-                    _selectedPaymentMethod = value;
+                    _selectedPaymentMethod = value; 
                   });
                 },
-                validator: (value) =>
-                    value == null ? "Selecciona un método" : null,
+                validator: (value) => value == null ? "Selecciona un método" : null,
               ),
               const SizedBox(height: 15),
               _buildTextField(
@@ -237,46 +273,46 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
     );
   }
 
-Widget _buildTextField({
-  required TextEditingController controller,
-  required String label,
-  required IconData icon,
-  bool isRequired = true, // <--- Agregamos este parámetro con valor por defecto true
-  bool isNumeric = false,
-  String? Function(String?)? validator,
-  int maxLines = 1,
-  bool readOnly = false,
-  VoidCallback? onTap,
-}) {
-  return TextFormField(
-    controller: controller,
-    keyboardType: isNumeric 
-        ? const TextInputType.numberWithOptions(decimal: true) 
-        : TextInputType.text,
-    readOnly: readOnly,
-    onTap: onTap,
-    maxLines: maxLines,
-    // --- LÓGICA DE VALIDACIÓN ACTUALIZADA ---
-    validator: (value) {
-      if (!isRequired && (value == null || value.isEmpty)) return null;
-      if (isRequired && (value == null || value.isEmpty)) return "Campo requerido";
-      if (isNumeric && value != null && value.isNotEmpty) {
-        if (double.tryParse(value.replaceAll(',', '.')) == null) {
-          return "Ingresa un número válido";
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    bool isRequired = true,
+    bool isNumeric = false,
+    String? Function(String?)? validator,
+    int maxLines = 1,
+    bool readOnly = false,
+    VoidCallback? onTap,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: isNumeric
+          ? const TextInputType.numberWithOptions(decimal: true)
+          : TextInputType.text,
+      readOnly: readOnly,
+      onTap: onTap,
+      maxLines: maxLines,
+      validator: (value) {
+        if (!isRequired && (value == null || value.isEmpty)) return null;
+        if (isRequired && (value == null || value.isEmpty))
+          return "Campo requerido";
+        if (isNumeric && value != null && value.isNotEmpty) {
+          if (double.tryParse(value.replaceAll(',', '.')) == null) {
+            return "Ingresa un número válido";
+          }
         }
-      }
 
-      return validator?.call(value);
-    },
-    decoration: InputDecoration(
-      labelText: isRequired ? label : "$label (Opcional)",
-      prefixIcon: Icon(icon),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-      filled: true,
-      fillColor: Colors.grey[50],
-    ),
-  );
-}
+        return validator?.call(value);
+      },
+      decoration: InputDecoration(
+        labelText: isRequired ? label : "$label (Opcional)",
+        prefixIcon: Icon(icon),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        filled: true,
+        fillColor: Colors.grey[50],
+      ),
+    );
+  }
 
   Future<void> _selectPeriod(BuildContext context) async {
     final DateTime firstDate = DateTime(1900);

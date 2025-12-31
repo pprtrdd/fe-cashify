@@ -1,5 +1,5 @@
 class MovementEntity {
-  /* TODO: Add category field */
+  final String categoryId;
   final String description;
   final String source;
   final String quantity;
@@ -11,6 +11,7 @@ class MovementEntity {
   final String? notes;
 
   MovementEntity({
+    required this.categoryId,
     required this.description,
     required this.source,
     required this.quantity,
