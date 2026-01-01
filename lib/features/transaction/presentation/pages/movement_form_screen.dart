@@ -50,6 +50,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
 
     _periodController.text =
         "${_selectedDate.month.toString().padLeft(2, '0')}/${_selectedDate.year}";
+    _selectedPaymentMethod = _paymentOptions.keys.first;
     _currentInstallmentController.text = "1";
     _totalInstallmentsController.text = "1";
   }
