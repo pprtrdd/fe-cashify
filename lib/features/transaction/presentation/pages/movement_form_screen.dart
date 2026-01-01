@@ -71,40 +71,6 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
     super.dispose();
   }
 
-  void _save(BuildContext context) async {
-    if (_formKey.currentState!.validate()) {
-      final movement = MovementEntity(
-        categoryId: _selectedCategoryId!, // 'cat_01'
-        description: _descController.text,
-        source: _sourceController.text,
-        quantity: _qtyController.text,
-        amount: _amountController.text,
-        currentInstallment: _currentInstallmentController.text,
-        totalInstallments: _totalInstallmentsController.text,
-        paymentMethod: _selectedPaymentMethod ?? 'CASH',
-        billingPeriod: _periodController.text,
-        notes: _notesController.text.isNotEmpty ? _notesController.text : null,
-      );
-
-      await context.read<MovementProvider>().createMovement(movement);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Movimiento guardado con éxito')),
-        );
-        _formKey.currentState!.reset();
-      }
-
-      _formKey.currentState!.reset();
-      _currentInstallmentController.clear();
-      _totalInstallmentsController.clear();
-      setState(() {
-        _selectedCategoryId = null;
-        _selectedPaymentMethod = null;
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<MovementProvider>();
@@ -295,8 +261,9 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
       maxLines: maxLines,
       validator: (value) {
         if (!isRequired && (value == null || value.isEmpty)) return null;
-        if (isRequired && (value == null || value.isEmpty))
+        if (isRequired && (value == null || value.isEmpty)) {
           return "Campo requerido";
+        }
         if (isNumeric && value != null && value.isNotEmpty) {
           if (double.tryParse(value.replaceAll(',', '.')) == null) {
             return "Ingresa un número válido";
@@ -357,5 +324,39 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
         );
       },
     );
+  }
+
+  void _save(BuildContext context) async {
+    if (_formKey.currentState!.validate()) {
+      final movement = MovementEntity(
+        categoryId: _selectedCategoryId!, // 'cat_01'
+        description: _descController.text,
+        source: _sourceController.text,
+        quantity: _qtyController.text,
+        amount: _amountController.text,
+        currentInstallment: _currentInstallmentController.text,
+        totalInstallments: _totalInstallmentsController.text,
+        paymentMethod: _selectedPaymentMethod ?? 'CASH',
+        billingPeriod: _periodController.text,
+        notes: _notesController.text.isNotEmpty ? _notesController.text : null,
+      );
+
+      await context.read<MovementProvider>().createMovement(movement);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Movimiento guardado con éxito')),
+        );
+        _formKey.currentState!.reset();
+      }
+
+      _formKey.currentState!.reset();
+      _currentInstallmentController.clear();
+      _totalInstallmentsController.clear();
+      setState(() {
+        _selectedCategoryId = null;
+        _selectedPaymentMethod = null;
+      });
+    }
   }
 }
