@@ -1,3 +1,4 @@
+import 'package:cashify/core/auth/auth_service.dart';
 import 'package:cashify/features/transaction/domain/entities/category_entity.dart';
 import 'package:cashify/features/transaction/domain/entities/movement_entity.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
@@ -20,9 +21,24 @@ final Map<String, String> _paymentOptions = {
 };
 /* TODO: Get from DB */
 final List<CategoryEntity> _categories = [
-  CategoryEntity(id: 'cat_01', userId: 'user_123', name: 'Alimentación', isExpense: true),
-  CategoryEntity(id: 'cat_02', userId: 'user_123', name: 'Sueldo', isExpense: false),
-  CategoryEntity(id: 'cat_03', userId: 'user_123', name: 'Transporte', isExpense: true),
+  CategoryEntity(
+    id: 'cat_01',
+    userId: 'user_123',
+    name: 'Alimentación',
+    isExpense: true,
+  ),
+  CategoryEntity(
+    id: 'cat_02',
+    userId: 'user_123',
+    name: 'Sueldo',
+    isExpense: false,
+  ),
+  CategoryEntity(
+    id: 'cat_03',
+    userId: 'user_123',
+    name: 'Transporte',
+    isExpense: true,
+  ),
 ];
 final String currentUserId = "user_123";
 String? _selectedCategoryId;
@@ -76,7 +92,41 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
     final provider = context.watch<MovementProvider>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Nuevo Movimiento"), centerTitle: true),
+      appBar: AppBar(
+        title: const Text("Mis Movimientos"),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Cerrar Sesión',
+            onPressed: () async {
+              bool? confirm = await showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text("Cerrar Sesión"),
+                  content: const Text("¿Estás seguro de que quieres salir?"),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text("Cancelar"),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      child: const Text(
+                        "Salir",
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+
+              if (confirm == true) {
+                await AuthService().signOut();
+              }
+            },
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
         child: Form(
@@ -89,7 +139,9 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                 decoration: InputDecoration(
                   labelText: "Categoría",
                   prefixIcon: const Icon(Icons.category_outlined),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
                 items: _categories.map((cat) {
                   return DropdownMenuItem<String>(
@@ -97,7 +149,9 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                     child: Row(
                       children: [
                         Icon(
-                          cat.isExpense ? Icons.remove_circle_outline : Icons.add_circle_outline,
+                          cat.isExpense
+                              ? Icons.remove_circle_outline
+                              : Icons.add_circle_outline,
                           color: cat.isExpense ? Colors.red : Colors.green,
                           size: 18,
                         ),
@@ -107,8 +161,10 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                     ),
                   );
                 }).toList(),
-                onChanged: (value) => setState(() => _selectedCategoryId = value),
-                validator: (value) => value == null ? "Selecciona una categoría" : null,
+                onChanged: (value) =>
+                    setState(() => _selectedCategoryId = value),
+                validator: (value) =>
+                    value == null ? "Selecciona una categoría" : null,
               ),
               const SizedBox(height: 15),
               _buildTextField(
@@ -179,11 +235,13 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
               ),
               const SizedBox(height: 15),
               DropdownButtonFormField<String>(
-                initialValue: _selectedPaymentMethod, 
+                initialValue: _selectedPaymentMethod,
                 decoration: InputDecoration(
                   labelText: "Método de Pago",
                   prefixIcon: const Icon(Icons.payment),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                   filled: true,
                   fillColor: Colors.grey[50],
                 ),
@@ -195,10 +253,11 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                 }).toList(),
                 onChanged: (value) {
                   setState(() {
-                    _selectedPaymentMethod = value; 
+                    _selectedPaymentMethod = value;
                   });
                 },
-                validator: (value) => value == null ? "Selecciona un método" : null,
+                validator: (value) =>
+                    value == null ? "Selecciona un método" : null,
               ),
               const SizedBox(height: 15),
               _buildTextField(
@@ -329,7 +388,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
   void _save(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
       final movement = MovementEntity(
-        categoryId: _selectedCategoryId!, // 'cat_01'
+        categoryId: _selectedCategoryId!,
         description: _descController.text,
         source: _sourceController.text,
         quantity: _qtyController.text,
@@ -343,16 +402,16 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
 
       await context.read<MovementProvider>().createMovement(movement);
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Movimiento guardado con éxito')),
-        );
-        _formKey.currentState!.reset();
-      }
+      if (!context.mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Movimiento guardado con éxito')),
+      );
 
       _formKey.currentState!.reset();
       _currentInstallmentController.clear();
       _totalInstallmentsController.clear();
+
       setState(() {
         _selectedCategoryId = null;
         _selectedPaymentMethod = null;

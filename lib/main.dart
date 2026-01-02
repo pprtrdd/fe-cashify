@@ -1,9 +1,15 @@
-import 'package:cashify/features/transaction/presentation/pages/movement_form_screen.dart';
+import 'package:cashify/core/auth/auth_wrapper.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
+import 'package:cashify/firebase_options.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
   runApp(
     MultiProvider(
       providers: [ChangeNotifierProvider(create: (_) => MovementProvider())],
@@ -24,7 +30,7 @@ class MainApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MovementFormScreen(), // Asegúrate de que esta sea tu pantalla
+      home: const AuthWrapper(),
     );
   }
 }
