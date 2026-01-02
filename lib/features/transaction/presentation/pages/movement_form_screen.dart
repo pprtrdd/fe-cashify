@@ -1,5 +1,4 @@
 import 'package:cashify/core/auth/auth_service.dart';
-import 'package:cashify/features/transaction/domain/entities/category_entity.dart';
 import 'package:cashify/features/transaction/domain/entities/movement_entity.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
 import 'package:flutter/cupertino.dart';
@@ -19,27 +18,6 @@ final Map<String, String> _paymentOptions = {
   'DEBIT': 'Débito',
   'CREDIT': 'Crédito',
 };
-/* TODO: Get from DB */
-final List<CategoryEntity> _categories = [
-  CategoryEntity(
-    id: 'cat_01',
-    userId: 'user_123',
-    name: 'Alimentación',
-    isExpense: true,
-  ),
-  CategoryEntity(
-    id: 'cat_02',
-    userId: 'user_123',
-    name: 'Sueldo',
-    isExpense: false,
-  ),
-  CategoryEntity(
-    id: 'cat_03',
-    userId: 'user_123',
-    name: 'Transporte',
-    isExpense: true,
-  ),
-];
 final String currentUserId = "user_123";
 String? _selectedCategoryId;
 String? _selectedPaymentMethod;
@@ -63,6 +41,10 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
   @override
   void initState() {
     super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<MovementProvider>().loadCategories();
+    });
 
     _periodController.text =
         "${_selectedDate.month.toString().padLeft(2, '0')}/${_selectedDate.year}";
@@ -134,37 +116,57 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              DropdownButtonFormField<String>(
-                initialValue: _selectedCategoryId,
-                decoration: InputDecoration(
-                  labelText: "Categoría",
-                  prefixIcon: const Icon(Icons.category_outlined),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                items: _categories.map((cat) {
-                  return DropdownMenuItem<String>(
-                    value: cat.id,
-                    child: Row(
-                      children: [
-                        Icon(
-                          cat.isExpense
-                              ? Icons.remove_circle_outline
-                              : Icons.add_circle_outline,
-                          color: cat.isExpense ? Colors.red : Colors.green,
-                          size: 18,
-                        ),
-                        const SizedBox(width: 10),
-                        Text(cat.name),
-                      ],
+              Consumer<MovementProvider>(
+                builder: (context, provider, child) {
+                  return DropdownButtonFormField<String>(
+                    initialValue: _selectedCategoryId,
+                    decoration: InputDecoration(
+                      labelText: provider.isLoading
+                          ? "Cargando..."
+                          : "Categoría",
+                      prefixIcon: provider.isLoading
+                          ? const SizedBox(
+                              width: 10,
+                              height: 10,
+                              child: Padding(
+                                padding: EdgeInsets.all(12.0),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                            )
+                          : const Icon(Icons.category_outlined),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      filled: true, // Esto le da el fondo gris
+                      fillColor:
+                          Colors.grey[50], // El mismo tono que usaste abajo
                     ),
+                    items: provider.categories.map((cat) {
+                      return DropdownMenuItem<String>(
+                        value: cat.id,
+                        child: Row(
+                          children: [
+                            Icon(
+                              cat.isExpense
+                                  ? Icons.remove_circle_outline
+                                  : Icons.add_circle_outline,
+                              color: cat.isExpense ? Colors.red : Colors.green,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 10),
+                            Text(cat.name),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (value) =>
+                        setState(() => _selectedCategoryId = value),
+                    validator: (value) =>
+                        value == null ? "Selecciona una categoría" : null,
                   );
-                }).toList(),
-                onChanged: (value) =>
-                    setState(() => _selectedCategoryId = value),
-                validator: (value) =>
-                    value == null ? "Selecciona una categoría" : null,
+                },
               ),
               const SizedBox(height: 15),
               _buildTextField(

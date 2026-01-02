@@ -1,4 +1,5 @@
 import 'package:cashify/core/auth/auth_wrapper.dart';
+import 'package:cashify/features/transaction/domain/repositories/category_repository.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
 import 'package:cashify/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -7,15 +8,20 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
-  await dotenv.load(fileName: ".env");
-  
   WidgetsFlutterBinding.ensureInitialized();
 
+  await dotenv.load(fileName: ".env");
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  final categoryRepository = CategoryRepository();
 
   runApp(
     MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => MovementProvider())],
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => MovementProvider(repository: categoryRepository),
+        ),
+      ],
       child: const MainApp(),
     ),
   );
