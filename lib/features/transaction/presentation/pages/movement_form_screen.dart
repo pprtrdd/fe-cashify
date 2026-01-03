@@ -1,4 +1,3 @@
-import 'package:cashify/core/auth/auth_service.dart';
 import 'package:cashify/features/transaction/domain/entities/movement_entity.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
 import 'package:flutter/cupertino.dart';
@@ -68,39 +67,11 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Mis Movimientos"),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Cerrar Sesión',
-            onPressed: () async {
-              bool? confirm = await showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text("Cerrar Sesión"),
-                  content: const Text("¿Estás seguro de que quieres salir?"),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, false),
-                      child: const Text("Cancelar"),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, true),
-                      child: const Text(
-                        "Salir",
-                        style: TextStyle(color: Colors.red),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-
-              if (confirm == true) {
-                await AuthService().signOut();
-              }
-            },
-          ),
-        ],
+        title: const Text("Nuevo Movimiento"),
+        leading: IconButton(
+          icon: const Icon(Icons.close),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
@@ -133,8 +104,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                         borderRadius: BorderRadius.circular(10),
                       ),
                       filled: true,
-                      fillColor:
-                          Colors.grey[50],
+                      fillColor: Colors.grey[50],
                     ),
                     items: provider.categories.map((cat) {
                       return DropdownMenuItem<String>(
@@ -142,10 +112,12 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                         child: Row(
                           children: [
                             Icon(
-                              cat.isExpense
+                              cat.isExpense == true
                                   ? Icons.remove_circle_outline
                                   : Icons.add_circle_outline,
-                              color: cat.isExpense ? Colors.red : Colors.green,
+                              color: cat.isExpense == true
+                                  ? Colors.red
+                                  : Colors.green,
                               size: 18,
                             ),
                             const SizedBox(width: 10),
@@ -234,17 +206,21 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                   return DropdownButtonFormField<String>(
                     initialValue: _selectedPaymentMethod,
                     decoration: InputDecoration(
-                      labelText: provider.isLoading ? "Cargando..." : "Método de Pago",
-                      prefixIcon: provider.isLoading 
-                        ? const SizedBox(
-                            width: 10, 
-                            height: 10, 
-                            child: Padding(
-                              padding: EdgeInsets.all(12.0),
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            ),
-                          )
-                        : const Icon(Icons.payment),
+                      labelText: provider.isLoading
+                          ? "Cargando..."
+                          : "Método de Pago",
+                      prefixIcon: provider.isLoading
+                          ? const SizedBox(
+                              width: 10,
+                              height: 10,
+                              child: Padding(
+                                padding: EdgeInsets.all(12.0),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                            )
+                          : const Icon(Icons.payment),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -262,7 +238,8 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                         _selectedPaymentMethod = value;
                       });
                     },
-                    validator: (value) => value == null ? "Selecciona un método" : null,
+                    validator: (value) =>
+                        value == null ? "Selecciona un método" : null,
                   );
                 },
               ),
@@ -398,32 +375,46 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
         categoryId: _selectedCategory!,
         description: _descController.text,
         source: _sourceController.text,
-        quantity: int.parse(_qtyController.text),
-        amount: int.parse(_amountController.text),
-        currentInstallment: int.parse(_currentInstallmentController.text),
-        totalInstallments: int.parse(_totalInstallmentsController.text),
+        quantity: int.tryParse(_qtyController.text) ?? 0,
+        amount: int.tryParse(_amountController.text) ?? 0,
+        currentInstallment:
+            int.tryParse(_currentInstallmentController.text) ?? 0,
+        totalInstallments: int.tryParse(_totalInstallmentsController.text) ?? 0,
         paymentMethodId: _selectedPaymentMethod!,
         billingPeriodYear: _selectedDate.year,
         billingPeriodMonth: _selectedDate.month,
         notes: _notesController.text.isNotEmpty ? _notesController.text : null,
       );
 
-      await context.read<MovementProvider>().createMovement(movement);
+      try {
+        await context.read<MovementProvider>().createMovement(movement);
 
-      if (!context.mounted) return;
+        if (!context.mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Movimiento guardado con éxito')),
-      );
+        await context.read<MovementProvider>().loadMovementsByMonth();
 
-      _formKey.currentState!.reset();
-      _currentInstallmentController.clear();
-      _totalInstallmentsController.clear();
+        if (!context.mounted) return;
 
-      setState(() {
-        _selectedCategory = null;
-        _selectedPaymentMethod = null;
-      });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Movimiento guardado con éxito'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        Navigator.pop(context);
+      } catch (e) {
+        if (!context.mounted) return;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Error: ${e.toString().replaceAll('Exception: ', '')}',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 }
