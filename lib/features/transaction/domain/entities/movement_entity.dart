@@ -2,12 +2,13 @@ class MovementEntity {
   final String categoryId;
   final String description;
   final String source;
-  final String quantity;
-  final String amount;
-  final String currentInstallment;
-  final String totalInstallments;
+  final int quantity;
+  final int amount;
+  final int currentInstallment;
+  final int totalInstallments;
   final String paymentMethodId;
-  final String billingPeriod;
+  final int billingPeriodYear;
+  final int billingPeriodMonth;
   final String? notes;
 
   MovementEntity({
@@ -19,12 +20,13 @@ class MovementEntity {
     required this.currentInstallment,
     required this.totalInstallments,
     required this.paymentMethodId,
-    required this.billingPeriod,
+    required this.billingPeriodYear,
+    required this.billingPeriodMonth,
     this.notes,
   });
 
   @override
   String toString() {
-    return 'MovementEntity(categoryId: $categoryId, description: $description, source: $source, quantity: $quantity, amount: $amount, currentInstallment: $currentInstallment, totalInstallments: $totalInstallments, paymentMethodId: $paymentMethodId, billingPeriod: $billingPeriod, notes: $notes)';
+    return 'MovementEntity(categoryId: $categoryId, description: $description, source: $source, quantity: $quantity, amount: $amount, currentInstallment: $currentInstallment, totalInstallments: $totalInstallments, paymentMethodId: $paymentMethodId, billingPeriodYear: $billingPeriodYear, billingPeriodMonth: $billingPeriodMonth, notes: $notes)';
   }
 }

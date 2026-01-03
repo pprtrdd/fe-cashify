@@ -398,12 +398,13 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
         categoryId: _selectedCategory!,
         description: _descController.text,
         source: _sourceController.text,
-        quantity: _qtyController.text,
-        amount: _amountController.text,
-        currentInstallment: _currentInstallmentController.text,
-        totalInstallments: _totalInstallmentsController.text,
+        quantity: int.parse(_qtyController.text),
+        amount: int.parse(_amountController.text),
+        currentInstallment: int.parse(_currentInstallmentController.text),
+        totalInstallments: int.parse(_totalInstallmentsController.text),
         paymentMethodId: _selectedPaymentMethod!,
-        billingPeriod: _periodController.text,
+        billingPeriodYear: _selectedDate.year,
+        billingPeriodMonth: _selectedDate.month,
         notes: _notesController.text.isNotEmpty ? _notesController.text : null,
       );
 
