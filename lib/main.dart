@@ -1,6 +1,10 @@
 import 'package:cashify/core/auth/auth_wrapper.dart';
 import 'package:cashify/features/transaction/domain/repositories/category_repository.dart';
+import 'package:cashify/features/transaction/domain/repositories/movement_repository.dart';
 import 'package:cashify/features/transaction/domain/repositories/payment_method_repository.dart';
+import 'package:cashify/features/transaction/domain/usecases/category_usecases.dart';
+import 'package:cashify/features/transaction/domain/usecases/movement_usecases.dart';
+import 'package:cashify/features/transaction/domain/usecases/payment_method_usecases.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
 import 'package:cashify/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -19,8 +23,15 @@ void main() async {
       providers: [
         ChangeNotifierProvider(
           create: (_) => MovementProvider(
-            categoryRepository: CategoryRepository(),
-            paymentMethodRepository: PaymentMethodRepository(),
+            movementUseCase: MovementUseCase(
+              movementRepository: MovementRepository(),
+            ),
+            categoryUsecases: CategoryUsecases(
+              categoryRepository: CategoryRepository(),
+            ),
+            paymentMethodUsecases: PaymentMethodUsecases(
+              paymentMethodRepository: PaymentMethodRepository(),
+            ),
           ),
         ),
       ],
