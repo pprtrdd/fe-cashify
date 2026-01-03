@@ -12,14 +12,7 @@ class MovementFormScreen extends StatefulWidget {
   State<MovementFormScreen> createState() => _MovementFormScreenState();
 }
 
-/* TODO: Get from DB */
-final Map<String, String> _paymentOptions = {
-  'CASH': 'Efectivo',
-  'DEBIT': 'Débito',
-  'CREDIT': 'Crédito',
-};
-final String currentUserId = "user_123";
-String? _selectedCategoryId;
+String? _selectedCategory;
 String? _selectedPaymentMethod;
 
 class _MovementFormScreenState extends State<MovementFormScreen> {
@@ -44,11 +37,11 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<MovementProvider>().loadCategories();
+      context.read<MovementProvider>().loadPaymentMethods();
     });
 
     _periodController.text =
         "${_selectedDate.month.toString().padLeft(2, '0')}/${_selectedDate.year}";
-    _selectedPaymentMethod = _paymentOptions.keys.first;
     _currentInstallmentController.text = "1";
     _totalInstallmentsController.text = "1";
   }
@@ -119,7 +112,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
               Consumer<MovementProvider>(
                 builder: (context, provider, child) {
                   return DropdownButtonFormField<String>(
-                    initialValue: _selectedCategoryId,
+                    initialValue: _selectedCategory,
                     decoration: InputDecoration(
                       labelText: provider.isLoading
                           ? "Cargando..."
@@ -139,9 +132,9 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      filled: true, // Esto le da el fondo gris
+                      filled: true,
                       fillColor:
-                          Colors.grey[50], // El mismo tono que usaste abajo
+                          Colors.grey[50],
                     ),
                     items: provider.categories.map((cat) {
                       return DropdownMenuItem<String>(
@@ -162,7 +155,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                       );
                     }).toList(),
                     onChanged: (value) =>
-                        setState(() => _selectedCategoryId = value),
+                        setState(() => _selectedCategory = value),
                     validator: (value) =>
                         value == null ? "Selecciona una categoría" : null,
                   );
@@ -236,30 +229,42 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                 ],
               ),
               const SizedBox(height: 15),
-              DropdownButtonFormField<String>(
-                initialValue: _selectedPaymentMethod,
-                decoration: InputDecoration(
-                  labelText: "Método de Pago",
-                  prefixIcon: const Icon(Icons.payment),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  filled: true,
-                  fillColor: Colors.grey[50],
-                ),
-                items: _paymentOptions.entries.map((entry) {
-                  return DropdownMenuItem<String>(
-                    value: entry.key,
-                    child: Text(entry.value),
+              Consumer<MovementProvider>(
+                builder: (context, provider, child) {
+                  return DropdownButtonFormField<String>(
+                    initialValue: _selectedPaymentMethod,
+                    decoration: InputDecoration(
+                      labelText: provider.isLoading ? "Cargando..." : "Método de Pago",
+                      prefixIcon: provider.isLoading 
+                        ? const SizedBox(
+                            width: 10, 
+                            height: 10, 
+                            child: Padding(
+                              padding: EdgeInsets.all(12.0),
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          )
+                        : const Icon(Icons.payment),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey[50],
+                    ),
+                    items: provider.paymentMethods.map((method) {
+                      return DropdownMenuItem<String>(
+                        value: method.id,
+                        child: Text(method.name),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedPaymentMethod = value;
+                      });
+                    },
+                    validator: (value) => value == null ? "Selecciona un método" : null,
                   );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedPaymentMethod = value;
-                  });
                 },
-                validator: (value) =>
-                    value == null ? "Selecciona un método" : null,
               ),
               const SizedBox(height: 15),
               _buildTextField(
@@ -390,14 +395,14 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
   void _save(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
       final movement = MovementEntity(
-        categoryId: _selectedCategoryId!,
+        categoryId: _selectedCategory!,
         description: _descController.text,
         source: _sourceController.text,
         quantity: _qtyController.text,
         amount: _amountController.text,
         currentInstallment: _currentInstallmentController.text,
         totalInstallments: _totalInstallmentsController.text,
-        paymentMethod: _selectedPaymentMethod ?? 'CASH',
+        paymentMethodId: _selectedPaymentMethod!,
         billingPeriod: _periodController.text,
         notes: _notesController.text.isNotEmpty ? _notesController.text : null,
       );
@@ -415,7 +420,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
       _totalInstallmentsController.clear();
 
       setState(() {
-        _selectedCategoryId = null;
+        _selectedCategory = null;
         _selectedPaymentMethod = null;
       });
     }

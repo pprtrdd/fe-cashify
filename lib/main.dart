@@ -1,5 +1,6 @@
 import 'package:cashify/core/auth/auth_wrapper.dart';
 import 'package:cashify/features/transaction/domain/repositories/category_repository.dart';
+import 'package:cashify/features/transaction/domain/repositories/payment_method_repository.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
 import 'package:cashify/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -13,13 +14,14 @@ void main() async {
   await dotenv.load(fileName: ".env");
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  final categoryRepository = CategoryRepository();
-
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(
-          create: (_) => MovementProvider(repository: categoryRepository),
+          create: (_) => MovementProvider(
+            categoryRepository: CategoryRepository(),
+            paymentMethodRepository: PaymentMethodRepository(),
+          ),
         ),
       ],
       child: const MainApp(),
