@@ -1,11 +1,9 @@
-class CategoryEntity {
+class PaymentMethodEntity {
   final String id;
   final String name;
-  final bool isExpense;
 
-  CategoryEntity({
+  PaymentMethodEntity({
     required this.id,
     required this.name,
-    required this.isExpense,
   });
 }

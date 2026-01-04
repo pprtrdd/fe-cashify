@@ -1,5 +1,4 @@
 import 'package:cashify/core/auth/auth_service.dart';
-import 'package:cashify/features/transaction/domain/entities/category_entity.dart';
 import 'package:cashify/features/transaction/domain/entities/movement_entity.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
 import 'package:flutter/cupertino.dart';
@@ -13,35 +12,7 @@ class MovementFormScreen extends StatefulWidget {
   State<MovementFormScreen> createState() => _MovementFormScreenState();
 }
 
-/* TODO: Get from DB */
-final Map<String, String> _paymentOptions = {
-  'CASH': 'Efectivo',
-  'DEBIT': 'Débito',
-  'CREDIT': 'Crédito',
-};
-/* TODO: Get from DB */
-final List<CategoryEntity> _categories = [
-  CategoryEntity(
-    id: 'cat_01',
-    userId: 'user_123',
-    name: 'Alimentación',
-    isExpense: true,
-  ),
-  CategoryEntity(
-    id: 'cat_02',
-    userId: 'user_123',
-    name: 'Sueldo',
-    isExpense: false,
-  ),
-  CategoryEntity(
-    id: 'cat_03',
-    userId: 'user_123',
-    name: 'Transporte',
-    isExpense: true,
-  ),
-];
-final String currentUserId = "user_123";
-String? _selectedCategoryId;
+String? _selectedCategory;
 String? _selectedPaymentMethod;
 
 class _MovementFormScreenState extends State<MovementFormScreen> {
@@ -64,9 +35,13 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
   void initState() {
     super.initState();
 
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<MovementProvider>().loadCategories();
+      context.read<MovementProvider>().loadPaymentMethods();
+    });
+
     _periodController.text =
         "${_selectedDate.month.toString().padLeft(2, '0')}/${_selectedDate.year}";
-    _selectedPaymentMethod = _paymentOptions.keys.first;
     _currentInstallmentController.text = "1";
     _totalInstallmentsController.text = "1";
   }
@@ -134,37 +109,57 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              DropdownButtonFormField<String>(
-                initialValue: _selectedCategoryId,
-                decoration: InputDecoration(
-                  labelText: "Categoría",
-                  prefixIcon: const Icon(Icons.category_outlined),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                items: _categories.map((cat) {
-                  return DropdownMenuItem<String>(
-                    value: cat.id,
-                    child: Row(
-                      children: [
-                        Icon(
-                          cat.isExpense
-                              ? Icons.remove_circle_outline
-                              : Icons.add_circle_outline,
-                          color: cat.isExpense ? Colors.red : Colors.green,
-                          size: 18,
-                        ),
-                        const SizedBox(width: 10),
-                        Text(cat.name),
-                      ],
+              Consumer<MovementProvider>(
+                builder: (context, provider, child) {
+                  return DropdownButtonFormField<String>(
+                    initialValue: _selectedCategory,
+                    decoration: InputDecoration(
+                      labelText: provider.isLoading
+                          ? "Cargando..."
+                          : "Categoría",
+                      prefixIcon: provider.isLoading
+                          ? const SizedBox(
+                              width: 10,
+                              height: 10,
+                              child: Padding(
+                                padding: EdgeInsets.all(12.0),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                            )
+                          : const Icon(Icons.category_outlined),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      filled: true,
+                      fillColor:
+                          Colors.grey[50],
                     ),
+                    items: provider.categories.map((cat) {
+                      return DropdownMenuItem<String>(
+                        value: cat.id,
+                        child: Row(
+                          children: [
+                            Icon(
+                              cat.isExpense
+                                  ? Icons.remove_circle_outline
+                                  : Icons.add_circle_outline,
+                              color: cat.isExpense ? Colors.red : Colors.green,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 10),
+                            Text(cat.name),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (value) =>
+                        setState(() => _selectedCategory = value),
+                    validator: (value) =>
+                        value == null ? "Selecciona una categoría" : null,
                   );
-                }).toList(),
-                onChanged: (value) =>
-                    setState(() => _selectedCategoryId = value),
-                validator: (value) =>
-                    value == null ? "Selecciona una categoría" : null,
+                },
               ),
               const SizedBox(height: 15),
               _buildTextField(
@@ -234,30 +229,42 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                 ],
               ),
               const SizedBox(height: 15),
-              DropdownButtonFormField<String>(
-                initialValue: _selectedPaymentMethod,
-                decoration: InputDecoration(
-                  labelText: "Método de Pago",
-                  prefixIcon: const Icon(Icons.payment),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  filled: true,
-                  fillColor: Colors.grey[50],
-                ),
-                items: _paymentOptions.entries.map((entry) {
-                  return DropdownMenuItem<String>(
-                    value: entry.key,
-                    child: Text(entry.value),
+              Consumer<MovementProvider>(
+                builder: (context, provider, child) {
+                  return DropdownButtonFormField<String>(
+                    initialValue: _selectedPaymentMethod,
+                    decoration: InputDecoration(
+                      labelText: provider.isLoading ? "Cargando..." : "Método de Pago",
+                      prefixIcon: provider.isLoading 
+                        ? const SizedBox(
+                            width: 10, 
+                            height: 10, 
+                            child: Padding(
+                              padding: EdgeInsets.all(12.0),
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          )
+                        : const Icon(Icons.payment),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey[50],
+                    ),
+                    items: provider.paymentMethods.map((method) {
+                      return DropdownMenuItem<String>(
+                        value: method.id,
+                        child: Text(method.name),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedPaymentMethod = value;
+                      });
+                    },
+                    validator: (value) => value == null ? "Selecciona un método" : null,
                   );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedPaymentMethod = value;
-                  });
                 },
-                validator: (value) =>
-                    value == null ? "Selecciona un método" : null,
               ),
               const SizedBox(height: 15),
               _buildTextField(
@@ -388,15 +395,16 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
   void _save(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
       final movement = MovementEntity(
-        categoryId: _selectedCategoryId!,
+        categoryId: _selectedCategory!,
         description: _descController.text,
         source: _sourceController.text,
-        quantity: _qtyController.text,
-        amount: _amountController.text,
-        currentInstallment: _currentInstallmentController.text,
-        totalInstallments: _totalInstallmentsController.text,
-        paymentMethod: _selectedPaymentMethod ?? 'CASH',
-        billingPeriod: _periodController.text,
+        quantity: int.parse(_qtyController.text),
+        amount: int.parse(_amountController.text),
+        currentInstallment: int.parse(_currentInstallmentController.text),
+        totalInstallments: int.parse(_totalInstallmentsController.text),
+        paymentMethodId: _selectedPaymentMethod!,
+        billingPeriodYear: _selectedDate.year,
+        billingPeriodMonth: _selectedDate.month,
         notes: _notesController.text.isNotEmpty ? _notesController.text : null,
       );
 
@@ -413,7 +421,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
       _totalInstallmentsController.clear();
 
       setState(() {
-        _selectedCategoryId = null;
+        _selectedCategory = null;
         _selectedPaymentMethod = null;
       });
     }
