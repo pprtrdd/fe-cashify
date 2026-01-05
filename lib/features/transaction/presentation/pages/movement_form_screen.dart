@@ -1,9 +1,11 @@
+import 'package:cashify/features/transaction/presentation/widgets/category_dropdown_field.dart';
+import 'package:cashify/features/transaction/presentation/widgets/month_year_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import '../../domain/entities/movement_entity.dart';
 import '../providers/movement_provider.dart';
 import '../widgets/custom_text_field.dart';
+import '../widgets/save_button.dart';
 
 class MovementFormScreen extends StatefulWidget {
   const MovementFormScreen({super.key});
@@ -18,7 +20,6 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
   String? _selectedCategory;
   String? _selectedPaymentMethod;
 
-  // Controllers
   final _descController = TextEditingController();
   final _sourceController = TextEditingController();
   final _qtyController = TextEditingController();
@@ -33,9 +34,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
     super.initState();
     _initializeDefaults();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context
-          .read<MovementProvider>()
-          .loadAllData(); // Cargamos todo de una vez
+      context.read<MovementProvider>().loadAllData();
     });
   }
 
@@ -83,7 +82,11 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _buildCategoryDropdown(provider),
+                  CategoryDropdownField(
+                    value: _selectedCategory,
+                    provider: provider,
+                    onChanged: (val) => setState(() => _selectedCategory = val),
+                  ),
                   const SizedBox(height: 15),
                   CustomTextField(
                     controller: _descController,
@@ -93,7 +96,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                   const SizedBox(height: 15),
                   CustomTextField(
                     controller: _sourceController,
-                    label: "Origen / Fuente",
+                    label: "Origen",
                     icon: Icons.source,
                     isRequired: false,
                   ),
@@ -153,10 +156,22 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                     ],
                   ),
                   const SizedBox(height: 15),
-
-                  _buildPaymentMethodDropdown(provider),
+                  DropdownButtonFormField<String>(
+                    initialValue: _selectedPaymentMethod,
+                    decoration: _inputStyle("Método de Pago", Icons.payment),
+                    items: provider.paymentMethods
+                        .map(
+                          (m) => DropdownMenuItem(
+                            value: m.id,
+                            child: Text(m.name),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (val) =>
+                        setState(() => _selectedPaymentMethod = val),
+                    validator: (v) => v == null ? "Requerido" : null,
+                  ),
                   const SizedBox(height: 15),
-
                   CustomTextField(
                     controller: _periodController,
                     label: "Período",
@@ -165,7 +180,6 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                     onTap: () => _selectPeriod(context),
                   ),
                   const SizedBox(height: 15),
-
                   CustomTextField(
                     controller: _notesController,
                     label: "Notas",
@@ -174,17 +188,10 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                     isRequired: false,
                   ),
                   const SizedBox(height: 30),
-
-                  provider.isLoading
-                      ? const Center(child: CircularProgressIndicator())
-                      : ElevatedButton.icon(
-                          onPressed: () => _save(context),
-                          icon: const Icon(Icons.save),
-                          label: const Text("Guardar Movimiento"),
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 15),
-                          ),
-                        ),
+                  SaveButton(
+                    isLoading: provider.isLoading,
+                    onPressed: () => _save(context),
+                  ),
                 ],
               ),
             ),
@@ -194,127 +201,32 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
     );
   }
 
-  Widget _buildCategoryDropdown(MovementProvider provider) {
-    return DropdownButtonFormField<String>(
-      initialValue: _selectedCategory,
-      decoration: InputDecoration(
-        labelText: provider.isLoading ? "Cargando..." : "Categoría",
-        prefixIcon: provider.isLoading
-            ? const SizedBox(
-                width: 10,
-                height: 10,
-                child: Padding(
-                  padding: EdgeInsets.all(12.0),
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              )
-            : const Icon(Icons.category_outlined),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-        filled: true,
-        fillColor: Colors.grey[50],
-      ),
-      items: provider.categories.map((cat) {
-        return DropdownMenuItem<String>(
-          value: cat.id,
-          child: Row(
-            children: [
-              Icon(
-                cat.isExpense == true
-                    ? Icons.remove_circle_outline
-                    : Icons.add_circle_outline,
-                color: cat.isExpense == true ? Colors.red : Colors.green,
-                size: 18,
-              ),
-              const SizedBox(width: 10),
-              Text(cat.name),
-            ],
-          ),
-        );
-      }).toList(),
-      onChanged: (value) => setState(() => _selectedCategory = value),
-      validator: (value) => value == null ? "Selecciona una categoría" : null,
-    );
-  }
-
-  Widget _buildPaymentMethodDropdown(MovementProvider provider) {
-    return Consumer<MovementProvider>(
-      builder: (context, provider, child) {
-        return DropdownButtonFormField<String>(
-          initialValue: _selectedPaymentMethod,
-          decoration: InputDecoration(
-            labelText: provider.isLoading ? "Cargando..." : "Método de Pago",
-            prefixIcon: provider.isLoading
-                ? const SizedBox(
-                    width: 10,
-                    height: 10,
-                    child: Padding(
-                      padding: EdgeInsets.all(12.0),
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                  )
-                : const Icon(Icons.payment),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-            filled: true,
-            fillColor: Colors.grey[50],
-          ),
-          items: provider.paymentMethods.map((method) {
-            return DropdownMenuItem<String>(
-              value: method.id,
-              child: Text(method.name),
-            );
-          }).toList(),
-          onChanged: (value) {
-            setState(() {
-              _selectedPaymentMethod = value;
-            });
-          },
-          validator: (value) => value == null ? "Selecciona un método" : null,
-        );
-      },
+  InputDecoration _inputStyle(String label, IconData icon) {
+    return InputDecoration(
+      labelText: label,
+      prefixIcon: Icon(icon),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+      filled: true,
+      fillColor: Colors.grey[50],
     );
   }
 
   Future<void> _selectPeriod(BuildContext context) async {
-    final DateTime firstDate = DateTime(1900);
-    final DateTime lastDate = DateTime(2100);
-
     showModalBottomSheet(
       context: context,
-      builder: (BuildContext builder) {
-        return Container(
-          height: MediaQuery.of(context).size.height / 3,
-          color: Colors.white,
-          child: Column(
-            children: [
-              Container(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text(
-                    "Aceptar",
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: CupertinoDatePicker(
-                  mode: CupertinoDatePickerMode.monthYear,
-                  initialDateTime: _selectedDate,
-                  minimumDate: firstDate,
-                  maximumDate: lastDate,
-                  onDateTimeChanged: (DateTime newDate) {
-                    setState(() {
-                      _selectedDate = newDate;
-                      _periodController.text =
-                          "${newDate.month.toString().padLeft(2, '0')}/${newDate.year}";
-                    });
-                  },
-                ),
-              ),
-            ],
-          ),
-        );
-      },
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => MonthYearPickerSheet(
+        initialDate: _selectedDate,
+        onDateChanged: (DateTime newDate) {
+          setState(() {
+            _selectedDate = newDate;
+            _periodController.text =
+                "${newDate.month.toString().padLeft(2, '0')}/${newDate.year}";
+          });
+        },
+      ),
     );
   }
 
