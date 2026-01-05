@@ -1,6 +1,9 @@
 import 'package:cashify/core/auth/auth_service.dart';
 import 'package:cashify/features/transaction/presentation/pages/movement_form_screen.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
+import 'package:cashify/features/transaction/presentation/widgets/category_table.dart';
+import 'package:cashify/features/transaction/presentation/widgets/mini_info_card.dart';
+import 'package:cashify/features/transaction/presentation/widgets/summary_card.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -65,69 +68,60 @@ class _DashboardScreenState extends State<DashboardScreen> {
           }
 
           return RefreshIndicator(
-            onRefresh: () => provider.loadMovementsByMonth(),
+            onRefresh: () => provider.loadAllData(),
             child: ListView(
               padding: const EdgeInsets.all(16.0),
               children: [
-                _buildSummaryCard("TOTAL REAL", provider.realTotal),
+                SummaryCard(title: "TOTAL REAL", total: provider.realTotal),
                 const SizedBox(height: 24),
 
-                const Text(
-                  "MOVIMIENTOS PLANIFICADOS",
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 10),
+                _buildSectionHeader("MOVIMIENTOS PLANIFICADOS"),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
                       flex: 2,
-                      child: _buildCategoryTable(provider.plannedGrouped),
+                      child: CategoryTable(
+                        groupedData: provider.plannedGrouped,
+                      ),
                     ),
                     const SizedBox(width: 20),
                     Expanded(
                       flex: 1,
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 40),
-                        child: _buildSmallPlannedCard(provider.plannedTotal),
+                      child: MiniInfoCard(
+                        label: "Planificado",
+                        amount: provider.plannedTotal,
+                        color: Colors.blueGrey,
                       ),
                     ),
                   ],
                 ),
+
                 if (provider.hasExtraCategories) ...[
                   const Divider(height: 50, thickness: 1),
-                  const Text(
-                    "MOVIMIENTOS EXTRAS",
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
+                  _buildSectionHeader("MOVIMIENTOS EXTRAS"),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
                         flex: 2,
-                        child: _buildCategoryTable(provider.extraGrouped),
+                        child: CategoryTable(
+                          groupedData: provider.extraGrouped,
+                        ),
                       ),
                       const SizedBox(width: 20),
                       Expanded(
                         flex: 1,
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 40),
-                          child: _buildSmallExtraCard(provider.totalExtra),
+                        child: MiniInfoCard(
+                          label: "Total Extras",
+                          amount: provider.totalExtra,
+                          color: Colors.orange,
                         ),
                       ),
                     ],
                   ),
                 ],
-                const SizedBox(height: 100),
+                const SizedBox(height: 80),
               ],
             ),
           );
@@ -146,155 +140,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildSummaryCard(String title, int total) {
-    final bool isNegative = total < 0;
-
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: isNegative
-                ? [Colors.red.shade700, Colors.red.shade400]
-                : [Colors.green.shade700, Colors.green.shade400],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(15),
-        ),
-        child: Column(
-          children: [
-            Text(
-              title,
-              style: const TextStyle(color: Colors.white70, fontSize: 16),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              "${isNegative ? '- ' : '+ '}\$${total.abs()}",
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 36,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCategoryTable(Map<String, int> groupedData) {
-    return Column(
-      children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(vertical: 8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "Item",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey,
-                ),
-              ),
-              Text(
-                "Monto",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const Divider(height: 1),
-        ...groupedData.entries.map((entry) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(entry.key, style: const TextStyle(fontSize: 14)),
-                Text(
-                  "${entry.value < 0 ? '-' : '+'} \$${entry.value.abs()}",
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: entry.value < 0
-                        ? Colors.red.shade700
-                        : Colors.green.shade700,
-                  ),
-                ),
-              ],
-            ),
-          );
-        }),
-      ],
-    );
-  }
-
-  Widget _buildSmallPlannedCard(int amount) {
-    final bool isNegative = amount < 0;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-      decoration: BoxDecoration(
-        color: Colors.grey.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Text(
-            "Planificado",
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: Colors.blueGrey,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            "${isNegative ? '-' : '+'} \$${amount.abs()}",
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: isNegative ? Colors.red.shade700 : Colors.green.shade700,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSmallExtraCard(int amount) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-      decoration: BoxDecoration(
-        color: Colors.orange.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.orange.withValues(alpha: 0.15)),
-      ),
-      child: Column(
-        children: [
-          const Text(
-            "Total Extras",
-            style: TextStyle(fontSize: 12, color: Colors.orange),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            "\$${amount.abs()}",
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: amount < 0 ? Colors.red : Colors.green.shade700,
-            ),
-          ),
-        ],
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Text(
+        title,
+        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
       ),
     );
   }
