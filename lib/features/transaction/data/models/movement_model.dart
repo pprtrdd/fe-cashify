@@ -32,7 +32,7 @@ class MovementModel extends MovementEntity {
     );
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> toFirestore() {
     return {  
       'categoryId': categoryId,
       'description': description,
