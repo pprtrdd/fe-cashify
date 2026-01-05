@@ -6,7 +6,7 @@ class MovementRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  Future<void> saveMovement(MovementEntity movement) async {
+  Future<void> save(MovementEntity movement) async {
     final user = _auth.currentUser;
 
     try {
@@ -30,6 +30,45 @@ class MovementRepository {
             'notes': movement.notes,
             'createdAt': FieldValue.serverTimestamp(),
           });
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<List<MovementEntity>> fetchByMonth(int year, int month) async {
+    final user = _auth.currentUser;
+
+    if (user == null) return [];
+
+    try {
+      final snapshot = await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('movements')
+          .where('billingPeriodYear', isEqualTo: 2026)
+          .where('billingPeriodMonth', isEqualTo: 1)
+          .orderBy('createdAt', descending: true)
+          .get();
+
+      return snapshot.docs.map((doc) {
+        final data = doc.data();
+
+        return MovementEntity(
+          categoryId: data['categoryId'] ?? '',
+          description: data['description'] ?? '',
+          source: data['source'] ?? '',
+          quantity: (data['quantity'] as num?)?.toInt() ?? 0,
+          amount: (data['amount'] as num?)?.toInt() ?? 0,
+          currentInstallment:
+              (data['currentInstallment'] as num?)?.toInt() ?? 0,
+          totalInstallments: (data['totalInstallments'] as num?)?.toInt() ?? 0,
+          paymentMethodId: data['paymentMethodId'] ?? '',
+          billingPeriodYear: (data['billingPeriodYear'] as num?)?.toInt() ?? 0,
+          billingPeriodMonth:
+              (data['billingPeriodMonth'] as num?)?.toInt() ?? 0,
+          notes: data['notes'],
+        );
+      }).toList();
     } catch (e) {
       rethrow;
     }

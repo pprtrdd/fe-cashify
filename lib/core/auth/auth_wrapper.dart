@@ -1,5 +1,5 @@
 import 'package:cashify/features/auth/presentation/login_screen.dart';
-import 'package:cashify/features/transaction/presentation/pages/movement_form_screen.dart';
+import 'package:cashify/features/transaction/presentation/pages/dashboard_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'auth_service.dart';
@@ -18,7 +18,7 @@ class AuthWrapper extends StatelessWidget {
           );
         }
         if (snapshot.hasData) {
-          return const MovementFormScreen();
+          return const DashboardScreen();
         }
         return const LoginScreen();
       },

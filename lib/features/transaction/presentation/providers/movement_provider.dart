@@ -14,6 +14,8 @@ class MovementProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   List<CategoryEntity> _categories = [];
   List<CategoryEntity> get categories => _categories;
+  List<MovementEntity> _movements = [];
+  List<MovementEntity> get movements => _movements;
   List<PaymentMethodEntity> _paymentMethods = [];
   List<PaymentMethodEntity> get paymentMethods => _paymentMethods;
 
@@ -52,13 +54,31 @@ class MovementProvider extends ChangeNotifier {
   }
 
   Future<void> createMovement(MovementEntity movement) async {
-    _isLoading = true;
-    notifyListeners();
-
     try {
+      _isLoading = true;
+      notifyListeners();
       await movementUseCase.add(movement);
     } catch (e) {
-      /* Handle errors */
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> loadMovementsByMonth() async {
+    try {
+      _isLoading = true;
+      notifyListeners();
+
+      final result = await movementUseCase.fetchByMonth(
+        DateTime.now().year,
+        DateTime.now().month,
+      );
+
+      _movements = result;
+    } catch (e) {
+      _movements = [];
     } finally {
       _isLoading = false;
       notifyListeners();

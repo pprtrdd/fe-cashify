@@ -22,6 +22,10 @@ class MovementUseCase {
       throw Exception("Movimiento inválido");
     }
 
-    return await movementRepository.saveMovement(movement);
+    return await movementRepository.save(movement);
+  }
+
+  Future<List<MovementEntity>> fetchByMonth(int year, int month) async {
+    return await movementRepository.fetchByMonth(year, month);
   }
 }
