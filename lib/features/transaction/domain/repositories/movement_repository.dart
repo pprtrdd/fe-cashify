@@ -1,3 +1,4 @@
+import 'package:cashify/features/transaction/data/models/movement_model.dart';
 import 'package:cashify/features/transaction/domain/entities/movement_entity.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -16,20 +17,21 @@ class MovementRepository {
           .collection('users')
           .doc(user.uid)
           .collection('movements')
-          .add({
-            'categoryId': movement.categoryId,
-            'description': movement.description,
-            'source': movement.source,
-            'quantity': movement.quantity,
-            'amount': movement.amount,
-            'currentInstallment': movement.currentInstallment,
-            'totalInstallments': movement.totalInstallments,
-            'paymentMethodId': movement.paymentMethodId,
-            'billingPeriodYear': movement.billingPeriodYear,
-            'billingPeriodMonth': movement.billingPeriodMonth,
-            'notes': movement.notes,
-            'createdAt': FieldValue.serverTimestamp(),
-          });
+          .add(
+            MovementModel(
+              categoryId: movement.categoryId,
+              description: movement.description,
+              source: movement.source,
+              quantity: movement.quantity,
+              amount: movement.amount,
+              currentInstallment: movement.currentInstallment,
+              totalInstallments: movement.totalInstallments,
+              paymentMethodId: movement.paymentMethodId,
+              billingPeriodMonth: movement.billingPeriodMonth,
+              billingPeriodYear: movement.billingPeriodYear,
+              notes: movement.notes,
+            ).toJson(),
+          );
     } catch (e) {
       rethrow;
     }
@@ -45,29 +47,13 @@ class MovementRepository {
           .collection('users')
           .doc(user.uid)
           .collection('movements')
-          .where('billingPeriodYear', isEqualTo: 2026)
-          .where('billingPeriodMonth', isEqualTo: 1)
+          .where('billingPeriodMonth', isEqualTo: month)
+          .where('billingPeriodYear', isEqualTo: year)
           .orderBy('createdAt', descending: true)
           .get();
 
       return snapshot.docs.map((doc) {
-        final data = doc.data();
-
-        return MovementEntity(
-          categoryId: data['categoryId'] ?? '',
-          description: data['description'] ?? '',
-          source: data['source'] ?? '',
-          quantity: (data['quantity'] as num?)?.toInt() ?? 0,
-          amount: (data['amount'] as num?)?.toInt() ?? 0,
-          currentInstallment:
-              (data['currentInstallment'] as num?)?.toInt() ?? 0,
-          totalInstallments: (data['totalInstallments'] as num?)?.toInt() ?? 0,
-          paymentMethodId: data['paymentMethodId'] ?? '',
-          billingPeriodYear: (data['billingPeriodYear'] as num?)?.toInt() ?? 0,
-          billingPeriodMonth:
-              (data['billingPeriodMonth'] as num?)?.toInt() ?? 0,
-          notes: data['notes'],
-        );
+        return MovementModel.fromFirestore(doc.data(), doc.id);
       }).toList();
     } catch (e) {
       rethrow;

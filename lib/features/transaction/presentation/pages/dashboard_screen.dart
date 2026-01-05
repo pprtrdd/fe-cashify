@@ -104,8 +104,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         child: ListTile(
                           leading: CircleAvatar(
                             backgroundColor: isExpense
-                                ? Colors.red.withOpacity(0.1)
-                                : Colors.green.withOpacity(0.1),
+                                ? Colors.red.withValues(alpha: 0.1)
+                                : Colors.green.withValues(alpha: 0.1),
                             child: Icon(
                               isExpense
                                   ? Icons.arrow_downward
