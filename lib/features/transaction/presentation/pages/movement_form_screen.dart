@@ -1,8 +1,9 @@
-import 'package:cashify/features/transaction/domain/entities/movement_entity.dart';
-import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
+import '../../domain/entities/movement_entity.dart';
+import '../providers/movement_provider.dart';
+import '../widgets/custom_text_field.dart';
 
 class MovementFormScreen extends StatefulWidget {
   const MovementFormScreen({super.key});
@@ -11,60 +12,60 @@ class MovementFormScreen extends StatefulWidget {
   State<MovementFormScreen> createState() => _MovementFormScreenState();
 }
 
-String? _selectedCategory;
-String? _selectedPaymentMethod;
-
 class _MovementFormScreenState extends State<MovementFormScreen> {
-  DateTime _selectedDate = DateTime.now();
-
   final _formKey = GlobalKey<FormState>();
+  DateTime _selectedDate = DateTime.now();
+  String? _selectedCategory;
+  String? _selectedPaymentMethod;
 
-  final _categoryController = TextEditingController();
+  // Controllers
   final _descController = TextEditingController();
   final _sourceController = TextEditingController();
   final _qtyController = TextEditingController();
   final _amountController = TextEditingController();
   final _currentInstallmentController = TextEditingController();
   final _totalInstallmentsController = TextEditingController();
-  final _methodController = TextEditingController();
   final _periodController = TextEditingController();
   final _notesController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-
+    _initializeDefaults();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<MovementProvider>().loadCategories();
-      context.read<MovementProvider>().loadPaymentMethods();
+      context
+          .read<MovementProvider>()
+          .loadAllData(); // Cargamos todo de una vez
     });
+  }
 
+  void _initializeDefaults() {
     _periodController.text =
         "${_selectedDate.month.toString().padLeft(2, '0')}/${_selectedDate.year}";
     _currentInstallmentController.text = "1";
     _totalInstallmentsController.text = "1";
+    _qtyController.text = "1";
   }
 
   @override
   void dispose() {
-    _categoryController.dispose();
-    _descController.dispose();
-    _sourceController.dispose();
-    _qtyController.dispose();
-    _amountController.dispose();
-    _currentInstallmentController.dispose();
-    _totalInstallmentsController.dispose();
-    _methodController.dispose();
-    _periodController.dispose();
-    _notesController.dispose();
-
+    for (var c in [
+      _descController,
+      _sourceController,
+      _qtyController,
+      _amountController,
+      _currentInstallmentController,
+      _totalInstallmentsController,
+      _periodController,
+      _notesController,
+    ]) {
+      c.dispose();
+    }
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<MovementProvider>();
-
     return Scaffold(
       appBar: AppBar(
         title: const Text("Nuevo Movimiento"),
@@ -73,255 +74,203 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Consumer<MovementProvider>(
-                builder: (context, provider, child) {
-                  return DropdownButtonFormField<String>(
-                    initialValue: _selectedCategory,
-                    decoration: InputDecoration(
-                      labelText: provider.isLoading
-                          ? "Cargando..."
-                          : "Categoría",
-                      prefixIcon: provider.isLoading
-                          ? const SizedBox(
-                              width: 10,
-                              height: 10,
-                              child: Padding(
-                                padding: EdgeInsets.all(12.0),
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              ),
-                            )
-                          : const Icon(Icons.category_outlined),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey[50],
-                    ),
-                    items: provider.categories.map((cat) {
-                      return DropdownMenuItem<String>(
-                        value: cat.id,
-                        child: Row(
-                          children: [
-                            Icon(
-                              cat.isExpense == true
-                                  ? Icons.remove_circle_outline
-                                  : Icons.add_circle_outline,
-                              color: cat.isExpense == true
-                                  ? Colors.red
-                                  : Colors.green,
-                              size: 18,
-                            ),
-                            const SizedBox(width: 10),
-                            Text(cat.name),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (value) =>
-                        setState(() => _selectedCategory = value),
-                    validator: (value) =>
-                        value == null ? "Selecciona una categoría" : null,
-                  );
-                },
-              ),
-              const SizedBox(height: 15),
-              _buildTextField(
-                controller: _descController,
-                label: "Descripción",
-                icon: Icons.description,
-                validator: (value) => value!.isEmpty ? "Requerido" : null,
-              ),
-              const SizedBox(height: 15),
-              _buildTextField(
-                controller: _sourceController,
-                label: "Origen / Fuente",
-                icon: Icons.source,
-              ),
-              const SizedBox(height: 15),
-              Row(
+      body: Consumer<MovementProvider>(
+        builder: (context, provider, child) {
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(20.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Expanded(
-                    child: _buildTextField(
-                      controller: _qtyController,
-                      label: "Cantidad",
-                      icon: Icons.production_quantity_limits,
-                      isNumeric: true,
-                    ),
+                  _buildCategoryDropdown(provider),
+                  const SizedBox(height: 15),
+                  CustomTextField(
+                    controller: _descController,
+                    label: "Descripción",
+                    icon: Icons.description,
                   ),
-                  const SizedBox(width: 15),
-                  Expanded(
-                    child: _buildTextField(
-                      controller: _amountController,
-                      label: "Monto",
-                      icon: Icons.attach_money,
-                      isNumeric: true,
-                      validator: (value) => value!.isEmpty ? "Requerido" : null,
-                    ),
+                  const SizedBox(height: 15),
+                  CustomTextField(
+                    controller: _sourceController,
+                    label: "Origen / Fuente",
+                    icon: Icons.source,
+                    isRequired: false,
                   ),
-                ],
-              ),
-              const SizedBox(height: 15),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildTextField(
-                      controller: _currentInstallmentController,
-                      label: "Cuota",
-                      icon: Icons.tag,
-                      isNumeric: true,
-                    ),
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 8.0),
-                    child: Text(
-                      "/",
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: _buildTextField(
-                      controller: _totalInstallmentsController,
-                      label: "Total Cuotas",
-                      icon: Icons.layers,
-                      isNumeric: true,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 15),
-              Consumer<MovementProvider>(
-                builder: (context, provider, child) {
-                  return DropdownButtonFormField<String>(
-                    initialValue: _selectedPaymentMethod,
-                    decoration: InputDecoration(
-                      labelText: provider.isLoading
-                          ? "Cargando..."
-                          : "Método de Pago",
-                      prefixIcon: provider.isLoading
-                          ? const SizedBox(
-                              width: 10,
-                              height: 10,
-                              child: Padding(
-                                padding: EdgeInsets.all(12.0),
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              ),
-                            )
-                          : const Icon(Icons.payment),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey[50],
-                    ),
-                    items: provider.paymentMethods.map((method) {
-                      return DropdownMenuItem<String>(
-                        value: method.id,
-                        child: Text(method.name),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedPaymentMethod = value;
-                      });
-                    },
-                    validator: (value) =>
-                        value == null ? "Selecciona un método" : null,
-                  );
-                },
-              ),
-              const SizedBox(height: 15),
-              _buildTextField(
-                controller: _periodController,
-                label: "Período de Facturación (Mes/Año)",
-                icon: Icons.calendar_today,
-                readOnly: true,
-                onTap: () => _selectPeriod(context),
-                validator: (value) =>
-                    value!.isEmpty ? "Selecciona un período" : null,
-              ),
-              const SizedBox(height: 15),
-              _buildTextField(
-                controller: _notesController,
-                label: "Notas",
-                icon: Icons.note_add,
-                maxLines: 3,
-                isRequired: false,
-              ),
-              const SizedBox(height: 30),
+                  const SizedBox(height: 15),
 
-              provider.isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : ElevatedButton.icon(
-                      onPressed: () => _save(context),
-                      icon: const Icon(Icons.save),
-                      label: const Text("Guardar Movimiento"),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 15),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: CustomTextField(
+                          controller: _qtyController,
+                          label: "Cant.",
+                          icon: Icons.shopping_basket,
+                          isNumeric: true,
                         ),
                       ),
-                    ),
-            ],
-          ),
-        ),
+                      const SizedBox(width: 15),
+                      Expanded(
+                        child: CustomTextField(
+                          controller: _amountController,
+                          label: "Monto",
+                          icon: Icons.attach_money,
+                          isNumeric: true,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 15),
+
+                  Row(
+                    children: [
+                      Expanded(
+                        child: CustomTextField(
+                          controller: _currentInstallmentController,
+                          label: "Cuota",
+                          icon: Icons.tag,
+                          isNumeric: true,
+                        ),
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 8),
+                        child: Text(
+                          "/",
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: CustomTextField(
+                          controller: _totalInstallmentsController,
+                          label: "Total",
+                          icon: Icons.layers,
+                          isNumeric: true,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 15),
+
+                  _buildPaymentMethodDropdown(provider),
+                  const SizedBox(height: 15),
+
+                  CustomTextField(
+                    controller: _periodController,
+                    label: "Período",
+                    icon: Icons.calendar_today,
+                    readOnly: true,
+                    onTap: () => _selectPeriod(context),
+                  ),
+                  const SizedBox(height: 15),
+
+                  CustomTextField(
+                    controller: _notesController,
+                    label: "Notas",
+                    icon: Icons.note_add,
+                    maxLines: 3,
+                    isRequired: false,
+                  ),
+                  const SizedBox(height: 30),
+
+                  provider.isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : ElevatedButton.icon(
+                          onPressed: () => _save(context),
+                          icon: const Icon(Icons.save),
+                          label: const Text("Guardar Movimiento"),
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 15),
+                          ),
+                        ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String label,
-    required IconData icon,
-    bool isRequired = true,
-    bool isNumeric = false,
-    String? Function(String?)? validator,
-    int maxLines = 1,
-    bool readOnly = false,
-    VoidCallback? onTap,
-  }) {
-    return TextFormField(
-      controller: controller,
-      keyboardType: isNumeric
-          ? const TextInputType.numberWithOptions(decimal: true)
-          : TextInputType.text,
-      readOnly: readOnly,
-      onTap: onTap,
-      maxLines: maxLines,
-      validator: (value) {
-        if (!isRequired && (value == null || value.isEmpty)) return null;
-        if (isRequired && (value == null || value.isEmpty)) {
-          return "Campo requerido";
-        }
-        if (isNumeric && value != null && value.isNotEmpty) {
-          if (double.tryParse(value.replaceAll(',', '.')) == null) {
-            return "Ingresa un número válido";
-          }
-        }
-
-        return validator?.call(value);
-      },
+  Widget _buildCategoryDropdown(MovementProvider provider) {
+    return DropdownButtonFormField<String>(
+      initialValue: _selectedCategory,
       decoration: InputDecoration(
-        labelText: isRequired ? label : "$label (Opcional)",
-        prefixIcon: Icon(icon),
+        labelText: provider.isLoading ? "Cargando..." : "Categoría",
+        prefixIcon: provider.isLoading
+            ? const SizedBox(
+                width: 10,
+                height: 10,
+                child: Padding(
+                  padding: EdgeInsets.all(12.0),
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              )
+            : const Icon(Icons.category_outlined),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
         filled: true,
         fillColor: Colors.grey[50],
       ),
+      items: provider.categories.map((cat) {
+        return DropdownMenuItem<String>(
+          value: cat.id,
+          child: Row(
+            children: [
+              Icon(
+                cat.isExpense == true
+                    ? Icons.remove_circle_outline
+                    : Icons.add_circle_outline,
+                color: cat.isExpense == true ? Colors.red : Colors.green,
+                size: 18,
+              ),
+              const SizedBox(width: 10),
+              Text(cat.name),
+            ],
+          ),
+        );
+      }).toList(),
+      onChanged: (value) => setState(() => _selectedCategory = value),
+      validator: (value) => value == null ? "Selecciona una categoría" : null,
+    );
+  }
+
+  Widget _buildPaymentMethodDropdown(MovementProvider provider) {
+    return Consumer<MovementProvider>(
+      builder: (context, provider, child) {
+        return DropdownButtonFormField<String>(
+          initialValue: _selectedPaymentMethod,
+          decoration: InputDecoration(
+            labelText: provider.isLoading ? "Cargando..." : "Método de Pago",
+            prefixIcon: provider.isLoading
+                ? const SizedBox(
+                    width: 10,
+                    height: 10,
+                    child: Padding(
+                      padding: EdgeInsets.all(12.0),
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  )
+                : const Icon(Icons.payment),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+            filled: true,
+            fillColor: Colors.grey[50],
+          ),
+          items: provider.paymentMethods.map((method) {
+            return DropdownMenuItem<String>(
+              value: method.id,
+              child: Text(method.name),
+            );
+          }).toList(),
+          onChanged: (value) {
+            setState(() {
+              _selectedPaymentMethod = value;
+            });
+          },
+          validator: (value) => value == null ? "Selecciona un método" : null,
+        );
+      },
     );
   }
 
