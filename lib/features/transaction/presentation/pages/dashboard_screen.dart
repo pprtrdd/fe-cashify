@@ -1,5 +1,4 @@
 import 'package:cashify/core/auth/auth_service.dart';
-import 'package:cashify/features/transaction/domain/entities/category_entity.dart';
 import 'package:cashify/features/transaction/presentation/pages/movement_form_screen.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
 import 'package:flutter/material.dart';
@@ -17,9 +16,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<MovementProvider>().loadCategories();
-      context.read<MovementProvider>().loadPaymentMethods();
-      context.read<MovementProvider>().loadMovementsByMonth();
+      context.read<MovementProvider>().loadAllData();
     });
   }
 
@@ -67,13 +64,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final plannedData = _getPlannedGrouped(provider);
-          final extraData = _getExtraGrouped(provider);
-          final totalExtra = extraData.values.fold(0, (sum, val) => sum + val);
-          final bool hasExtraCategories = provider.categories.any(
-            (c) => c.isExtra,
-          );
-
           return RefreshIndicator(
             onRefresh: () => provider.loadMovementsByMonth(),
             child: ListView(
@@ -94,7 +84,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(flex: 2, child: _buildCategoryTable(plannedData)),
+                    Expanded(
+                      flex: 2,
+                      child: _buildCategoryTable(provider.plannedGrouped),
+                    ),
                     const SizedBox(width: 20),
                     Expanded(
                       flex: 1,
@@ -105,7 +98,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                   ],
                 ),
-                if (hasExtraCategories) ...[
+                if (provider.hasExtraCategories) ...[
                   const Divider(height: 50, thickness: 1),
                   const Text(
                     "MOVIMIENTOS EXTRAS",
@@ -119,18 +112,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(flex: 2, child: _buildCategoryTable(extraData)),
+                      Expanded(
+                        flex: 2,
+                        child: _buildCategoryTable(provider.extraGrouped),
+                      ),
                       const SizedBox(width: 20),
                       Expanded(
                         flex: 1,
                         child: Padding(
                           padding: const EdgeInsets.only(top: 40),
-                          child: _buildSmallExtraCard(totalExtra),
+                          child: _buildSmallExtraCard(provider.totalExtra),
                         ),
                       ),
                     ],
                   ),
                 ],
+                const SizedBox(height: 100),
               ],
             ),
           );
@@ -151,7 +148,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildSummaryCard(String title, int total) {
     final bool isNegative = total < 0;
-    final String displayTotal = total.abs().toString();
 
     return Card(
       elevation: 4,
@@ -177,7 +173,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              "${isNegative ? '- ' : '+ '}\$$displayTotal",
+              "${isNegative ? '- ' : '+ '}\$${total.abs()}",
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 36,
@@ -301,55 +297,5 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ],
       ),
     );
-  }
-
-  Map<String, int> _getPlannedGrouped(MovementProvider provider) {
-    final categoriesList = provider.categories.cast<CategoryEntity>();
-    Map<String, int> grouped = {};
-
-    for (var cat in categoriesList) {
-      if (!cat.isExtra) {
-        grouped[cat.name] = 0;
-      }
-    }
-
-    for (var mov in provider.movements) {
-      final cat = categoriesList.firstWhere(
-        (c) => c.id == mov.categoryId,
-        orElse: () =>
-            CategoryEntity(id: '', name: '', isExpense: true, isExtra: false),
-      );
-
-      if (!cat.isExtra && grouped.containsKey(cat.name)) {
-        int value = cat.isExpense ? -mov.amount : mov.amount;
-        grouped[cat.name] = grouped[cat.name]! + value;
-      }
-    }
-    return grouped;
-  }
-
-  Map<String, int> _getExtraGrouped(MovementProvider provider) {
-    final categoriesList = provider.categories.cast<CategoryEntity>();
-    Map<String, int> grouped = {};
-
-    for (var cat in categoriesList) {
-      if (cat.isExtra) {
-        grouped[cat.name] = 0;
-      }
-    }
-
-    for (var mov in provider.movements) {
-      final cat = categoriesList.firstWhere(
-        (c) => c.id == mov.categoryId,
-        orElse: () =>
-            CategoryEntity(id: '', name: '', isExpense: true, isExtra: true),
-      );
-
-      if (cat.isExtra && grouped.containsKey(cat.name)) {
-        int value = cat.isExpense ? -mov.amount : mov.amount;
-        grouped[cat.name] = grouped[cat.name]! + value;
-      }
-    }
-    return grouped;
   }
 }

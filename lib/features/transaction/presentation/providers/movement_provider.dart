@@ -10,14 +10,30 @@ class MovementProvider extends ChangeNotifier {
   final MovementUseCase movementUseCase;
   final CategoryUsecases categoryUsecases;
   final PaymentMethodUsecases paymentMethodUsecases;
+
   bool _isLoading = false;
   bool get isLoading => _isLoading;
+
   List<CategoryEntity> _categories = [];
-  List<CategoryEntity> get categories => _categories;
   List<MovementEntity> _movements = [];
-  List<MovementEntity> get movements => _movements;
   List<PaymentMethodEntity> _paymentMethods = [];
+
+  List<CategoryEntity> get categories => _categories;
+  List<MovementEntity> get movements => _movements;
   List<PaymentMethodEntity> get paymentMethods => _paymentMethods;
+
+  int _realTotal = 0;
+  int _plannedTotal = 0;
+  int _totalExtra = 0;
+  Map<String, int> _plannedGrouped = {};
+  Map<String, int> _extraGrouped = {};
+
+  int get realTotal => _realTotal;
+  int get plannedTotal => _plannedTotal;
+  int get totalExtra => _totalExtra;
+  Map<String, int> get plannedGrouped => _plannedGrouped;
+  Map<String, int> get extraGrouped => _extraGrouped;
+  bool get hasExtraCategories => _categories.any((c) => c.isExtra);
 
   MovementProvider({
     required this.movementUseCase,
@@ -25,83 +41,74 @@ class MovementProvider extends ChangeNotifier {
     required this.paymentMethodUsecases,
   });
 
-  int get plannedTotal {
-    return movements.fold<int>(0, (sum, mov) {
-      final cat = categories.cast<CategoryEntity>().firstWhere(
-        (c) => c.id == mov.categoryId,
-        orElse: () =>
-            CategoryEntity(id: '', name: '', isExpense: true, isExtra: false),
-      );
-      if (cat.isExtra) return sum;
-      return cat.isExpense ? sum - mov.amount : sum + mov.amount;
-    });
+  void _calculateDashboardData() {
+    _realTotal = 0;
+    _plannedTotal = 0;
+    _totalExtra = 0;
+    _plannedGrouped = {};
+    _extraGrouped = {};
+
+    if (_categories.isEmpty) {
+      return;
+    }
+
+    for (var cat in _categories) {
+      if (cat.isExtra) {
+        _extraGrouped[cat.name] = 0;
+      } else {
+        _plannedGrouped[cat.name] = 0;
+      }
+    }
+
+    for (var mov in _movements) {
+      final catIndex = _categories.indexWhere((c) => c.id == mov.categoryId);
+
+      final cat = _categories[catIndex];
+      int value = cat.isExpense ? -mov.amount : mov.amount;
+
+      _realTotal += value;
+
+      if (cat.isExtra) {
+        _extraGrouped[cat.name] = (_extraGrouped[cat.name] ?? 0) + value;
+        _totalExtra += value;
+      } else {
+        _plannedGrouped[cat.name] = (_plannedGrouped[cat.name] ?? 0) + value;
+        _plannedTotal += value;
+      }
+    }
   }
 
-  int get realTotal {
-    return movements.fold<int>(0, (sum, mov) {
-      final cat = categories.cast<CategoryEntity>().firstWhere(
-        (c) => c.id == mov.categoryId,
-        orElse: () =>
-            CategoryEntity(id: '', name: '', isExpense: true, isExtra: false),
-      );
-      return cat.isExpense ? sum - mov.amount : sum + mov.amount;
-    });
-  }
-
-  Future<void> loadCategories() async {
+  Future<void> loadAllData() async {
     _isLoading = true;
     notifyListeners();
-
     try {
       _categories = await categoryUsecases.fetchAll();
-    } catch (e) {
-      /* Handle errors */
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  Future<void> loadPaymentMethods() async {
-    _isLoading = true;
-    notifyListeners();
-
-    try {
       _paymentMethods = await paymentMethodUsecases.fetchAll();
+      _movements = await movementUseCase.fetchByMonth(
+        DateTime.now().year,
+        DateTime.now().month,
+      );
+
+      _calculateDashboardData();
     } catch (e) {
-      /* Handle errors */
+      /* Handle error */
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
+
+  Future<void> loadCategories() => loadAllData();
+  Future<void> loadMovementsByMonth() => loadAllData();
+  Future<void> loadPaymentMethods() async {}
 
   Future<void> createMovement(MovementEntity movement) async {
     try {
       _isLoading = true;
       notifyListeners();
+
       await movementUseCase.add(movement);
-    } catch (e) {
-      rethrow;
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  Future<void> loadMovementsByMonth() async {
-    try {
-      _isLoading = true;
-      notifyListeners();
-
-      final result = await movementUseCase.fetchByMonth(
-        DateTime.now().year,
-        DateTime.now().month,
-      );
-
-      _movements = result;
-    } catch (e) {
-      _movements = [];
+      await loadAllData();
     } finally {
       _isLoading = false;
       notifyListeners();
