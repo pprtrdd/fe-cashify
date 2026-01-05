@@ -25,6 +25,29 @@ class MovementProvider extends ChangeNotifier {
     required this.paymentMethodUsecases,
   });
 
+  int get plannedTotal {
+    return movements.fold<int>(0, (sum, mov) {
+      final cat = categories.cast<CategoryEntity>().firstWhere(
+        (c) => c.id == mov.categoryId,
+        orElse: () =>
+            CategoryEntity(id: '', name: '', isExpense: true, isExtra: false),
+      );
+      if (cat.isExtra) return sum;
+      return cat.isExpense ? sum - mov.amount : sum + mov.amount;
+    });
+  }
+
+  int get realTotal {
+    return movements.fold<int>(0, (sum, mov) {
+      final cat = categories.cast<CategoryEntity>().firstWhere(
+        (c) => c.id == mov.categoryId,
+        orElse: () =>
+            CategoryEntity(id: '', name: '', isExpense: true, isExtra: false),
+      );
+      return cat.isExpense ? sum - mov.amount : sum + mov.amount;
+    });
+  }
+
   Future<void> loadCategories() async {
     _isLoading = true;
     notifyListeners();

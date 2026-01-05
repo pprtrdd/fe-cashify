@@ -1,4 +1,5 @@
 import 'package:cashify/core/auth/auth_service.dart';
+import 'package:cashify/features/transaction/domain/entities/category_entity.dart';
 import 'package:cashify/features/transaction/presentation/pages/movement_form_screen.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
 import 'package:flutter/material.dart';
@@ -66,76 +67,70 @@ class _DashboardScreenState extends State<DashboardScreen> {
             return const Center(child: CircularProgressIndicator());
           }
 
+          final plannedData = _getPlannedGrouped(provider);
+          final extraData = _getExtraGrouped(provider);
+          final totalExtra = extraData.values.fold(0, (sum, val) => sum + val);
+          final bool hasExtraCategories = provider.categories.any(
+            (c) => c.isExtra,
+          );
+
           return RefreshIndicator(
             onRefresh: () => provider.loadMovementsByMonth(),
             child: ListView(
               padding: const EdgeInsets.all(16.0),
               children: [
-                _buildSummaryCard(provider),
+                _buildSummaryCard("TOTAL REAL", provider.realTotal),
                 const SizedBox(height: 24),
+
                 const Text(
-                  "Movimientos Recientes",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 12),
-
-                if (provider.movements.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.only(top: 40),
-                    child: Center(
-                      child: Text("No hay movimientos registrados"),
-                    ),
-                  )
-                else
-                  ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: provider.movements.length,
-                    itemBuilder: (context, index) {
-                      final movement = provider.movements[index];
-
-                      final category = provider.categories.firstWhere(
-                        (cat) => cat.id == movement.categoryId,
-                      );
-                      final bool isExpense = category.isExpense;
-
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 10),
-                        child: ListTile(
-                          leading: CircleAvatar(
-                            backgroundColor: isExpense
-                                ? Colors.red.withValues(alpha: 0.1)
-                                : Colors.green.withValues(alpha: 0.1),
-                            child: Icon(
-                              isExpense
-                                  ? Icons.arrow_downward
-                                  : Icons.arrow_upward,
-                              color: isExpense ? Colors.red : Colors.green,
-                              size: 20,
-                            ),
-                          ),
-                          title: Text(
-                            movement.description,
-                            style: const TextStyle(fontWeight: FontWeight.w600),
-                          ),
-                          subtitle: Text(
-                            "${movement.source} • ${category.name}", // Agregamos el nombre de la categoría
-                            style: TextStyle(color: Colors.grey.shade600),
-                          ),
-                          trailing: Text(
-                            "${isExpense ? '-' : '+'} \$${movement.amount}",
-                            style: TextStyle(
-                              color: isExpense
-                                  ? Colors.redAccent
-                                  : Colors.green.shade700,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ),
-                      );
-                    },
+                  "MOVIMIENTOS PLANIFICADOS",
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
                   ),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(flex: 2, child: _buildCategoryTable(plannedData)),
+                    const SizedBox(width: 20),
+                    Expanded(
+                      flex: 1,
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 40),
+                        child: _buildSmallPlannedCard(provider.plannedTotal),
+                      ),
+                    ),
+                  ],
+                ),
+                if (hasExtraCategories) ...[
+                  const Divider(height: 50, thickness: 1),
+                  const Text(
+                    "MOVIMIENTOS EXTRAS",
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(flex: 2, child: _buildCategoryTable(extraData)),
+                      const SizedBox(width: 20),
+                      Expanded(
+                        flex: 1,
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 40),
+                          child: _buildSmallExtraCard(totalExtra),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ),
           );
@@ -154,23 +149,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildSummaryCard(MovementProvider provider) {
-    final movementsList = provider.movements;
-    final categories = provider.categories;
-    final total = movementsList.fold<int>(0, (sum, movement) {
-      final category = categories.firstWhere(
-        (cat) => cat.id == movement.categoryId,
-      );
-
-      if (category.isExpense) {
-        return sum - movement.amount;
-      } else {
-        return sum + movement.amount;
-      }
-    });
-
+  Widget _buildSummaryCard(String title, int total) {
     final bool isNegative = total < 0;
-    final String displayTotal = total.abs().toStringAsFixed(0);
+    final String displayTotal = total.abs().toString();
 
     return Card(
       elevation: 4,
@@ -191,7 +172,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Column(
           children: [
             Text(
-              isNegative ? "Balance Negativo" : "Balance del Mes",
+              title,
               style: const TextStyle(color: Colors.white70, fontSize: 16),
             ),
             const SizedBox(height: 8),
@@ -207,5 +188,168 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildCategoryTable(Map<String, int> groupedData) {
+    return Column(
+      children: [
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Item",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey,
+                ),
+              ),
+              Text(
+                "Monto",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const Divider(height: 1),
+        ...groupedData.entries.map((entry) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(entry.key, style: const TextStyle(fontSize: 14)),
+                Text(
+                  "${entry.value < 0 ? '-' : '+'} \$${entry.value.abs()}",
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: entry.value < 0
+                        ? Colors.red.shade700
+                        : Colors.green.shade700,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }),
+      ],
+    );
+  }
+
+  Widget _buildSmallPlannedCard(int amount) {
+    final bool isNegative = amount < 0;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+      decoration: BoxDecoration(
+        color: Colors.grey.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text(
+            "Planificado",
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: Colors.blueGrey,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            "${isNegative ? '-' : '+'} \$${amount.abs()}",
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: isNegative ? Colors.red.shade700 : Colors.green.shade700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSmallExtraCard(int amount) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+      decoration: BoxDecoration(
+        color: Colors.orange.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.orange.withValues(alpha: 0.15)),
+      ),
+      child: Column(
+        children: [
+          const Text(
+            "Total Extras",
+            style: TextStyle(fontSize: 12, color: Colors.orange),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            "\$${amount.abs()}",
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: amount < 0 ? Colors.red : Colors.green.shade700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Map<String, int> _getPlannedGrouped(MovementProvider provider) {
+    final categoriesList = provider.categories.cast<CategoryEntity>();
+    Map<String, int> grouped = {};
+
+    for (var cat in categoriesList) {
+      if (!cat.isExtra) {
+        grouped[cat.name] = 0;
+      }
+    }
+
+    for (var mov in provider.movements) {
+      final cat = categoriesList.firstWhere(
+        (c) => c.id == mov.categoryId,
+        orElse: () =>
+            CategoryEntity(id: '', name: '', isExpense: true, isExtra: false),
+      );
+
+      if (!cat.isExtra && grouped.containsKey(cat.name)) {
+        int value = cat.isExpense ? -mov.amount : mov.amount;
+        grouped[cat.name] = grouped[cat.name]! + value;
+      }
+    }
+    return grouped;
+  }
+
+  Map<String, int> _getExtraGrouped(MovementProvider provider) {
+    final categoriesList = provider.categories.cast<CategoryEntity>();
+    Map<String, int> grouped = {};
+
+    for (var cat in categoriesList) {
+      if (cat.isExtra) {
+        grouped[cat.name] = 0;
+      }
+    }
+
+    for (var mov in provider.movements) {
+      final cat = categoriesList.firstWhere(
+        (c) => c.id == mov.categoryId,
+        orElse: () =>
+            CategoryEntity(id: '', name: '', isExpense: true, isExtra: true),
+      );
+
+      if (cat.isExtra && grouped.containsKey(cat.name)) {
+        int value = cat.isExpense ? -mov.amount : mov.amount;
+        grouped[cat.name] = grouped[cat.name]! + value;
+      }
+    }
+    return grouped;
   }
 }
