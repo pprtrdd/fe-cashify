@@ -1,4 +1,4 @@
-import 'package:cashify/core/auth/auth_service.dart';
+import 'package:cashify/features/shared/widgets/custom_drawer.dart';
 import 'package:cashify/features/transaction/presentation/pages/movement_form_screen.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
 import 'package:cashify/features/transaction/presentation/widgets/category_table.dart';
@@ -28,39 +28,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Mis Movimientos"),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Cerrar Sesión',
-            onPressed: () async {
-              bool? confirm = await showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text("Cerrar Sesión"),
-                  content: const Text("¿Estás seguro de que quieres salir?"),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, false),
-                      child: const Text("Cancelar"),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, true),
-                      child: const Text(
-                        "Salir",
-                        style: TextStyle(color: Colors.red),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-
-              if (confirm == true) {
-                await AuthService().signOut();
-              }
-            },
-          ),
-        ],
       ),
+      drawer: const CustomDrawer(),
       body: Consumer<MovementProvider>(
         builder: (context, provider, child) {
           if (provider.isLoading && provider.movements.isEmpty) {
