@@ -19,6 +19,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
   DateTime _selectedDate = DateTime.now();
   String? _selectedCategory;
   String? _selectedPaymentMethod;
+  bool _isPending = false;
 
   final _descController = TextEditingController();
   final _sourceController = TextEditingController();
@@ -187,6 +188,54 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                     maxLines: 3,
                     isRequired: false,
                   ),
+                  const SizedBox(height: 15),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: _isPending
+                          ? Colors.orange.withValues(alpha: .1)
+                          : Colors.green.withValues(alpha: .1),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: _isPending
+                            ? Colors.orange.shade200
+                            : Colors.green.shade200,
+                      ),
+                    ),
+                    child: SwitchListTile(
+                      title: Text(
+                        _isPending
+                            ? "Movimiento Pendiente"
+                            : "Movimiento Completado",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: _isPending
+                              ? Colors.orange.shade800
+                              : Colors.green.shade800,
+                        ),
+                      ),
+                      subtitle: Text(
+                        _isPending
+                            ? "Se guardará como recordatorio (Cant. 0)"
+                            : "Se sumará al total del mes",
+                      ),
+                      secondary: Icon(
+                        _isPending ? Icons.pending_actions : Icons.check_circle,
+                        color: _isPending ? Colors.orange : Colors.green,
+                      ),
+                      value: _isPending,
+                      onChanged: (bool value) {
+                        setState(() {
+                          _isPending = value;
+                          if (_isPending) {
+                            _qtyController.text =
+                                "0";
+                          } else if (_qtyController.text == "0") {
+                            _qtyController.text = "1";
+                          }
+                        });
+                      },
+                    ),
+                  ),
                   const SizedBox(height: 30),
                   SaveButton(
                     isLoading: provider.isLoading,
@@ -245,6 +294,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
         billingPeriodYear: _selectedDate.year,
         billingPeriodMonth: _selectedDate.month,
         notes: _notesController.text.isNotEmpty ? _notesController.text : null,
+        status: _isPending ? 'PENDING' : 'COMPLETED',
       );
 
       try {

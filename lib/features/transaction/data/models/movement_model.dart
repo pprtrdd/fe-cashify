@@ -14,6 +14,7 @@ class MovementModel extends MovementEntity {
     required super.billingPeriodMonth,
     required super.billingPeriodYear,
     super.notes,
+    required super.status,
   });
 
   factory MovementModel.fromFirestore(Map<String, dynamic> json, String docId) {
@@ -29,6 +30,7 @@ class MovementModel extends MovementEntity {
       billingPeriodMonth: (json['billingPeriodMonth'] as num?)?.toInt() ?? 0,
       billingPeriodYear: (json['billingPeriodYear'] as num?)?.toInt() ?? 0,
       notes: json['notes'],
+      status: json['status'] ?? '',
     );
   }
 
@@ -45,6 +47,7 @@ class MovementModel extends MovementEntity {
       'billingPeriodMonth': billingPeriodMonth,
       'billingPeriodYear': billingPeriodYear,
       'notes': notes,
+      'status': status,
       'createdAt': FieldValue.serverTimestamp(),
     };
   }

@@ -21,6 +21,8 @@ class MovementProvider extends ChangeNotifier {
   List<CategoryEntity> get categories => _categories;
   List<MovementEntity> get movements => _movements;
   List<PaymentMethodEntity> get paymentMethods => _paymentMethods;
+  List<MovementEntity> get completedMovements =>
+      _movements.where((m) => m.status != 'PENDING').toList();
 
   int _realTotal = 0;
   int _plannedTotal = 0;
@@ -60,7 +62,11 @@ class MovementProvider extends ChangeNotifier {
       }
     }
 
-    for (var mov in _movements) {
+    List<MovementEntity> filteredMovements = _movements
+        .where((m) => m.status != 'PENDING')
+        .toList();
+
+    for (var mov in filteredMovements) {
       final catIndex = _categories.indexWhere((c) => c.id == mov.categoryId);
 
       final cat = _categories[catIndex];
