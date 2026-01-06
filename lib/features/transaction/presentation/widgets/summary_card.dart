@@ -1,3 +1,4 @@
+import 'package:cashify/core/utils/formatters.dart';
 import 'package:flutter/material.dart';
 
 class SummaryCard extends StatelessWidget {
@@ -32,7 +33,7 @@ class SummaryCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              "${isNeg ? '- ' : '+ '}\$${total.abs()}",
+              "${isNeg ? '- ' : '+ '}${Formatters.currencyWithSymbol(total.abs())}",
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 36,

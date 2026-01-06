@@ -1,3 +1,4 @@
+import 'package:cashify/core/utils/formatters.dart';
 import 'package:flutter/material.dart';
 
 class CategoryTable extends StatelessWidget {
@@ -39,7 +40,7 @@ class CategoryTable extends StatelessWidget {
               children: [
                 Text(entry.key, style: const TextStyle(fontSize: 14)),
                 Text(
-                  "${entry.value < 0 ? '-' : '+'} \$${entry.value.abs()}",
+                  "${entry.value < 0 ? '-' : '+'} ${Formatters.currencyWithSymbol(entry.value.abs())}",
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     color: entry.value < 0

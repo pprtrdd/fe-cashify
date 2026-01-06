@@ -1,3 +1,4 @@
+import 'package:cashify/core/utils/formatters.dart';
 import 'package:flutter/material.dart';
 
 class MiniInfoCard extends StatelessWidget {
@@ -37,7 +38,7 @@ class MiniInfoCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            "${isNeg ? '-' : '+'} \$${amount.abs()}",
+            "${isNeg ? '-' : '+'} ${Formatters.currencyWithSymbol(amount.abs())}",
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.bold,
