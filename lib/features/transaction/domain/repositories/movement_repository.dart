@@ -30,7 +30,7 @@ class MovementRepository {
               billingPeriodMonth: movement.billingPeriodMonth,
               billingPeriodYear: movement.billingPeriodYear,
               notes: movement.notes,
-              status: movement.status,
+              isCompleted: movement.isCompleted,
             ).toFirestore(),
           );
     } catch (e) {

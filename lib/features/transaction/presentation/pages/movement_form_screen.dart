@@ -19,7 +19,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
   DateTime _selectedDate = DateTime.now();
   String? _selectedCategory;
   String? _selectedPaymentMethod;
-  bool _isPending = false;
+  bool _isCompleted = true;
 
   final _descController = TextEditingController();
   final _sourceController = TextEditingController();
@@ -191,47 +191,43 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                   const SizedBox(height: 15),
                   Container(
                     decoration: BoxDecoration(
-                      color: _isPending
-                          ? Colors.orange.withValues(alpha: .1)
-                          : Colors.green.withValues(alpha: .1),
+                      color: _isCompleted
+                          ? Colors.green.withValues(alpha: .1)
+                          : Colors.orange.withValues(alpha: .1),
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                        color: _isPending
-                            ? Colors.orange.shade200
-                            : Colors.green.shade200,
+                        color: _isCompleted
+                            ? Colors.green.shade200
+                            : Colors.orange.shade200,
                       ),
                     ),
                     child: SwitchListTile(
                       title: Text(
-                        _isPending
-                            ? "Movimiento Pendiente"
-                            : "Movimiento Completado",
+                        _isCompleted
+                            ? "Movimiento Completado"
+                            : "Movimiento Pendiente",
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: _isPending
-                              ? Colors.orange.shade800
-                              : Colors.green.shade800,
+                          color: _isCompleted
+                              ? Colors.green.shade800
+                              : Colors.orange.shade800,
                         ),
                       ),
                       subtitle: Text(
-                        _isPending
-                            ? "Se guardará como recordatorio (Cant. 0)"
-                            : "Se sumará al total del mes",
+                        _isCompleted
+                            ? "Se sumará al total del mes"
+                            : "Se guardará como recordatorio (Cant. 0)",
                       ),
                       secondary: Icon(
-                        _isPending ? Icons.pending_actions : Icons.check_circle,
-                        color: _isPending ? Colors.orange : Colors.green,
+                        _isCompleted
+                            ? Icons.check_circle
+                            : Icons.pending_actions,
+                        color: _isCompleted ? Colors.green : Colors.orange,
                       ),
-                      value: _isPending,
+                      value: _isCompleted,
                       onChanged: (bool value) {
                         setState(() {
-                          _isPending = value;
-                          if (_isPending) {
-                            _qtyController.text =
-                                "0";
-                          } else if (_qtyController.text == "0") {
-                            _qtyController.text = "1";
-                          }
+                          _isCompleted = value;
                         });
                       },
                     ),
@@ -294,7 +290,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
         billingPeriodYear: _selectedDate.year,
         billingPeriodMonth: _selectedDate.month,
         notes: _notesController.text.isNotEmpty ? _notesController.text : null,
-        status: _isPending ? 'PENDING' : 'COMPLETED',
+        isCompleted: _isCompleted,
       );
 
       try {
