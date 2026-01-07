@@ -185,7 +185,7 @@ class PendingMovementsScreen extends StatelessWidget {
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 14,
-                color: isIngreso ? AppColors.income : AppColors.textPrimary,
+                color: isIngreso ? AppColors.income : AppColors.expense,
               ),
             ),
             _buildPopupMenu(context, movement, provider),
