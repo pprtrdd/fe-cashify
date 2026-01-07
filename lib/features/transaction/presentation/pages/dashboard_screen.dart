@@ -25,10 +25,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    const Color incomeColor = Colors.green;
+    const Color expenseColor = Colors.red;
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Mis Movimientos"),
-      ),
+      appBar: AppBar(title: const Text("Mis Movimientos"), centerTitle: true),
       drawer: const CustomDrawer(),
       body: Consumer<MovementProvider>(
         builder: (context, provider, child) {
@@ -41,7 +42,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: ListView(
               padding: const EdgeInsets.all(16.0),
               children: [
-                SummaryCard(title: "TOTAL REAL", total: provider.realTotal),
+                SummaryCard(
+                  title: "TOTAL REAL",
+                  total: provider.realTotal,
+                ),
                 const SizedBox(height: 24),
 
                 _buildSectionHeader("MOVIMIENTOS PLANIFICADOS"),
@@ -60,7 +64,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       child: MiniInfoCard(
                         label: "Planificado",
                         amount: provider.plannedTotal,
-                        color: Colors.blueGrey,
+                        color: provider.plannedTotal >= 0
+                            ? incomeColor
+                            : expenseColor,
                       ),
                     ),
                   ],
@@ -84,7 +90,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         child: MiniInfoCard(
                           label: "Total Extras",
                           amount: provider.totalExtra,
-                          color: Colors.orange,
+                          color: provider.totalExtra >= 0
+                              ? incomeColor
+                              : expenseColor,
                         ),
                       ),
                     ],
@@ -103,18 +111,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
             MaterialPageRoute(builder: (context) => const MovementFormScreen()),
           );
         },
-        label: const Text("Nuevo Gasto"),
+        label: const Text("Nuevo Movimiento"),
         icon: const Icon(Icons.add),
+        backgroundColor: Theme.of(context).primaryColor,
       ),
     );
   }
 
   Widget _buildSectionHeader(String title) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.only(bottom: 12, left: 4),
       child: Text(
         title,
-        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+          color: Colors.grey[700],
+          letterSpacing: 0.5,
+        ),
       ),
     );
   }
