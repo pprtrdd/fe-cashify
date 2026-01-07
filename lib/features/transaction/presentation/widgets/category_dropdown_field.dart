@@ -63,6 +63,7 @@ class CategoryDropdownField extends StatelessWidget {
                 size: 18,
               ),
               const SizedBox(width: 10),
+
               Text(
                 cat.name,
                 style: const TextStyle(color: AppColors.textPrimary),

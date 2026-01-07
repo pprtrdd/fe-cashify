@@ -21,10 +21,7 @@ class SummaryCard extends StatelessWidget {
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [
-              baseColor,
-              baseColor.withValues(alpha: 0.7),
-            ],
+            colors: [baseColor, baseColor.withValues(alpha: 0.7)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -41,6 +38,7 @@ class SummaryCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
+
             FittedBox(
               fit: BoxFit.scaleDown,
               child: Text(

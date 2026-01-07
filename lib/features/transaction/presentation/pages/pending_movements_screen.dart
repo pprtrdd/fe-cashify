@@ -34,6 +34,7 @@ class PendingMovementsScreen extends StatelessWidget {
                     color: AppColors.textFaded,
                   ),
                   const SizedBox(height: 16),
+
                   Text(
                     "¡Todo al día!\nNo tienes movimientos pendientes.",
                     textAlign: TextAlign.center,
@@ -81,6 +82,7 @@ class PendingMovementsScreen extends StatelessWidget {
                           color: categoryColor,
                         ),
                         const SizedBox(width: 8),
+
                         Text(
                           provider.getCategoryName(categoryId).toUpperCase(),
                           style: TextStyle(
@@ -111,6 +113,7 @@ class PendingMovementsScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 12),
+
                   const Divider(
                     indent: 20,
                     endIndent: 20,
@@ -207,7 +210,7 @@ class PendingMovementsScreen extends StatelessWidget {
         if (value == 'complete') {
           await provider.toggleCompletion(movement);
         } else if (value == 'delete') {
-          await provider.deleteMovement(movement.id);
+          _showDeleteConfirmation(context, movement, provider);
         }
       },
       itemBuilder: (context) => [
@@ -230,6 +233,124 @@ class PendingMovementsScreen extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  void _showDeleteConfirmation(
+    BuildContext context,
+    MovementEntity movement,
+    MovementProvider provider,
+  ) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
+          backgroundColor: AppColors.surface,
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircleAvatar(
+                  radius: 28,
+                  backgroundColor: AppColors.danger.withOpacity(0.1),
+                  child: const Icon(
+                    Icons.delete_sweep_rounded,
+                    color: AppColors.danger,
+                    size: 32,
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                const Text(
+                  "¿Eliminar registro?",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                Text(
+                  "Estás a punto de borrar '${movement.description}'. Esta operación no se puede deshacer.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppColors.textLight,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 32),
+
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: () => Navigator.pop(context),
+                        child: Text(
+                          "Conservar",
+                          style: TextStyle(
+                            color: AppColors.textFaded,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.danger,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: () async {
+                          Navigator.pop(context);
+                          await provider.deleteMovement(movement.id);
+
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: const Text("Movimiento eliminado"),
+                                backgroundColor: AppColors.textPrimary,
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                margin: const EdgeInsets.all(20),
+                              ),
+                            );
+                          }
+                        },
+                        child: const Text(
+                          "Eliminar",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

@@ -19,6 +19,7 @@ class LoginScreen extends StatelessWidget {
               color: AppColors.primary,
             ),
             const SizedBox(height: 20),
+
             const Text(
               "Cashify",
               style: TextStyle(
@@ -28,6 +29,7 @@ class LoginScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 40),
+
             ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
                 foregroundColor: AppColors.primary,

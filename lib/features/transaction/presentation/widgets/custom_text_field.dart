@@ -5,6 +5,7 @@ class CustomTextField extends StatelessWidget {
   final TextEditingController controller;
   final String label;
   final IconData icon;
+  final Color accentColor;
   final bool isRequired;
   final bool isNumeric;
   final int maxLines;
@@ -17,6 +18,7 @@ class CustomTextField extends StatelessWidget {
     required this.controller,
     required this.label,
     required this.icon,
+    required this.accentColor,
     this.isRequired = true,
     this.isNumeric = false,
     this.maxLines = 1,
@@ -64,7 +66,7 @@ class CustomTextField extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: AppColors.primary, width: 2),
+          borderSide: BorderSide(color: accentColor, width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),

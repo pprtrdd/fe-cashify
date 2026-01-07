@@ -58,6 +58,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     total: provider.realTotal,
                   ),
                   const SizedBox(height: 16),
+
                   Row(
                     children: [
                       Expanded(
@@ -68,6 +69,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                       ),
                       const SizedBox(width: 12),
+
                       Expanded(
                         child: MiniInfoCard(
                           label: "Extras",
@@ -78,18 +80,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ],
                   ),
                   const SizedBox(height: 24),
+
                   _buildSectionHeader("Gastos Planeados"),
                   const SizedBox(height: 8),
+
                   _buildTableCard(provider.plannedGrouped),
                   const SizedBox(height: 24),
+
                   if (provider.hasExtraCategories) ...[
                     _buildSectionHeader("Gastos Extras"),
                     const SizedBox(height: 8),
+
                     _buildTableCard(provider.extraGrouped),
                   ],
-                  const SizedBox(
-                    height: 80,
-                  ),
+                  const SizedBox(height: 80),
                 ],
               ),
             ),

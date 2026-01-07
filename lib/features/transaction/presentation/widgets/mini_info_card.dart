@@ -33,14 +33,14 @@ class MiniInfoCard extends StatelessWidget {
             label,
             style: TextStyle(
               fontSize: 11,
-              color:
-                  color,
+              color: color,
               fontWeight: FontWeight.bold,
               letterSpacing: 0.5,
             ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 4),
+
           Text(
             "${isNeg ? '-' : '+'} ${Formatters.currencyWithSymbol(amount.abs())}",
             style: TextStyle(
