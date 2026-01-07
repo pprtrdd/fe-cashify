@@ -94,8 +94,6 @@ class PendingMovementsScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-
-                  // --- LISTA DE ITEMS ---
                   ...movements.map(
                     (movement) => _buildMovementItem(
                       context,

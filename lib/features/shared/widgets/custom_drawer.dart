@@ -1,5 +1,5 @@
 import 'package:cashify/core/auth/auth_service.dart';
-import 'package:cashify/features/transaction/presentation/pages/movement_form_screen.dart'; // Asegúrate de importar la pantalla del formulario
+import 'package:cashify/features/transaction/presentation/pages/movement_form_screen.dart';
 import 'package:cashify/features/transaction/presentation/pages/pending_movements_screen.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';

@@ -35,7 +35,6 @@ class MovementProvider extends ChangeNotifier {
   Map<String, int> get extraGrouped => _extraGrouped;
   bool get hasExtraCategories => _categories.any((c) => c.isExtra);
   Set<String> get incomeCategoryIds {
-    debugPrint('Calculando categorías de ingreso entre: $_categories');
     return _categories
         .where((cat) => !cat.isExpense)
         .map((cat) => cat.id)
@@ -138,7 +137,6 @@ class MovementProvider extends ChangeNotifier {
         _movements[index] = movement;
       }
     } catch (e) {
-      debugPrint("Error al actualizar movimiento: $e");
       rethrow;
     } finally {
       _isLoading = false;
@@ -155,7 +153,6 @@ class MovementProvider extends ChangeNotifier {
 
       _movements.removeWhere((m) => m.id == id);
     } catch (e) {
-      debugPrint("Error al eliminar movimiento: $e");
       rethrow;
     } finally {
       _isLoading = false;
