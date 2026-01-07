@@ -1,4 +1,5 @@
 import 'package:cashify/core/auth/auth_service.dart';
+import 'package:cashify/features/transaction/presentation/pages/movement_form_screen.dart'; // Asegúrate de importar la pantalla del formulario
 import 'package:cashify/features/transaction/presentation/pages/pending_movements_screen.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -43,6 +44,21 @@ class CustomDrawer extends StatelessWidget {
             child: ListView(
               padding: EdgeInsets.zero,
               children: [
+                _DrawerItem(
+                  icon: Icons.add_circle_outline,
+                  label: "Nuevo Movimiento",
+                  color: Colors.green,
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const MovementFormScreen(),
+                      ),
+                    );
+                  },
+                ),
+                const Divider(),
                 Consumer<MovementProvider>(
                   builder: (context, provider, child) {
                     final pendingCount = provider.movements
@@ -98,7 +114,6 @@ class CustomDrawer extends StatelessWidget {
               ],
             ),
           ),
-
           const Divider(),
           _DrawerItem(
             icon: Icons.logout,
@@ -124,22 +139,28 @@ class _DrawerItem extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
   final Color? color;
-  final Widget? trailing; // 1. Agrega esta línea
+  final Widget? trailing;
 
   const _DrawerItem({
     required this.icon,
     required this.label,
     required this.onTap,
     this.color,
-    this.trailing, // 2. Agrega esta línea
+    this.trailing,
   });
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
       leading: Icon(icon, color: color),
-      title: Text(label, style: TextStyle(color: color)),
-      trailing: trailing, // 3. Y agrega esta línea aquí
+      title: Text(
+        label,
+        style: TextStyle(
+          color: color,
+          fontWeight: color != null ? FontWeight.bold : FontWeight.normal,
+        ),
+      ),
+      trailing: trailing,
       onTap: onTap,
     );
   }

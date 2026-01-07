@@ -1,5 +1,4 @@
 import 'package:cashify/features/shared/widgets/custom_drawer.dart';
-import 'package:cashify/features/transaction/presentation/pages/movement_form_screen.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
 import 'package:cashify/features/transaction/presentation/widgets/category_table.dart';
 import 'package:cashify/features/transaction/presentation/widgets/mini_info_card.dart';
@@ -42,10 +41,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: ListView(
               padding: const EdgeInsets.all(16.0),
               children: [
-                SummaryCard(
-                  title: "TOTAL REAL",
-                  total: provider.realTotal,
-                ),
+                SummaryCard(title: "TOTAL REAL", total: provider.realTotal),
                 const SizedBox(height: 24),
 
                 _buildSectionHeader("MOVIMIENTOS PLANIFICADOS"),
@@ -103,17 +99,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           );
         },
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const MovementFormScreen()),
-          );
-        },
-        label: const Text("Nuevo Movimiento"),
-        icon: const Icon(Icons.add),
-        backgroundColor: Theme.of(context).primaryColor,
       ),
     );
   }
