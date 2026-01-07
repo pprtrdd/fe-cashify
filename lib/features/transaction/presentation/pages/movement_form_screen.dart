@@ -1,9 +1,10 @@
-import 'package:cashify/features/transaction/presentation/widgets/category_dropdown_field.dart';
-import 'package:cashify/features/transaction/presentation/widgets/month_year_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:cashify/core/theme/app_colors.dart';
 import '../../domain/entities/movement_entity.dart';
 import '../providers/movement_provider.dart';
+import '../widgets/category_dropdown_field.dart';
+import '../widgets/month_year_picker.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/save_button.dart';
 
@@ -67,8 +68,10 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text("Nuevo Movimiento"),
+        centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: () => Navigator.pop(context),
@@ -143,6 +146,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
                           ),
                         ),
                       ),
@@ -157,6 +161,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                     ],
                   ),
                   const SizedBox(height: 15),
+
                   DropdownButtonFormField<String>(
                     initialValue: _selectedPaymentMethod,
                     decoration: _inputStyle("Método de Pago", Icons.payment),
@@ -173,6 +178,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                     validator: (v) => v == null ? "Requerido" : null,
                   ),
                   const SizedBox(height: 15),
+
                   CustomTextField(
                     controller: _periodController,
                     label: "Período",
@@ -181,6 +187,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                     onTap: () => _selectPeriod(context),
                   ),
                   const SizedBox(height: 15),
+
                   CustomTextField(
                     controller: _notesController,
                     label: "Notas",
@@ -188,20 +195,22 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                     maxLines: 3,
                     isRequired: false,
                   ),
-                  const SizedBox(height: 15),
+                  const SizedBox(height: 20),
+
                   Container(
                     decoration: BoxDecoration(
                       color: _isCompleted
-                          ? Colors.green.withValues(alpha: .1)
-                          : Colors.orange.withValues(alpha: .1),
-                      borderRadius: BorderRadius.circular(10),
+                          ? AppColors.success.withValues(alpha: 0.08)
+                          : AppColors.warning.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: _isCompleted
-                            ? Colors.green.shade200
-                            : Colors.orange.shade200,
+                            ? AppColors.success.withValues(alpha: 0.2)
+                            : AppColors.warning.withValues(alpha: 0.2),
                       ),
                     ),
                     child: SwitchListTile(
+                      activeThumbColor: AppColors.success,
                       title: Text(
                         _isCompleted
                             ? "Movimiento Completado"
@@ -209,30 +218,31 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: _isCompleted
-                              ? Colors.green.shade800
-                              : Colors.orange.shade800,
+                              ? AppColors.success
+                              : AppColors.warning,
                         ),
                       ),
                       subtitle: Text(
                         _isCompleted
                             ? "Se sumará al total del mes"
-                            : "Se guardará como recordatorio (Cant. 0)",
+                            : "Se guardará como recordatorio",
+                        style: TextStyle(color: AppColors.textLight),
                       ),
                       secondary: Icon(
                         _isCompleted
                             ? Icons.check_circle
                             : Icons.pending_actions,
-                        color: _isCompleted ? Colors.green : Colors.orange,
+                        color: _isCompleted
+                            ? AppColors.success
+                            : AppColors.warning,
                       ),
                       value: _isCompleted,
-                      onChanged: (bool value) {
-                        setState(() {
-                          _isCompleted = value;
-                        });
-                      },
+                      onChanged: (bool value) =>
+                          setState(() => _isCompleted = value),
                     ),
                   ),
                   const SizedBox(height: 30),
+
                   SaveButton(
                     isLoading: provider.isLoading,
                     onPressed: () => _save(context),
@@ -249,10 +259,14 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
   InputDecoration _inputStyle(String label, IconData icon) {
     return InputDecoration(
       labelText: label,
-      prefixIcon: Icon(icon),
+      prefixIcon: Icon(icon, color: AppColors.primary),
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide(color: AppColors.border),
+      ),
       filled: true,
-      fillColor: Colors.grey[50],
+      fillColor: AppColors.fieldFill,
     );
   }
 
@@ -299,14 +313,10 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
 
         if (!context.mounted) return;
 
-        await context.read<MovementProvider>().loadMovementsByMonth();
-
-        if (!context.mounted) return;
-
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Movimiento guardado con éxito'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.success,
           ),
         );
 
@@ -319,7 +329,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
             content: Text(
               'Error: ${e.toString().replaceAll('Exception: ', '')}',
             ),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.danger,
           ),
         );
       }

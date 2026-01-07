@@ -1,4 +1,5 @@
 import 'package:cashify/core/auth/auth_wrapper.dart';
+import 'package:cashify/core/theme/app_colors.dart'; // Importa tus colores
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
 import 'package:cashify/firebase_options.dart';
 import 'package:cashify/injection_container.dart' as di;
@@ -35,8 +36,9 @@ class MainApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Cashify',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
         useMaterial3: true,
+        scaffoldBackgroundColor: AppColors.background,
       ),
       home: const AuthWrapper(),
     );

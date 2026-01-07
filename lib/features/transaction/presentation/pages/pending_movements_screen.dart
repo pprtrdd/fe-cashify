@@ -1,3 +1,4 @@
+import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/core/utils/formatters.dart';
 import 'package:cashify/features/transaction/domain/entities/movement_entity.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
@@ -11,6 +12,7 @@ class PendingMovementsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text("Movimientos Pendientes"),
         centerTitle: true,
@@ -22,16 +24,20 @@ class PendingMovementsScreen extends StatelessWidget {
               .toList();
 
           if (pendingItems.isEmpty) {
-            return const Center(
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.auto_awesome, size: 64, color: Colors.grey),
-                  SizedBox(height: 16),
+                  Icon(
+                    Icons.auto_awesome,
+                    size: 64,
+                    color: AppColors.textFaded,
+                  ),
+                  const SizedBox(height: 16),
                   Text(
                     "¡Todo al día!\nNo tienes movimientos pendientes.",
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey, fontSize: 16),
+                    style: TextStyle(color: AppColors.textLight, fontSize: 16),
                   ),
                 ],
               ),
@@ -53,7 +59,9 @@ class PendingMovementsScreen extends StatelessWidget {
               final bool isIngreso = provider.incomeCategoryIds.contains(
                 categoryId,
               );
-              final Color categoryColor = isIngreso ? Colors.green : Colors.red;
+              final Color categoryColor = isIngreso
+                  ? AppColors.income
+                  : AppColors.expense;
 
               final categoryTotal = movements.fold<double>(
                 0,
@@ -102,9 +110,13 @@ class PendingMovementsScreen extends StatelessWidget {
                       isIngreso,
                     ),
                   ),
-
                   const SizedBox(height: 12),
-                  const Divider(indent: 20, endIndent: 20, thickness: 0.5),
+                  const Divider(
+                    indent: 20,
+                    endIndent: 20,
+                    thickness: 0.5,
+                    color: AppColors.divider,
+                  ),
                 ],
               );
             },
@@ -123,26 +135,30 @@ class PendingMovementsScreen extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       elevation: 0,
+      color: AppColors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey.withValues(alpha: 0.15)),
+        side: BorderSide(color: AppColors.border.withValues(alpha: 0.5)),
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.only(left: 12, right: 4),
         leading: CircleAvatar(
           radius: 18,
-          backgroundColor: isIngreso
-              ? Colors.green.withValues(alpha: 0.1)
-              : Colors.red.withValues(alpha: 0.1),
+          backgroundColor: (isIngreso ? AppColors.income : AppColors.expense)
+              .withValues(alpha: 0.1),
           child: Icon(
             Icons.receipt_long_outlined,
             size: 18,
-            color: isIngreso ? Colors.green : Colors.red,
+            color: isIngreso ? AppColors.income : AppColors.expense,
           ),
         ),
         title: Text(
           movement.description,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
+            color: AppColors.textPrimary,
+          ),
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -152,12 +168,12 @@ class PendingMovementsScreen extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 2),
                 child: Text(
                   "Origen: ${movement.source}",
-                  style: TextStyle(color: Colors.grey[700], fontSize: 11),
+                  style: TextStyle(color: AppColors.textLight, fontSize: 11),
                 ),
               ),
             Text(
               "${Formatters.currencyWithSymbol(movement.amount)} x ${movement.quantity}",
-              style: TextStyle(color: Colors.grey[500], fontSize: 11),
+              style: TextStyle(color: AppColors.textFaded, fontSize: 11),
             ),
           ],
         ),
@@ -169,7 +185,7 @@ class PendingMovementsScreen extends StatelessWidget {
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 14,
-                color: isIngreso ? Colors.green.shade700 : Colors.black87,
+                color: isIngreso ? AppColors.income : AppColors.textPrimary,
               ),
             ),
             _buildPopupMenu(context, movement, provider),
@@ -185,7 +201,7 @@ class PendingMovementsScreen extends StatelessWidget {
     MovementProvider provider,
   ) {
     return PopupMenuButton<String>(
-      icon: const Icon(Icons.more_vert, size: 20, color: Colors.grey),
+      icon: Icon(Icons.more_vert, size: 20, color: AppColors.textFaded),
       padding: EdgeInsets.zero,
       onSelected: (value) async {
         if (value == 'complete') {
@@ -198,7 +214,7 @@ class PendingMovementsScreen extends StatelessWidget {
         const PopupMenuItem(
           value: 'complete',
           child: ListTile(
-            leading: Icon(Icons.check_circle_outline, color: Colors.green),
+            leading: Icon(Icons.check_circle_outline, color: AppColors.success),
             title: Text('Completar'),
             contentPadding: EdgeInsets.zero,
             dense: true,
@@ -207,7 +223,7 @@ class PendingMovementsScreen extends StatelessWidget {
         const PopupMenuItem(
           value: 'delete',
           child: ListTile(
-            leading: Icon(Icons.delete_outline, color: Colors.red),
+            leading: Icon(Icons.delete_outline, color: AppColors.danger),
             title: Text('Eliminar'),
             contentPadding: EdgeInsets.zero,
             dense: true,

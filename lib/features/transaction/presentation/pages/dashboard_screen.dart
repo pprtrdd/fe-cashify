@@ -1,3 +1,4 @@
+import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/features/shared/widgets/custom_drawer.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
 import 'package:cashify/features/transaction/presentation/widgets/category_table.dart';
@@ -24,11 +25,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const Color incomeColor = Colors.green;
-    const Color expenseColor = Colors.red;
-
     return Scaffold(
-      appBar: AppBar(title: const Text("Mis Movimientos"), centerTitle: true),
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: const Text("Mis Movimientos"),
+        centerTitle: true,
+        backgroundColor: AppColors.surface,
+        foregroundColor: AppColors.textPrimary,
+        elevation: 0,
+      ),
       drawer: const CustomDrawer(),
       body: Consumer<MovementProvider>(
         builder: (context, provider, child) {
@@ -61,15 +66,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         label: "Planificado",
                         amount: provider.plannedTotal,
                         color: provider.plannedTotal >= 0
-                            ? incomeColor
-                            : expenseColor,
+                            ? AppColors.income
+                            : AppColors.expense,
                       ),
                     ),
                   ],
                 ),
 
                 if (provider.hasExtraCategories) ...[
-                  const Divider(height: 50, thickness: 1),
+                  const Divider(
+                    height: 50,
+                    thickness: 1,
+                    color: AppColors.divider,
+                  ),
                   _buildSectionHeader("MOVIMIENTOS EXTRAS"),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -87,8 +96,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           label: "Total Extras",
                           amount: provider.totalExtra,
                           color: provider.totalExtra >= 0
-                              ? incomeColor
-                              : expenseColor,
+                              ? AppColors.income
+                              : AppColors.expense,
                         ),
                       ),
                     ],
@@ -111,7 +120,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.bold,
-          color: Colors.grey[700],
+          color: AppColors.textLight,
           letterSpacing: 0.5,
         ),
       ),

@@ -1,4 +1,5 @@
 import 'package:cashify/core/auth/auth_service.dart';
+import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/features/transaction/presentation/pages/movement_form_screen.dart';
 import 'package:cashify/features/transaction/presentation/pages/pending_movements_screen.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
@@ -21,16 +22,20 @@ class CustomDrawer extends StatelessWidget {
       child: Column(
         children: [
           UserAccountsDrawerHeader(
-            decoration: BoxDecoration(color: Theme.of(context).primaryColor),
+            decoration: const BoxDecoration(color: AppColors.primary),
             currentAccountPicture: CircleAvatar(
-              backgroundColor: Colors.deepPurple,
+              backgroundColor: AppColors.background,
               backgroundImage: hasValidPhoto
                   ? NetworkImage(user.photoURL!)
                   : null,
               child: !hasValidPhoto
                   ? Text(
                       user?.displayName?[0].toUpperCase() ?? 'U',
-                      style: const TextStyle(color: Colors.white),
+                      style: const TextStyle(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 24,
+                      ),
                     )
                   : null,
             ),
@@ -47,7 +52,7 @@ class CustomDrawer extends StatelessWidget {
                 _DrawerItem(
                   icon: Icons.add_circle_outline,
                   label: "Nuevo Movimiento",
-                  color: Colors.green,
+                  color: AppColors.success,
                   onTap: () {
                     Navigator.pop(context);
                     Navigator.push(
@@ -72,13 +77,13 @@ class CustomDrawer extends StatelessWidget {
                           ? Container(
                               padding: const EdgeInsets.all(6),
                               decoration: const BoxDecoration(
-                                color: Colors.redAccent,
+                                color: AppColors.notification,
                                 shape: BoxShape.circle,
                               ),
                               child: Text(
                                 '$pendingCount',
                                 style: const TextStyle(
-                                  color: Colors.white,
+                                  color: AppColors.textOnPrimary,
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -101,9 +106,7 @@ class CustomDrawer extends StatelessWidget {
                 _DrawerItem(
                   icon: Icons.credit_card,
                   label: "Cuotas Faltantes",
-                  onTap: () {
-                    Navigator.pop(context);
-                  },
+                  onTap: () => Navigator.pop(context),
                 ),
                 const Divider(),
                 _DrawerItem(
@@ -118,7 +121,7 @@ class CustomDrawer extends StatelessWidget {
           _DrawerItem(
             icon: Icons.logout,
             label: "Cerrar Sesión",
-            color: Colors.red,
+            color: AppColors.danger,
             onTap: () async {
               await AuthService().signOut();
 
@@ -152,11 +155,11 @@ class _DrawerItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: Icon(icon, color: color),
+      leading: Icon(icon, color: color ?? AppColors.textPrimary),
       title: Text(
         label,
         style: TextStyle(
-          color: color,
+          color: color ?? AppColors.textPrimary,
           fontWeight: color != null ? FontWeight.bold : FontWeight.normal,
         ),
       ),
