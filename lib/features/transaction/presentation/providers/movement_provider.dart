@@ -21,8 +21,6 @@ class MovementProvider extends ChangeNotifier {
   List<CategoryEntity> get categories => _categories;
   List<MovementEntity> get movements => _movements;
   List<PaymentMethodEntity> get paymentMethods => _paymentMethods;
-  List<MovementEntity> get completedMovements =>
-      _movements.where((m) => m.isCompleted == true).toList();
 
   int _realTotal = 0;
   int _plannedTotal = 0;
@@ -36,6 +34,13 @@ class MovementProvider extends ChangeNotifier {
   Map<String, int> get plannedGrouped => _plannedGrouped;
   Map<String, int> get extraGrouped => _extraGrouped;
   bool get hasExtraCategories => _categories.any((c) => c.isExtra);
+  Set<String> get incomeCategoryIds {
+    debugPrint('Calculando categorías de ingreso entre: $_categories');
+    return _categories
+        .where((cat) => !cat.isExpense)
+        .map((cat) => cat.id)
+        .toSet();
+  }
 
   MovementProvider({
     required this.movementUseCase,
@@ -63,7 +68,7 @@ class MovementProvider extends ChangeNotifier {
     }
 
     List<MovementEntity> filteredMovements = _movements
-        .where((m) => m.isCompleted == true)
+        .where((m) => m.isCompleted)
         .toList();
 
     for (var mov in filteredMovements) {
@@ -119,5 +124,46 @@ class MovementProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<void> updateMovement(MovementEntity movement) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      await movementUseCase.update(movement);
+
+      final index = _movements.indexWhere((m) => m.id == movement.id);
+      if (index != -1) {
+        _movements[index] = movement;
+      }
+    } catch (e) {
+      debugPrint("Error al actualizar movimiento: $e");
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> deleteMovement(String id) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      await movementUseCase.delete(id);
+
+      _movements.removeWhere((m) => m.id == id);
+    } catch (e) {
+      debugPrint("Error al eliminar movimiento: $e");
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  String getCategoryName(String id) {
+    return _categories.firstWhere((cat) => cat.id == id).name;
   }
 }
