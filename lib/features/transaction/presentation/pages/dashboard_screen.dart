@@ -1,6 +1,9 @@
 import 'package:cashify/core/auth/auth_service.dart';
 import 'package:cashify/features/transaction/presentation/pages/movement_form_screen.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
+import 'package:cashify/features/transaction/presentation/widgets/category_table.dart';
+import 'package:cashify/features/transaction/presentation/widgets/mini_info_card.dart';
+import 'package:cashify/features/transaction/presentation/widgets/summary_card.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -16,9 +19,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<MovementProvider>().loadCategories();
-      context.read<MovementProvider>().loadPaymentMethods();
-      context.read<MovementProvider>().loadMovementsByMonth();
+      context.read<MovementProvider>().loadAllData();
     });
   }
 
@@ -67,75 +68,60 @@ class _DashboardScreenState extends State<DashboardScreen> {
           }
 
           return RefreshIndicator(
-            onRefresh: () => provider.loadMovementsByMonth(),
+            onRefresh: () => provider.loadAllData(),
             child: ListView(
               padding: const EdgeInsets.all(16.0),
               children: [
-                _buildSummaryCard(provider),
+                SummaryCard(title: "TOTAL REAL", total: provider.realTotal),
                 const SizedBox(height: 24),
-                const Text(
-                  "Movimientos Recientes",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 12),
 
-                if (provider.movements.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.only(top: 40),
-                    child: Center(
-                      child: Text("No hay movimientos registrados"),
+                _buildSectionHeader("MOVIMIENTOS PLANIFICADOS"),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      flex: 2,
+                      child: CategoryTable(
+                        groupedData: provider.plannedGrouped,
+                      ),
                     ),
-                  )
-                else
-                  ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: provider.movements.length,
-                    itemBuilder: (context, index) {
-                      final movement = provider.movements[index];
+                    const SizedBox(width: 20),
+                    Expanded(
+                      flex: 1,
+                      child: MiniInfoCard(
+                        label: "Planificado",
+                        amount: provider.plannedTotal,
+                        color: Colors.blueGrey,
+                      ),
+                    ),
+                  ],
+                ),
 
-                      final category = provider.categories.firstWhere(
-                        (cat) => cat.id == movement.categoryId,
-                      );
-                      final bool isExpense = category.isExpense;
-
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 10),
-                        child: ListTile(
-                          leading: CircleAvatar(
-                            backgroundColor: isExpense
-                                ? Colors.red.withOpacity(0.1)
-                                : Colors.green.withOpacity(0.1),
-                            child: Icon(
-                              isExpense
-                                  ? Icons.arrow_downward
-                                  : Icons.arrow_upward,
-                              color: isExpense ? Colors.red : Colors.green,
-                              size: 20,
-                            ),
-                          ),
-                          title: Text(
-                            movement.description,
-                            style: const TextStyle(fontWeight: FontWeight.w600),
-                          ),
-                          subtitle: Text(
-                            "${movement.source} • ${category.name}", // Agregamos el nombre de la categoría
-                            style: TextStyle(color: Colors.grey.shade600),
-                          ),
-                          trailing: Text(
-                            "${isExpense ? '-' : '+'} \$${movement.amount}",
-                            style: TextStyle(
-                              color: isExpense
-                                  ? Colors.redAccent
-                                  : Colors.green.shade700,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
+                if (provider.hasExtraCategories) ...[
+                  const Divider(height: 50, thickness: 1),
+                  _buildSectionHeader("MOVIMIENTOS EXTRAS"),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: CategoryTable(
+                          groupedData: provider.extraGrouped,
                         ),
-                      );
-                    },
+                      ),
+                      const SizedBox(width: 20),
+                      Expanded(
+                        flex: 1,
+                        child: MiniInfoCard(
+                          label: "Total Extras",
+                          amount: provider.totalExtra,
+                          color: Colors.orange,
+                        ),
+                      ),
+                    ],
                   ),
+                ],
+                const SizedBox(height: 80),
               ],
             ),
           );
@@ -154,57 +140,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildSummaryCard(MovementProvider provider) {
-    final movementsList = provider.movements;
-    final categories = provider.categories;
-    final total = movementsList.fold<int>(0, (sum, movement) {
-      final category = categories.firstWhere(
-        (cat) => cat.id == movement.categoryId,
-      );
-
-      if (category.isExpense) {
-        return sum - movement.amount;
-      } else {
-        return sum + movement.amount;
-      }
-    });
-
-    final bool isNegative = total < 0;
-    final String displayTotal = total.abs().toStringAsFixed(0);
-
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: isNegative
-                ? [Colors.red.shade700, Colors.red.shade400]
-                : [Colors.green.shade700, Colors.green.shade400],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(15),
-        ),
-        child: Column(
-          children: [
-            Text(
-              isNegative ? "Balance Negativo" : "Balance del Mes",
-              style: const TextStyle(color: Colors.white70, fontSize: 16),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              "${isNegative ? '- ' : '+ '}\$$displayTotal",
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 36,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Text(
+        title,
+        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
       ),
     );
   }

@@ -10,6 +10,7 @@ class MovementEntity {
   final int billingPeriodYear;
   final int billingPeriodMonth;
   final String? notes;
+  final String status;
 
   MovementEntity({
     required this.categoryId,
@@ -23,10 +24,11 @@ class MovementEntity {
     required this.billingPeriodYear,
     required this.billingPeriodMonth,
     this.notes,
+    required this.status,
   });
 
   @override
   String toString() {
-    return 'MovementEntity(categoryId: $categoryId, description: $description, source: $source, quantity: $quantity, amount: $amount, currentInstallment: $currentInstallment, totalInstallments: $totalInstallments, paymentMethodId: $paymentMethodId, billingPeriodYear: $billingPeriodYear, billingPeriodMonth: $billingPeriodMonth, notes: $notes)';
+    return 'MovementEntity(categoryId: $categoryId, description: $description, source: $source, quantity: $quantity, amount: $amount, currentInstallment: $currentInstallment, totalInstallments: $totalInstallments, paymentMethodId: $paymentMethodId, billingPeriodYear: $billingPeriodYear, billingPeriodMonth: $billingPeriodMonth, notes: $notes, status: $status)';
   }
 }
