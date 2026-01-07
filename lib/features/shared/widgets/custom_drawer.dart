@@ -14,7 +14,8 @@ class CustomDrawer extends StatelessWidget {
     final user = FirebaseAuth.instance.currentUser;
     final String displayName = user?.displayName ?? "Usuario";
     final String email = user?.email ?? "Sin correo registrado";
-    final String? photoUrl = user?.photoURL;
+    final bool hasValidPhoto =
+        user?.photoURL != null && user!.photoURL!.isNotEmpty;
 
     return Drawer(
       child: Column(
@@ -22,15 +23,14 @@ class CustomDrawer extends StatelessWidget {
           UserAccountsDrawerHeader(
             decoration: BoxDecoration(color: Theme.of(context).primaryColor),
             currentAccountPicture: CircleAvatar(
-              backgroundColor: Colors.white,
-              backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
-              child: photoUrl == null
+              backgroundColor: Colors.deepPurple,
+              backgroundImage: hasValidPhoto
+                  ? NetworkImage(user.photoURL!)
+                  : null,
+              child: !hasValidPhoto
                   ? Text(
-                      displayName[0].toUpperCase(),
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      user?.displayName?[0].toUpperCase() ?? 'U',
+                      style: const TextStyle(color: Colors.white),
                     )
                   : null,
             ),

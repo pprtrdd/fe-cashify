@@ -189,7 +189,7 @@ class PendingMovementsScreen extends StatelessWidget {
       padding: EdgeInsets.zero,
       onSelected: (value) async {
         if (value == 'complete') {
-          await provider.updateMovement(movement.copyWith(isCompleted: true));
+          await provider.toggleCompletion(movement);
         } else if (value == 'delete') {
           await provider.deleteMovement(movement.id);
         }
