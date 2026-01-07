@@ -120,8 +120,6 @@ class PendingMovementsScreen extends StatelessWidget {
     MovementProvider provider,
     bool isIngreso,
   ) {
-    final totalAmount = movement.quantity * movement.amount;
-
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       elevation: 0,
@@ -167,7 +165,7 @@ class PendingMovementsScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              Formatters.currencyWithSymbol(totalAmount),
+              Formatters.currencyWithSymbol(movement.totalAmount),
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 14,
