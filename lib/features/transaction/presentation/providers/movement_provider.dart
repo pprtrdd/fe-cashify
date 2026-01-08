@@ -31,10 +31,16 @@ class MovementProvider extends ChangeNotifier {
   int _realTotal = 0;
   int _plannedTotal = 0;
   int _totalExtra = 0;
+  double _totalIncomes = 0.0;
+  double _totalExpenses = 0.0;
+
   Map<String, int> _plannedGrouped = {};
   Map<String, int> _extraGrouped = {};
 
   int get realTotal => _realTotal;
+  double get totalBalance => _realTotal.toDouble();
+  double get totalIncomes => _totalIncomes;
+  double get totalExpenses => _totalExpenses;
   int get plannedTotal => _plannedTotal;
   int get totalExtra => _totalExtra;
   Map<String, int> get plannedGrouped => _plannedGrouped;
@@ -51,6 +57,8 @@ class MovementProvider extends ChangeNotifier {
     _realTotal = 0;
     _plannedTotal = 0;
     _totalExtra = 0;
+    _totalIncomes = 0.0;
+    _totalExpenses = 0.0;
     _plannedGrouped = {};
     _extraGrouped = {};
 
@@ -67,24 +75,29 @@ class MovementProvider extends ChangeNotifier {
     final completedMovements = _movements.where((m) => m.isCompleted);
 
     for (var mov in completedMovements) {
-      late CategoryEntity cat;
+      final cat = _categories.cast<CategoryEntity?>().firstWhere(
+        (c) => c?.id == mov.categoryId,
+      );
 
-      for (var c in _categories) {
-        if (c.id == mov.categoryId) {
-          cat = c;
-          break;
-        }
+      if (cat == null) continue;
+
+      if (cat.isExpense) {
+        _totalExpenses += mov.totalAmount.toDouble();
+      } else {
+        _totalIncomes += mov.totalAmount.toDouble();
       }
 
-      int value = cat.isExpense ? -mov.totalAmount : mov.totalAmount;
-      _realTotal += value;
+      int relativeValue = cat.isExpense ? -mov.totalAmount : mov.totalAmount;
+      _realTotal += relativeValue;
 
       if (cat.isExtra) {
-        _extraGrouped[cat.name] = (_extraGrouped[cat.name] ?? 0) + value;
-        _totalExtra += value;
+        _extraGrouped[cat.name] =
+            (_extraGrouped[cat.name] ?? 0) + relativeValue;
+        _totalExtra += relativeValue;
       } else {
-        _plannedGrouped[cat.name] = (_plannedGrouped[cat.name] ?? 0) + value;
-        _plannedTotal += value;
+        _plannedGrouped[cat.name] =
+            (_plannedGrouped[cat.name] ?? 0) + relativeValue;
+        _plannedTotal += relativeValue;
       }
     }
   }
@@ -93,10 +106,11 @@ class MovementProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
+      final now = DateTime.now();
       final results = await Future.wait([
         categoryUsecases.fetchAll(),
         paymentMethodUsecases.fetchAll(),
-        movementUseCase.fetchByMonth(DateTime.now().year, DateTime.now().month),
+        movementUseCase.fetchByMonth(now.year, now.month),
       ]);
 
       _categories = results[0] as List<CategoryEntity>;
@@ -111,9 +125,6 @@ class MovementProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
-
-  Future<void> loadCategories() => loadAllData();
-  Future<void> loadMovementsByMonth() => loadAllData();
 
   Future<void> createMovement(MovementEntity movement) async {
     try {

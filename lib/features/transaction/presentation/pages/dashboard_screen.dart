@@ -2,10 +2,8 @@ import 'package:cashify/features/shared/widgets/custom_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cashify/core/theme/app_colors.dart';
+import 'package:cashify/core/utils/formatters.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
-import 'package:cashify/features/transaction/presentation/widgets/summary_card.dart';
-import 'package:cashify/features/transaction/presentation/widgets/category_table.dart';
-import 'package:cashify/features/transaction/presentation/widgets/mini_info_card.dart';
 import 'package:cashify/features/transaction/presentation/pages/movement_form_screen.dart';
 import 'package:cashify/features/transaction/presentation/pages/pending_movements_screen.dart';
 
@@ -53,46 +51,44 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  SummaryCard(
-                    title: "Balance Total Real",
-                    total: provider.realTotal,
-                  ),
-                  const SizedBox(height: 16),
-
+                  _buildMainBalanceCard(provider.totalBalance),
+                  const SizedBox(height: 12),
                   Row(
                     children: [
-                      Expanded(
-                        child: MiniInfoCard(
-                          label: "Planeado",
-                          amount: provider.plannedTotal,
-                          color: AppColors.primary,
-                        ),
+                      _buildMiniInfo(
+                        "Ingresos",
+                        provider.totalIncomes,
+                        AppColors.income,
+                        Icons.add_circle_outline,
                       ),
                       const SizedBox(width: 12),
 
-                      Expanded(
-                        child: MiniInfoCard(
-                          label: "Extras",
-                          amount: provider.totalExtra,
-                          color: AppColors.extra,
-                        ),
+                      _buildMiniInfo(
+                        "Gastos",
+                        provider.totalExpenses,
+                        AppColors.expense,
+                        Icons.remove_circle_outline,
                       ),
                     ],
                   ),
+
                   const SizedBox(height: 24),
 
-                  _buildSectionHeader("Gastos Planeados"),
-                  const SizedBox(height: 8),
+                  _buildCategoryTableBox(
+                    title: "GASTOS PLANEADOS",
+                    icon: Icons.list_alt_rounded,
+                    data: provider.plannedGrouped,
+                  ),
 
-                  _buildTableCard(provider.plannedGrouped),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
 
-                  if (provider.hasExtraCategories) ...[
-                    _buildSectionHeader("Gastos Extras"),
-                    const SizedBox(height: 8),
+                  if (provider.hasExtraCategories)
+                    _buildCategoryTableBox(
+                      title: "GASTOS EXTRAS",
+                      icon: Icons.auto_awesome_outlined,
+                      data: provider.extraGrouped,
+                    ),
 
-                    _buildTableCard(provider.extraGrouped),
-                  ],
                   const SizedBox(height: 80),
                 ],
               ),
@@ -102,13 +98,175 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.primary,
-        elevation: 4,
         onPressed: () => Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const MovementFormScreen()),
         ),
-        tooltip: 'Nuevo Movimiento',
         child: const Icon(Icons.add, color: Colors.white, size: 30),
+      ),
+    );
+  }
+
+  Widget _buildCategoryTableBox({
+    required String title,
+    required IconData icon,
+    required Map<String, int> data,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.border.withOpacity(0.5)),
+      ),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Row(
+              children: [
+                Icon(icon, size: 18, color: AppColors.primary),
+                const SizedBox(width: 8),
+
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Divider(),
+
+          if (data.isEmpty)
+            const Padding(
+              padding: EdgeInsets.all(20),
+              child: Text(
+                "Sin movimientos registrados",
+                style: TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+            )
+          else
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: data.length,
+              separatorBuilder: (context, index) => Divider(
+                height: 1,
+                color: AppColors.border.withOpacity(0.2),
+                indent: 16,
+                endIndent: 16,
+              ),
+              itemBuilder: (context, index) {
+                final entry = data.entries.elementAt(index);
+                final isNegative = entry.value < 0;
+
+                return Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        entry.key,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                      Text(
+                        Formatters.currencyWithSymbol(entry.value.abs()),
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: isNegative
+                              ? AppColors.expense
+                              : AppColors.income,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMainBalanceCard(double total) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AppColors.primary,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        children: [
+          const Text(
+            "Balance Total Real",
+            style: TextStyle(color: Colors.white70, fontSize: 13),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            Formatters.currencyWithSymbol(total.toInt()),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 32,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMiniInfo(
+    String label,
+    double amount,
+    Color color,
+    IconData icon,
+  ) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.border.withOpacity(0.5)),
+        ),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, size: 14, color: color),
+                const SizedBox(width: 6),
+
+                Text(
+                  label,
+                  style: TextStyle(fontSize: 12, color: AppColors.textLight),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+
+            Text(
+              Formatters.currencyWithSymbol(amount.toInt()),
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -132,42 +290,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         );
       },
-    );
-  }
-
-  Widget _buildSectionHeader(String title) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.bold,
-        color: AppColors.textPrimary,
-      ),
-    );
-  }
-
-  Widget _buildTableCard(Map<String, int> data) {
-    return Card(
-      elevation: 0,
-      color: AppColors.surface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: AppColors.border.withValues(alpha: 0.5)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: data.isEmpty
-            ? const Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 20),
-                  child: Text(
-                    "Sin movimientos registrados",
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                ),
-              )
-            : CategoryTable(groupedData: data),
-      ),
     );
   }
 }
