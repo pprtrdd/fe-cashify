@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class MovementModel extends MovementEntity {
   MovementModel({
+    required super.id,
     required super.categoryId,
     required super.description,
     required super.source,
@@ -14,11 +15,12 @@ class MovementModel extends MovementEntity {
     required super.billingPeriodMonth,
     required super.billingPeriodYear,
     super.notes,
-    required super.status,
+    required super.isCompleted,
   });
 
   factory MovementModel.fromFirestore(Map<String, dynamic> json, String docId) {
     return MovementModel(
+      id: docId,
       categoryId: json['categoryId'] ?? '',
       description: json['description'] ?? '',
       source: json['source'] ?? '',
@@ -30,7 +32,7 @@ class MovementModel extends MovementEntity {
       billingPeriodMonth: (json['billingPeriodMonth'] as num?)?.toInt() ?? 0,
       billingPeriodYear: (json['billingPeriodYear'] as num?)?.toInt() ?? 0,
       notes: json['notes'],
-      status: json['status'] ?? '',
+      isCompleted: json['isCompleted'],
     );
   }
 
@@ -47,7 +49,7 @@ class MovementModel extends MovementEntity {
       'billingPeriodMonth': billingPeriodMonth,
       'billingPeriodYear': billingPeriodYear,
       'notes': notes,
-      'status': status,
+      'isCompleted': isCompleted,
       'createdAt': FieldValue.serverTimestamp(),
     };
   }

@@ -1,5 +1,4 @@
 import 'package:cashify/features/shared/widgets/custom_drawer.dart';
-import 'package:cashify/features/transaction/presentation/pages/movement_form_screen.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
 import 'package:cashify/features/transaction/presentation/widgets/category_table.dart';
 import 'package:cashify/features/transaction/presentation/widgets/mini_info_card.dart';
@@ -25,10 +24,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    const Color incomeColor = Colors.green;
+    const Color expenseColor = Colors.red;
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Mis Movimientos"),
-      ),
+      appBar: AppBar(title: const Text("Mis Movimientos"), centerTitle: true),
       drawer: const CustomDrawer(),
       body: Consumer<MovementProvider>(
         builder: (context, provider, child) {
@@ -60,7 +60,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       child: MiniInfoCard(
                         label: "Planificado",
                         amount: provider.plannedTotal,
-                        color: Colors.blueGrey,
+                        color: provider.plannedTotal >= 0
+                            ? incomeColor
+                            : expenseColor,
                       ),
                     ),
                   ],
@@ -84,7 +86,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         child: MiniInfoCard(
                           label: "Total Extras",
                           amount: provider.totalExtra,
-                          color: Colors.orange,
+                          color: provider.totalExtra >= 0
+                              ? incomeColor
+                              : expenseColor,
                         ),
                       ),
                     ],
@@ -96,25 +100,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const MovementFormScreen()),
-          );
-        },
-        label: const Text("Nuevo Gasto"),
-        icon: const Icon(Icons.add),
-      ),
     );
   }
 
   Widget _buildSectionHeader(String title) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.only(bottom: 12, left: 4),
       child: Text(
         title,
-        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+          color: Colors.grey[700],
+          letterSpacing: 0.5,
+        ),
       ),
     );
   }

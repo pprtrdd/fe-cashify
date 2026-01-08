@@ -18,6 +18,8 @@ void main() async {
   await dotenv.load(fileName: ".env");
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
+  /* TODO: Buscar una mejor forma de importar providers (pueden crecer mucho) */
+
   runApp(
     MultiProvider(
       providers: [
