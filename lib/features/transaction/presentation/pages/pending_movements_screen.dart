@@ -257,7 +257,7 @@ class PendingMovementsScreen extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 28,
-                  backgroundColor: AppColors.danger.withOpacity(0.1),
+                  backgroundColor: AppColors.danger.withValues(alpha: 0.1),
                   child: const Icon(
                     Icons.delete_sweep_rounded,
                     color: AppColors.danger,

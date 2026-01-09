@@ -18,7 +18,7 @@ class CustomTextField extends StatelessWidget {
     required this.controller,
     required this.label,
     required this.icon,
-    required this.accentColor,
+    this.accentColor = AppColors.primary,
     this.isRequired = true,
     this.isNumeric = false,
     this.maxLines = 1,

@@ -1,3 +1,4 @@
+import 'package:cashify/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 
 class SaveButton extends StatelessWidget {
@@ -8,8 +9,8 @@ class SaveButton extends StatelessWidget {
   const SaveButton({
     super.key,
     required this.isLoading,
-    required this.color,
     required this.onPressed,
+    this.color = AppColors.primary,
   });
 
   @override

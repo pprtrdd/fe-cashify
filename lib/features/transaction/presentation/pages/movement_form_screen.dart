@@ -1,12 +1,12 @@
+import 'package:cashify/features/transaction/domain/entities/movement_entity.dart';
+import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
+import 'package:cashify/features/transaction/presentation/widgets/category_dropdown_field.dart';
+import 'package:cashify/features/transaction/presentation/widgets/custom_text_field.dart';
+import 'package:cashify/features/transaction/presentation/widgets/month_year_picker.dart';
+import 'package:cashify/features/transaction/presentation/widgets/save_button.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cashify/core/theme/app_colors.dart';
-import '../../domain/entities/movement_entity.dart';
-import '../providers/movement_provider.dart';
-import '../widgets/category_dropdown_field.dart';
-import '../widgets/month_year_picker.dart';
-import '../widgets/custom_text_field.dart';
-import '../widgets/save_button.dart';
 
 class MovementFormScreen extends StatefulWidget {
   const MovementFormScreen({super.key});
@@ -69,14 +69,6 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
   Widget build(BuildContext context) {
     return Consumer<MovementProvider>(
       builder: (context, provider, child) {
-        final bool isIngreso =
-            _selectedCategory != null &&
-            provider.incomeCategoryIds.contains(_selectedCategory);
-
-        final Color activeColor = _selectedCategory == null
-            ? AppColors.primary
-            : (isIngreso ? AppColors.income : AppColors.expense);
-
         return Scaffold(
           backgroundColor: AppColors.background,
           appBar: AppBar(
@@ -105,7 +97,6 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                     controller: _descController,
                     label: "Descripción",
                     icon: Icons.description,
-                    accentColor: activeColor,
                   ),
                   const SizedBox(height: 15),
 
@@ -114,7 +105,6 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                     label: "Origen",
                     icon: Icons.source,
                     isRequired: false,
-                    accentColor: activeColor,
                   ),
                   const SizedBox(height: 15),
 
@@ -126,7 +116,6 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                           label: "Cant.",
                           icon: Icons.shopping_basket,
                           isNumeric: true,
-                          accentColor: activeColor,
                         ),
                       ),
                       const SizedBox(width: 15),
@@ -137,7 +126,6 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                           label: "Monto",
                           icon: Icons.attach_money,
                           isNumeric: true,
-                          accentColor: activeColor,
                         ),
                       ),
                     ],
@@ -152,7 +140,6 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                           label: "Cuota",
                           icon: Icons.tag,
                           isNumeric: true,
-                          accentColor: activeColor,
                         ),
                       ),
                       const Padding(
@@ -171,7 +158,6 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                           label: "Total",
                           icon: Icons.layers,
                           isNumeric: true,
-                          accentColor: activeColor,
                         ),
                       ),
                     ],
@@ -180,11 +166,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
 
                   DropdownButtonFormField<String>(
                     initialValue: _selectedPaymentMethod,
-                    decoration: _inputStyle(
-                      "Método de Pago",
-                      Icons.payment,
-                      activeColor,
-                    ),
+                    decoration: _inputStyle("Método de Pago", Icons.payment),
                     items: provider.paymentMethods
                         .map(
                           (m) => DropdownMenuItem(
@@ -204,7 +186,6 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                     label: "Período",
                     icon: Icons.calendar_today,
                     readOnly: true,
-                    accentColor: activeColor,
                     onTap: () => _selectPeriod(context),
                   ),
                   const SizedBox(height: 15),
@@ -215,7 +196,6 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                     icon: Icons.note_add,
                     maxLines: 3,
                     isRequired: false,
-                    accentColor: activeColor,
                   ),
                   const SizedBox(height: 20),
 
@@ -223,13 +203,13 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                     duration: const Duration(milliseconds: 300),
                     decoration: BoxDecoration(
                       color: _isCompleted
-                          ? AppColors.success.withOpacity(0.08)
-                          : AppColors.warning.withOpacity(0.08),
+                          ? AppColors.success.withValues(alpha: 0.08)
+                          : AppColors.warning.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
                         color: _isCompleted
-                            ? AppColors.success.withOpacity(0.2)
-                            : AppColors.warning.withOpacity(0.2),
+                            ? AppColors.success.withValues(alpha: 0.2)
+                            : AppColors.warning.withValues(alpha: 0.2),
                       ),
                     ),
                     child: SwitchListTile(
@@ -262,7 +242,6 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
 
                   SaveButton(
                     isLoading: provider.isLoading,
-                    color: activeColor,
                     onPressed: () => _save(context),
                   ),
                 ],
@@ -274,20 +253,19 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
     );
   }
 
-  InputDecoration _inputStyle(String label, IconData icon, Color activeColor) {
+  InputDecoration _inputStyle(String label, IconData icon) {
     return InputDecoration(
       labelText: label,
-      labelStyle: TextStyle(color: activeColor.withOpacity(0.8)),
-      prefixIcon: Icon(icon, color: activeColor),
+      prefixIcon: Icon(icon, color: AppColors.primary),
       filled: true,
       fillColor: AppColors.surface,
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: AppColors.border.withOpacity(0.5)),
+        borderSide: BorderSide(color: AppColors.border.withValues(alpha: 0.5)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: activeColor, width: 2),
+        borderSide: BorderSide(color: AppColors.primary, width: 2),
       ),
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
     );

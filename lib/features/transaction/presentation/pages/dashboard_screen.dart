@@ -116,7 +116,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border.withOpacity(0.5)),
+        border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
       ),
       child: Column(
         children: [
@@ -155,7 +155,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               itemCount: data.length,
               separatorBuilder: (context, index) => Divider(
                 height: 1,
-                color: AppColors.border.withOpacity(0.2),
+                color: AppColors.border.withValues(alpha: 0.2),
                 indent: 16,
                 endIndent: 16,
               ),
@@ -239,7 +239,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border.withOpacity(0.5)),
+          border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
         ),
         child: Column(
           children: [
