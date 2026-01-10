@@ -62,7 +62,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         Icons.add_circle_outline,
                       ),
                       const SizedBox(width: 12),
-
                       _buildMiniInfo(
                         "Gastos",
                         provider.totalExpenses,
@@ -78,6 +77,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     title: "GASTOS PLANEADOS",
                     icon: Icons.list_alt_rounded,
                     data: provider.plannedGrouped,
+                    totalSection: provider.plannedTotal,
                   ),
 
                   const SizedBox(height: 20),
@@ -87,6 +87,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       title: "GASTOS EXTRAS",
                       icon: Icons.auto_awesome_outlined,
                       data: provider.extraGrouped,
+                      totalSection: provider.totalExtra,
                     ),
 
                   const SizedBox(height: 80),
@@ -111,6 +112,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required String title,
     required IconData icon,
     required Map<String, int> data,
+    required double totalSection,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -126,13 +128,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 Icon(icon, size: 18, color: AppColors.primary),
                 const SizedBox(width: 8),
-
                 Text(
                   title,
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 13,
                     letterSpacing: 0.5,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  Formatters.currencyWithSymbol(totalSection.abs()),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 13,
+                    color: AppColors.textPrimary,
                   ),
                 ),
               ],
@@ -248,7 +258,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 Icon(icon, size: 14, color: color),
                 const SizedBox(width: 6),
-
                 Text(
                   label,
                   style: TextStyle(fontSize: 12, color: AppColors.textLight),
@@ -256,7 +265,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ],
             ),
             const SizedBox(height: 4),
-
             Text(
               Formatters.currencyWithSymbol(amount.toInt()),
               style: TextStyle(

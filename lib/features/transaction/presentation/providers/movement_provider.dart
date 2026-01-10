@@ -28,21 +28,21 @@ class MovementProvider extends ChangeNotifier {
   List<MovementEntity> get movements => _movements;
   List<PaymentMethodEntity> get paymentMethods => _paymentMethods;
 
-  int _realTotal = 0;
-  int _plannedTotal = 0;
-  int _totalExtra = 0;
+  double _realTotal = 0;
+  double _plannedTotal = 0;
+  double _totalExtra = 0;
   double _totalIncomes = 0.0;
   double _totalExpenses = 0.0;
 
   Map<String, int> _plannedGrouped = {};
   Map<String, int> _extraGrouped = {};
 
-  int get realTotal => _realTotal;
+  double get realTotal => _realTotal;
   double get totalBalance => _realTotal.toDouble();
   double get totalIncomes => _totalIncomes;
   double get totalExpenses => _totalExpenses;
-  int get plannedTotal => _plannedTotal;
-  int get totalExtra => _totalExtra;
+  double get plannedTotal => _plannedTotal;
+  double get totalExtra => _totalExtra;
   Map<String, int> get plannedGrouped => _plannedGrouped;
   Map<String, int> get extraGrouped => _extraGrouped;
   bool get hasExtraCategories => _categories.any((c) => c.isExtra);
