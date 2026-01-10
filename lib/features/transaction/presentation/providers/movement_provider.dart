@@ -11,6 +11,12 @@ class MovementProvider extends ChangeNotifier {
   final CategoryUsecases categoryUsecases;
   final PaymentMethodUsecases paymentMethodUsecases;
 
+  MovementProvider({
+    required this.movementUseCase,
+    required this.categoryUsecases,
+    required this.paymentMethodUsecases,
+  });
+
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
@@ -22,15 +28,21 @@ class MovementProvider extends ChangeNotifier {
   List<MovementEntity> get movements => _movements;
   List<PaymentMethodEntity> get paymentMethods => _paymentMethods;
 
-  int _realTotal = 0;
-  int _plannedTotal = 0;
-  int _totalExtra = 0;
+  double _realTotal = 0;
+  double _plannedTotal = 0;
+  double _totalExtra = 0;
+  double _totalIncomes = 0.0;
+  double _totalExpenses = 0.0;
+
   Map<String, int> _plannedGrouped = {};
   Map<String, int> _extraGrouped = {};
 
-  int get realTotal => _realTotal;
-  int get plannedTotal => _plannedTotal;
-  int get totalExtra => _totalExtra;
+  double get realTotal => _realTotal;
+  double get totalBalance => _realTotal.toDouble();
+  double get totalIncomes => _totalIncomes;
+  double get totalExpenses => _totalExpenses;
+  double get plannedTotal => _plannedTotal;
+  double get totalExtra => _totalExtra;
   Map<String, int> get plannedGrouped => _plannedGrouped;
   Map<String, int> get extraGrouped => _extraGrouped;
   bool get hasExtraCategories => _categories.any((c) => c.isExtra);
@@ -41,22 +53,16 @@ class MovementProvider extends ChangeNotifier {
         .toSet();
   }
 
-  MovementProvider({
-    required this.movementUseCase,
-    required this.categoryUsecases,
-    required this.paymentMethodUsecases,
-  });
-
   void _calculateDashboardData() {
     _realTotal = 0;
     _plannedTotal = 0;
     _totalExtra = 0;
+    _totalIncomes = 0.0;
+    _totalExpenses = 0.0;
     _plannedGrouped = {};
     _extraGrouped = {};
 
-    if (_categories.isEmpty) {
-      return;
-    }
+    if (_categories.isEmpty) return;
 
     for (var cat in _categories) {
       if (cat.isExtra) {
@@ -66,24 +72,32 @@ class MovementProvider extends ChangeNotifier {
       }
     }
 
-    List<MovementEntity> filteredMovements = _movements
-        .where((m) => m.isCompleted)
-        .toList();
+    final completedMovements = _movements.where((m) => m.isCompleted);
 
-    for (var mov in filteredMovements) {
-      final catIndex = _categories.indexWhere((c) => c.id == mov.categoryId);
+    for (var mov in completedMovements) {
+      final cat = _categories.cast<CategoryEntity?>().firstWhere(
+        (c) => c?.id == mov.categoryId,
+      );
 
-      final cat = _categories[catIndex];
-      int value = cat.isExpense ? -mov.amount : mov.amount;
+      if (cat == null) continue;
 
-      _realTotal += value;
+      if (cat.isExpense) {
+        _totalExpenses += mov.totalAmount.toDouble();
+      } else {
+        _totalIncomes += mov.totalAmount.toDouble();
+      }
+
+      int relativeValue = cat.isExpense ? -mov.totalAmount : mov.totalAmount;
+      _realTotal += relativeValue;
 
       if (cat.isExtra) {
-        _extraGrouped[cat.name] = (_extraGrouped[cat.name] ?? 0) + value;
-        _totalExtra += value;
+        _extraGrouped[cat.name] =
+            (_extraGrouped[cat.name] ?? 0) + relativeValue;
+        _totalExtra += relativeValue;
       } else {
-        _plannedGrouped[cat.name] = (_plannedGrouped[cat.name] ?? 0) + value;
-        _plannedTotal += value;
+        _plannedGrouped[cat.name] =
+            (_plannedGrouped[cat.name] ?? 0) + relativeValue;
+        _plannedTotal += relativeValue;
       }
     }
   }
@@ -92,25 +106,25 @@ class MovementProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
-      _categories = await categoryUsecases.fetchAll();
-      _paymentMethods = await paymentMethodUsecases.fetchAll();
-      _movements = await movementUseCase.fetchByMonth(
-        DateTime.now().year,
-        DateTime.now().month,
-      );
+      final now = DateTime.now();
+      final results = await Future.wait([
+        categoryUsecases.fetchAll(),
+        paymentMethodUsecases.fetchAll(),
+        movementUseCase.fetchByMonth(now.year, now.month),
+      ]);
+
+      _categories = results[0] as List<CategoryEntity>;
+      _paymentMethods = results[1] as List<PaymentMethodEntity>;
+      _movements = results[2] as List<MovementEntity>;
 
       _calculateDashboardData();
     } catch (e) {
-      /* Handle error */
+      debugPrint("Error al cargar datos: $e");
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
-
-  Future<void> loadCategories() => loadAllData();
-  Future<void> loadMovementsByMonth() => loadAllData();
-  Future<void> loadPaymentMethods() async {}
 
   Future<void> createMovement(MovementEntity movement) async {
     try {
@@ -119,6 +133,8 @@ class MovementProvider extends ChangeNotifier {
 
       await movementUseCase.add(movement);
       await loadAllData();
+    } catch (e) {
+      debugPrint("Error al crear movimiento: $e");
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -135,8 +151,10 @@ class MovementProvider extends ChangeNotifier {
       final index = _movements.indexWhere((m) => m.id == movement.id);
       if (index != -1) {
         _movements[index] = movement;
+        _calculateDashboardData();
       }
     } catch (e) {
+      debugPrint("Error al actualizar movimiento: $e");
       rethrow;
     } finally {
       _isLoading = false;
@@ -150,9 +168,10 @@ class MovementProvider extends ChangeNotifier {
 
     try {
       await movementUseCase.delete(id);
-
       _movements.removeWhere((m) => m.id == id);
+      _calculateDashboardData();
     } catch (e) {
+      debugPrint("Error al eliminar movimiento: $e");
       rethrow;
     } finally {
       _isLoading = false;
@@ -160,7 +179,31 @@ class MovementProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> toggleCompletion(MovementEntity movement) async {
+    final updatedMovement = movement.copyWith(
+      isCompleted: !movement.isCompleted,
+    );
+    final index = _movements.indexWhere((m) => m.id == movement.id);
+
+    if (index != -1) {
+      _movements[index] = updatedMovement;
+      _calculateDashboardData();
+      notifyListeners();
+    }
+
+    try {
+      await movementUseCase.update(updatedMovement);
+    } catch (e) {
+      await loadAllData();
+      debugPrint("Error al sincronizar estado: $e");
+    }
+  }
+
   String getCategoryName(String id) {
-    return _categories.firstWhere((cat) => cat.id == id).name;
+    try {
+      return _categories.firstWhere((cat) => cat.id == id).name;
+    } catch (_) {
+      return "Categoría no encontrada";
+    }
   }
 }

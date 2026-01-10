@@ -1,4 +1,6 @@
-class MovementEntity {
+import 'package:equatable/equatable.dart';
+
+class MovementEntity extends Equatable {
   final String id;
   final String categoryId;
   final String description;
@@ -13,7 +15,7 @@ class MovementEntity {
   final String? notes;
   final bool isCompleted;
 
-  MovementEntity({
+  const MovementEntity({
     required this.id,
     required this.categoryId,
     required this.description,
@@ -29,10 +31,25 @@ class MovementEntity {
     required this.isCompleted,
   });
 
+  int get totalAmount => quantity * amount;
+  bool get isInstallment => totalInstallments > 1;
+
   @override
-  String toString() {
-    return 'MovementEntity(categoryId: $categoryId, description: $description, source: $source, quantity: $quantity, amount: $amount, currentInstallment: $currentInstallment, totalInstallments: $totalInstallments, paymentMethodId: $paymentMethodId, billingPeriodYear: $billingPeriodYear, billingPeriodMonth: $billingPeriodMonth, notes: $notes, isCompleted: $isCompleted)';
-  }
+  List<Object?> get props => [
+    id,
+    categoryId,
+    description,
+    source,
+    quantity,
+    amount,
+    currentInstallment,
+    totalInstallments,
+    paymentMethodId,
+    billingPeriodYear,
+    billingPeriodMonth,
+    notes,
+    isCompleted,
+  ];
 
   MovementEntity copyWith({
     String? id,

@@ -1,11 +1,14 @@
 import 'package:intl/intl.dart';
 
 class Formatters {
+  static const String _locale = 'es_CL';
+
   static String currency(num amount) {
-    return NumberFormat.decimalPattern('es_CL').format(amount);
+    return NumberFormat.decimalPattern(_locale).format(amount.abs());
   }
 
   static String currencyWithSymbol(num amount) {
-    return '\$${currency(amount)}';
+    final String sign = amount < 0 ? '-' : '';
+    return '$sign\$${currency(amount)}';
   }
 }
