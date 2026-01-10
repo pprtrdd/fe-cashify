@@ -56,7 +56,9 @@ class PendingMovementsScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: AppColors.surface,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.border.withOpacity(0.5)),
+                  border: Border.all(
+                    color: AppColors.border.withValues(alpha: 0.5),
+                  ),
                 ),
                 child: Column(
                   children: [
@@ -170,45 +172,6 @@ class PendingMovementsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPopupMenu(
-    BuildContext context,
-    MovementEntity movement,
-    MovementProvider provider,
-  ) {
-    return PopupMenuButton<String>(
-      icon: Icon(Icons.more_vert, size: 20, color: AppColors.textFaded),
-      padding: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      onSelected: (value) async {
-        if (value == 'complete') {
-          await provider.toggleCompletion(movement);
-        } else if (value == 'delete') {
-          _showDeleteConfirmation(context, movement, provider);
-        }
-      },
-      itemBuilder: (context) => [
-        const PopupMenuItem(
-          value: 'complete',
-          child: ListTile(
-            leading: Icon(Icons.check_circle_outline, color: AppColors.income),
-            title: Text('Completar'),
-            contentPadding: EdgeInsets.zero,
-            dense: true,
-          ),
-        ),
-        const PopupMenuItem(
-          value: 'delete',
-          child: ListTile(
-            leading: Icon(Icons.delete_outline, color: AppColors.expense),
-            title: Text('Eliminar'),
-            contentPadding: EdgeInsets.zero,
-            dense: true,
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildEmptyState() {
     return Center(
       child: Column(
@@ -217,7 +180,7 @@ class PendingMovementsScreen extends StatelessWidget {
           Icon(
             Icons.auto_awesome,
             size: 64,
-            color: AppColors.textFaded.withOpacity(0.3),
+            color: AppColors.textFaded.withValues(alpha: 0.3),
           ),
           const SizedBox(height: 16),
           const Text(
@@ -254,7 +217,7 @@ class PendingMovementsScreen extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 28,
-                  backgroundColor: AppColors.expense.withOpacity(0.1),
+                  backgroundColor: AppColors.expense.withValues(alpha: 0.1),
                   child: const Icon(
                     Icons.delete_sweep_rounded,
                     color: AppColors.expense,
@@ -330,6 +293,182 @@ class PendingMovementsScreen extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildPopupMenu(
+    BuildContext context,
+    MovementEntity movement,
+    MovementProvider provider,
+  ) {
+    return PopupMenuButton<String>(
+      icon: Icon(Icons.more_vert, size: 20, color: AppColors.textFaded),
+      padding: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      onSelected: (value) {
+        if (value == 'complete') {
+          _showCompleteConfirmation(context, movement, provider);
+        } else if (value == 'delete') {
+          _showDeleteConfirmation(context, movement, provider);
+        }
+      },
+      itemBuilder: (context) => [
+        const PopupMenuItem(
+          value: 'complete',
+          child: ListTile(
+            leading: Icon(Icons.check_circle_outline, color: AppColors.income),
+            title: Text('Completar'),
+            contentPadding: EdgeInsets.zero,
+            dense: true,
+          ),
+        ),
+        const PopupMenuItem(
+          value: 'delete',
+          child: ListTile(
+            leading: Icon(Icons.delete_outline, color: AppColors.expense),
+            title: Text('Eliminar'),
+            contentPadding: EdgeInsets.zero,
+            dense: true,
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showCompleteConfirmation(
+    BuildContext context,
+    MovementEntity movement,
+    MovementProvider provider,
+  ) {
+    final TextEditingController amountController = TextEditingController(
+      text: movement.amount.toString(),
+    );
+    final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Column(
+          children: [
+            CircleAvatar(
+              radius: 24,
+              backgroundColor: AppColors.income.withValues(alpha: 0.1),
+              child: const Icon(
+                Icons.account_balance_wallet_outlined,
+                color: AppColors.income,
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              "Monto Real",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "Confirma el monto final pagado/recibido para '${movement.description}':",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 13, color: AppColors.textLight),
+              ),
+              const SizedBox(height: 20),
+              TextFormField(
+                controller: amountController,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: false,
+                ),
+                textAlign: TextAlign.center,
+                autofocus: true,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 28,
+                  color: AppColors.textPrimary,
+                ),
+                decoration: InputDecoration(
+                  prefixText: "\$ ",
+                  hintText: "0",
+                  filled: true,
+                  fillColor: AppColors.background,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                  errorStyle: const TextStyle(fontSize: 11),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) return "Ingresa un monto";
+                  final val = int.tryParse(value);
+                  if (val == null || val <= 0) {
+                    return "El monto debe ser mayor a 0";
+                  }
+                  return null;
+                },
+              ),
+            ],
+          ),
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        actions: [
+          Row(
+            children: [
+              Expanded(
+                child: TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(
+                    "Cancelar",
+                    style: TextStyle(color: AppColors.textFaded),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.income,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () async {
+                    if (formKey.currentState!.validate()) {
+                      final newAmount = int.parse(amountController.text);
+                      Navigator.pop(context);
+
+                      await provider.confirmAndCompleteMovement(
+                        movement,
+                        newAmount,
+                      );
+
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              "Movimiento registrado correctamente",
+                            ),
+                            backgroundColor: AppColors.income,
+                          ),
+                        );
+                      }
+                    }
+                  },
+                  child: const Text(
+                    "Confirmar",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

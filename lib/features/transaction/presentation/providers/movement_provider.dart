@@ -206,4 +206,33 @@ class MovementProvider extends ChangeNotifier {
       return "Categoría no encontrada";
     }
   }
+
+  Future<void> confirmAndCompleteMovement(
+    MovementEntity movement,
+    int finalAmount,
+  ) async {
+    _isLoading = true;
+    notifyListeners();
+
+    final updatedMovement = movement.copyWith(
+      amount: finalAmount,
+      isCompleted: true,
+    );
+
+    try {
+      await movementUseCase.update(updatedMovement);
+
+      final index = _movements.indexWhere((m) => m.id == movement.id);
+      if (index != -1) {
+        _movements[index] = updatedMovement;
+        _calculateDashboardData();
+      }
+    } catch (e) {
+      debugPrint("Error al completar movimiento: $e");
+      await loadAllData();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 }
