@@ -40,7 +40,6 @@ class MiniInfoCard extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 4),
-
           Text(
             "${isNeg ? '-' : '+'} ${Formatters.currencyWithSymbol(amount.abs())}",
             style: TextStyle(
