@@ -29,11 +29,11 @@ class MovementUseCase {
     return await movementRepository.update(movement);
   }
 
-  Future<void> delete(String id) async {
-    return await movementRepository.delete(id);
+  Future<void> delete(MovementEntity movement) async {
+    return await movementRepository.delete(movement);
   }
 
   Future<List<MovementEntity>> fetchByMonth(int year, int month) async {
-    return await movementRepository.fetchByMonth(year, month);
+    return await movementRepository.fetchByPeriod(year, month);
   }
 }

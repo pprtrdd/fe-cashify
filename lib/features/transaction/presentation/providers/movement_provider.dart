@@ -149,12 +149,14 @@ class MovementProvider extends ChangeNotifier {
       await movementUseCase.update(movement);
 
       final index = _movements.indexWhere((m) => m.id == movement.id);
+
       if (index != -1) {
         _movements[index] = movement;
         _calculateDashboardData();
       }
     } catch (e) {
       debugPrint("Error al actualizar movimiento: $e");
+
       rethrow;
     } finally {
       _isLoading = false;
@@ -162,16 +164,18 @@ class MovementProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> deleteMovement(String id) async {
+  Future<void> deleteMovement(MovementEntity movement) async {
     _isLoading = true;
     notifyListeners();
 
     try {
-      await movementUseCase.delete(id);
-      _movements.removeWhere((m) => m.id == id);
+      await movementUseCase.delete(movement);
+
+      _movements.removeWhere((m) => m.id == movement.id);
       _calculateDashboardData();
     } catch (e) {
       debugPrint("Error al eliminar movimiento: $e");
+
       rethrow;
     } finally {
       _isLoading = false;
@@ -195,6 +199,7 @@ class MovementProvider extends ChangeNotifier {
       await movementUseCase.update(updatedMovement);
     } catch (e) {
       await loadAllData();
+
       debugPrint("Error al sincronizar estado: $e");
     }
   }
@@ -223,12 +228,14 @@ class MovementProvider extends ChangeNotifier {
       await movementUseCase.update(updatedMovement);
 
       final index = _movements.indexWhere((m) => m.id == movement.id);
+
       if (index != -1) {
         _movements[index] = updatedMovement;
         _calculateDashboardData();
       }
     } catch (e) {
       debugPrint("Error al completar movimiento: $e");
+
       await loadAllData();
     } finally {
       _isLoading = false;

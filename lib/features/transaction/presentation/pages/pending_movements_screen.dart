@@ -271,7 +271,8 @@ class PendingMovementsScreen extends StatelessWidget {
                         ),
                         onPressed: () async {
                           Navigator.pop(context);
-                          await provider.deleteMovement(movement.id);
+                          await provider.deleteMovement(movement);
+
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
