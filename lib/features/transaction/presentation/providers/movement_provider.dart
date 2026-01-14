@@ -24,6 +24,7 @@ class MovementProvider extends ChangeNotifier {
   List<MovementEntity> _movements = [];
   List<PaymentMethodEntity> _paymentMethods = [];
 
+  String? _lastLoadedBillingPeriodId;
   List<CategoryEntity> get categories => _categories;
   List<MovementEntity> get movements => _movements;
   List<PaymentMethodEntity> get paymentMethods => _paymentMethods;
@@ -38,13 +39,14 @@ class MovementProvider extends ChangeNotifier {
   Map<String, int> _extraGrouped = {};
 
   double get realTotal => _realTotal;
-  double get totalBalance => _realTotal.toDouble();
+  double get totalBalance => _realTotal;
   double get totalIncomes => _totalIncomes;
   double get totalExpenses => _totalExpenses;
   double get plannedTotal => _plannedTotal;
   double get totalExtra => _totalExtra;
   Map<String, int> get plannedGrouped => _plannedGrouped;
   Map<String, int> get extraGrouped => _extraGrouped;
+
   bool get hasExtraCategories => _categories.any((c) => c.isExtra);
   Set<String> get incomeCategoryIds {
     return _categories
@@ -102,15 +104,15 @@ class MovementProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> loadAllData() async {
+  Future<void> loadDataByBillingPeriod(String billingPeriodId) async {
+    _lastLoadedBillingPeriodId = billingPeriodId;
     _isLoading = true;
     notifyListeners();
     try {
-      final now = DateTime.now();
       final results = await Future.wait([
         categoryUsecases.fetchAll(),
         paymentMethodUsecases.fetchAll(),
-        movementUseCase.fetchByMonth(now.year, now.month),
+        movementUseCase.fetchByBillingPeriod(billingPeriodId),
       ]);
 
       _categories = results[0] as List<CategoryEntity>;
@@ -119,22 +121,28 @@ class MovementProvider extends ChangeNotifier {
 
       _calculateDashboardData();
     } catch (e) {
-      debugPrint("Error al cargar datos: $e");
+      debugPrint(
+        "Error al cargar datos del periodo de facturación $billingPeriodId: $e",
+      );
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  Future<void> createMovement(MovementEntity movement) async {
+  Future<void> createMovement(
+    MovementEntity movement,
+    String currentBillingPeriodId,
+  ) async {
     try {
       _isLoading = true;
       notifyListeners();
 
       await movementUseCase.add(movement);
-      await loadAllData();
+      await loadDataByBillingPeriod(currentBillingPeriodId);
     } catch (e) {
       debugPrint("Error al crear movimiento: $e");
+      rethrow;
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -147,7 +155,6 @@ class MovementProvider extends ChangeNotifier {
 
     try {
       await movementUseCase.update(movement);
-
       final index = _movements.indexWhere((m) => m.id == movement.id);
 
       if (index != -1) {
@@ -156,7 +163,6 @@ class MovementProvider extends ChangeNotifier {
       }
     } catch (e) {
       debugPrint("Error al actualizar movimiento: $e");
-
       rethrow;
     } finally {
       _isLoading = false;
@@ -170,12 +176,10 @@ class MovementProvider extends ChangeNotifier {
 
     try {
       await movementUseCase.delete(movement);
-
       _movements.removeWhere((m) => m.id == movement.id);
       _calculateDashboardData();
     } catch (e) {
       debugPrint("Error al eliminar movimiento: $e");
-
       rethrow;
     } finally {
       _isLoading = false;
@@ -188,7 +192,6 @@ class MovementProvider extends ChangeNotifier {
       isCompleted: !movement.isCompleted,
     );
     final index = _movements.indexWhere((m) => m.id == movement.id);
-
     if (index != -1) {
       _movements[index] = updatedMovement;
       _calculateDashboardData();
@@ -198,8 +201,9 @@ class MovementProvider extends ChangeNotifier {
     try {
       await movementUseCase.update(updatedMovement);
     } catch (e) {
-      await loadAllData();
-
+      if (_lastLoadedBillingPeriodId != null) {
+        await loadDataByBillingPeriod(_lastLoadedBillingPeriodId!);
+      }
       debugPrint("Error al sincronizar estado: $e");
     }
   }
@@ -226,7 +230,6 @@ class MovementProvider extends ChangeNotifier {
 
     try {
       await movementUseCase.update(updatedMovement);
-
       final index = _movements.indexWhere((m) => m.id == movement.id);
 
       if (index != -1) {
@@ -235,8 +238,9 @@ class MovementProvider extends ChangeNotifier {
       }
     } catch (e) {
       debugPrint("Error al completar movimiento: $e");
-
-      await loadAllData();
+      if (_lastLoadedBillingPeriodId != null) {
+        await loadDataByBillingPeriod(_lastLoadedBillingPeriodId!);
+      }
     } finally {
       _isLoading = false;
       notifyListeners();

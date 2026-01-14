@@ -1,3 +1,4 @@
+import 'package:cashify/features/configuration/presentation/providers/settings_provider.dart';
 import 'package:cashify/features/shared/widgets/custom_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -15,26 +16,36 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<MovementProvider>().loadAllData();
+      _refreshData();
     });
+  }
+
+  Future<void> _refreshData() async {
+    final settings = context.read<SettingsProvider>();
+    if (settings.settings.startDay == 1 && settings.isLoading == false) {
+      await settings.loadSettings();
+    }
+
+    if (mounted) {
+      final billingPeriodId = context.read<SettingsProvider>().currentBillingPeriodId;
+      await context.read<MovementProvider>().loadDataByBillingPeriod(billingPeriodId);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final settingsProv = context.watch<SettingsProvider>();
+
     return Scaffold(
-      key: _scaffoldKey,
       backgroundColor: AppColors.background,
       drawer: const CustomDrawer(),
       appBar: AppBar(
         title: const Text("Cashify"),
         centerTitle: true,
-        elevation: 0,
         actions: [_buildNotificationBadge(context)],
       ),
       body: Consumer<MovementProvider>(
@@ -44,14 +55,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
           }
 
           return RefreshIndicator(
-            onRefresh: () => provider.loadAllData(),
+            onRefresh: _refreshData,
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.all(16.0),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   _buildMainBalanceCard(provider.totalBalance),
+                  const SizedBox(height: 12),
+                  _buildPeriodSelector(context, settingsProv),
                   const SizedBox(height: 12),
                   Row(
                     children: [
@@ -94,11 +106,48 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.primary,
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const MovementFormScreen()),
-        ),
+        onPressed: () async {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const MovementFormScreen()),
+          );
+          _refreshData();
+        },
         child: const Icon(Icons.add, color: Colors.white, size: 30),
+      ),
+    );
+  }
+
+  Widget _buildPeriodSelector(BuildContext context, SettingsProvider settings) {
+    final range = settings.currentBillingPeriodRange;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.calendar_month_rounded, color: AppColors.primary),
+          const SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Período: ${settings.currentBillingPeriodId}",
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              Text(
+                "${range.start.day}/${range.start.month} - ${range.end.day}/${range.end.month}",
+                style: TextStyle(fontSize: 11, color: AppColors.textLight),
+              ),
+            ],
+          ),
+          const Spacer(),
+          const Icon(Icons.keyboard_arrow_down_rounded),
+        ],
       ),
     );
   }
@@ -144,7 +193,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
           const Divider(),
-
           if (data.isEmpty)
             const Padding(
               padding: EdgeInsets.all(20),

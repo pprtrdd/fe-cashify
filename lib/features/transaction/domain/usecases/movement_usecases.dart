@@ -3,7 +3,6 @@ import 'package:cashify/features/transaction/domain/repositories/movement_reposi
 
 class MovementUseCase {
   final MovementRepository movementRepository;
-
   MovementUseCase({required this.movementRepository});
 
   Future<void> add(MovementEntity movement) async {
@@ -21,7 +20,6 @@ class MovementUseCase {
         movement.paymentMethodId.isEmpty) {
       throw Exception("Movimiento inválido");
     }
-
     return await movementRepository.save(movement);
   }
 
@@ -33,7 +31,7 @@ class MovementUseCase {
     return await movementRepository.delete(movement);
   }
 
-  Future<List<MovementEntity>> fetchByMonth(int year, int month) async {
-    return await movementRepository.fetchByPeriod(year, month);
+  Future<List<MovementEntity>> fetchByBillingPeriod(String periodId) async {
+    return await movementRepository.fetchByBillingPeriod(periodId);
   }
 }
