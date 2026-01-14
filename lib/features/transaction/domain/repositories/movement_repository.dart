@@ -12,15 +12,32 @@ class MovementRepository {
 
   String get _currentUid =>
       _auth.currentUser?.uid ?? (throw Exception("No auth"));
+  DocumentReference _getPeriodDoc(String billingPeriodId) {
+    return _firestore
+        .collection("users")
+        .doc(_currentUid)
+        .collection("billing_periods")
+        .doc(billingPeriodId);
+  }
+
   String _getMovementsPath(String billingPeriodId) {
     return "users/$_currentUid/billing_periods/$billingPeriodId/movements";
   }
 
   Future<void> save(MovementEntity m) async {
-    final path = _getMovementsPath(m.billingPeriodId);
     try {
-      await _firestore
-          .collection(path)
+      final periodDoc = _getPeriodDoc(m.billingPeriodId);
+
+      await periodDoc.set({
+        'id': m.billingPeriodId,
+        'year': m.billingPeriodYear,
+        'month': m.billingPeriodMonth,
+        'lastUpdate': FieldValue.serverTimestamp(),
+        'status': 'active',
+      }, SetOptions(merge: true));
+
+      await periodDoc
+          .collection("movements")
           .add(MovementModel.fromEntity(m).toFirestore());
     } catch (e) {
       debugPrint("Error saving: $e");
