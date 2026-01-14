@@ -14,6 +14,10 @@ class SettingsProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String get currentBillingPeriodId {
     final now = DateTime.now();
+    if (now.day >= _settings.startDay && _settings.startDay > 1) {
+      final nextMonthDate = DateTime(now.year, now.month + 1);
+      return getBillingPeriodIdFromMonthYear(nextMonthDate);
+    }
     return getBillingPeriodIdFromMonthYear(now);
   }
 

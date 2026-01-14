@@ -16,23 +16,38 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  String? _lastPeriodLoaded;
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _refreshData();
-    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final currentPeriod = context
+        .watch<SettingsProvider>()
+        .currentBillingPeriodId;
+
+    if (_lastPeriodLoaded != currentPeriod) {
+      _lastPeriodLoaded = currentPeriod;
+
+      Future.microtask(() => _refreshData());
+    }
   }
 
   Future<void> _refreshData() async {
-    final settings = context.read<SettingsProvider>();
-    if (settings.settings.startDay == 1 && settings.isLoading == false) {
-      await settings.loadSettings();
+    final settingsProv = context.read<SettingsProvider>();
+    if (settingsProv.settings.startDay == 1 && !settingsProv.isLoading) {
+      await settingsProv.loadSettings();
     }
 
     if (mounted) {
-      final billingPeriodId = context.read<SettingsProvider>().currentBillingPeriodId;
-      await context.read<MovementProvider>().loadDataByBillingPeriod(billingPeriodId);
+      final billingPeriodId = settingsProv.currentBillingPeriodId;
+      await context.read<MovementProvider>().loadDataByBillingPeriod(
+        billingPeriodId,
+      );
     }
   }
 
