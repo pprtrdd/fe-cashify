@@ -13,7 +13,7 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  String? _periodType;
+  String? _billingPeriodType;
   TextEditingController? _startDayController;
   TextEditingController? _endDayController;
 
@@ -29,7 +29,7 @@ class _SettingsPageState extends State<SettingsPage> {
   void _initializeLocalState(UserSettingsEntity settings) {
     if (_isInitialized) return;
 
-    _periodType = settings.periodType;
+    _billingPeriodType = settings.billingPeriodType;
     _startDayController = TextEditingController(
       text: settings.startDay.toString(),
     );
@@ -95,7 +95,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       const SizedBox(height: 16),
                       _buildPeriodToggle(),
                       const SizedBox(height: 24),
-                      if (_periodType == 'custom_range') ...[
+                      if (_billingPeriodType == 'custom_range') ...[
                         const Text(
                           "Rango de Fechas",
                           style: TextStyle(
@@ -180,10 +180,10 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Widget _buildToggleButton(String label, String value) {
-    bool isSelected = _periodType == value;
+    bool isSelected = _billingPeriodType == value;
     return Expanded(
       child: GestureDetector(
-        onTap: () => setState(() => _periodType = value),
+        onTap: () => setState(() => _billingPeriodType = value),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
@@ -266,7 +266,7 @@ class _SettingsPageState extends State<SettingsPage> {
     final start = int.tryParse(_startDayController?.text ?? '1') ?? 1;
     final end = int.tryParse(_endDayController?.text ?? '31') ?? 31;
 
-    if (_periodType == 'custom_range') {
+    if (_billingPeriodType == 'custom_range') {
       if (start < 1 || start > 31 || end < 1 || end > 31) {
         _showError("Los días deben estar entre 1 y 31");
         return;
@@ -278,9 +278,9 @@ class _SettingsPageState extends State<SettingsPage> {
     }
 
     final newSettings = UserSettingsEntity(
-      periodType: _periodType!,
-      startDay: _periodType == 'month_to_month' ? 1 : start,
-      endDay: _periodType == 'month_to_month' ? 31 : end,
+      billingPeriodType: _billingPeriodType!,
+      startDay: _billingPeriodType == 'month_to_month' ? 1 : start,
+      endDay: _billingPeriodType == 'month_to_month' ? 31 : end,
     );
 
     try {
@@ -296,7 +296,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Widget _buildPeriodPreview() {
-    if (_periodType == 'month_to_month') return const SizedBox.shrink();
+    if (_billingPeriodType == 'month_to_month') return const SizedBox.shrink();
 
     final startDay = int.tryParse(_startDayController?.text ?? '1') ?? 1;
     final endDay = int.tryParse(_endDayController?.text ?? '31') ?? 31;

@@ -18,9 +18,9 @@ class MovementRepository {
   }
 
   String _getMovementsPath(int year, int month) {
-    final periodId = "${year}_$month";
+    final billingPeriodId = "${year}_$month";
 
-    return "users/$_currentUid/billing_periods/$periodId/movements";
+    return "users/$_currentUid/billing_periods/$billingPeriodId/movements";
   }
 
   Future<void> save(MovementEntity m) async {

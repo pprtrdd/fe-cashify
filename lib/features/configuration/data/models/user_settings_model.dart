@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class UserSettingsModel extends UserSettingsEntity {
   const UserSettingsModel({
-    required super.periodType,
+    required super.billingPeriodType,
     required super.startDay,
     required super.endDay,
   });
@@ -12,7 +12,7 @@ class UserSettingsModel extends UserSettingsEntity {
     final billing = json['billing'] as Map<String, dynamic>;
 
     return UserSettingsModel(
-      periodType: billing['periodType'].toString(),
+      billingPeriodType: billing['billingPeriodType'].toString(),
       startDay: (billing['startDay'] as num).toInt(),
       endDay: (billing['endDay'] as num).toInt(),
     );
@@ -21,7 +21,7 @@ class UserSettingsModel extends UserSettingsEntity {
   Map<String, dynamic> toFirestore() {
     return {
       'billing': {
-        'periodType': periodType,
+        'billingPeriodType': billingPeriodType,
         'startDay': startDay,
         'endDay': endDay,
       },
@@ -31,7 +31,7 @@ class UserSettingsModel extends UserSettingsEntity {
 
   factory UserSettingsModel.fromEntity(UserSettingsEntity e) {
     return UserSettingsModel(
-      periodType: e.periodType,
+      billingPeriodType: e.billingPeriodType,
       startDay: e.startDay,
       endDay: e.endDay,
     );

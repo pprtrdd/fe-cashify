@@ -28,7 +28,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
   final _amountController = TextEditingController();
   final _currentInstallmentController = TextEditingController();
   final _totalInstallmentsController = TextEditingController();
-  final _periodController = TextEditingController();
+  final _billingPeriodController = TextEditingController();
   final _notesController = TextEditingController();
 
   @override
@@ -41,7 +41,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
   }
 
   void _initializeDefaults() {
-    _periodController.text =
+    _billingPeriodController.text =
         "${_selectedDate.month.toString().padLeft(2, '0')}/${_selectedDate.year}";
     _currentInstallmentController.text = "1";
     _totalInstallmentsController.text = "1";
@@ -57,7 +57,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
       _amountController,
       _currentInstallmentController,
       _totalInstallmentsController,
-      _periodController,
+      _billingPeriodController,
       _notesController,
     ]) {
       c.dispose();
@@ -175,7 +175,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                   ),
                   const SizedBox(height: 15),
                   CustomTextField(
-                    controller: _periodController,
+                    controller: _billingPeriodController,
                     label: "Período",
                     icon: Icons.calendar_today,
                     readOnly: true,
@@ -272,7 +272,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
         onDateChanged: (DateTime newDate) {
           setState(() {
             _selectedDate = newDate;
-            _periodController.text =
+            _billingPeriodController.text =
                 "${newDate.month.toString().padLeft(2, '0')}/${newDate.year}";
           });
         },

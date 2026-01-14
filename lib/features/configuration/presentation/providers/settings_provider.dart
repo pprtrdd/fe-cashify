@@ -14,7 +14,7 @@ class SettingsProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   int get currentAccountingYear {
     final now = DateTime.now();
-    if (_settings.periodType == 'month_to_month' ||
+    if (_settings.billingPeriodType == 'month_to_month' ||
         now.day < _settings.startDay) {
       return now.year;
     }
@@ -34,7 +34,7 @@ class SettingsProvider extends ChangeNotifier {
         ? lastDayOfMonth
         : _settings.startDay;
 
-    if (_settings.periodType == 'month_to_month' ||
+    if (_settings.billingPeriodType == 'month_to_month' ||
         now.day < effectiveStartDay) {
       return now.month;
     }
@@ -43,7 +43,7 @@ class SettingsProvider extends ChangeNotifier {
 
   String get currentPeriodRangeText {
     final now = DateTime.now();
-    if (_settings.periodType == 'month_to_month') {
+    if (_settings.billingPeriodType == 'month_to_month') {
       return "Mes de ${_getMonthName(now.month)}";
     }
 
