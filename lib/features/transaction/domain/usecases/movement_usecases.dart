@@ -2,8 +2,9 @@ import 'package:cashify/features/transaction/domain/entities/movement_entity.dar
 import 'package:cashify/features/transaction/domain/repositories/movement_repository.dart';
 
 class MovementUseCase {
-  final MovementRepository movementRepository;
-  MovementUseCase({required this.movementRepository});
+  final MovementRepository repository;
+
+  MovementUseCase({required this.repository});
 
   Future<void> add(MovementEntity movement) async {
     if (movement.amount <= 0 ||
@@ -20,18 +21,18 @@ class MovementUseCase {
         movement.paymentMethodId.isEmpty) {
       throw Exception("Movimiento inválido");
     }
-    return await movementRepository.save(movement);
+    return await repository.save(movement);
   }
 
   Future<void> update(MovementEntity movement) async {
-    return await movementRepository.update(movement);
+    return await repository.update(movement);
   }
 
   Future<void> delete(MovementEntity movement) async {
-    return await movementRepository.delete(movement);
+    return await repository.delete(movement);
   }
 
   Future<List<MovementEntity>> fetchByBillingPeriod(String periodId) async {
-    return await movementRepository.fetchByBillingPeriod(periodId);
+    return await repository.fetchByBillingPeriod(periodId);
   }
 }

@@ -11,8 +11,9 @@ class MovementRepository {
   MovementRepository(this._firestore, this._auth);
 
   String get _currentUid =>
-      _auth.currentUser?.uid ?? (throw Exception("No auth"));
-  DocumentReference _getPeriodDoc(String billingPeriodId) {
+      _auth.currentUser?.uid ?? (throw Exception("Usuario no autenticado"));
+
+  DocumentReference<Map<String, dynamic>> _periodDoc(String billingPeriodId) {
     return _firestore
         .collection("users")
         .doc(_currentUid)
@@ -20,15 +21,17 @@ class MovementRepository {
         .doc(billingPeriodId);
   }
 
-  String _getMovementsPath(String billingPeriodId) {
-    return "users/$_currentUid/billing_periods/$billingPeriodId/movements";
+  CollectionReference<Map<String, dynamic>> _movementsRef(
+    String billingPeriodId,
+  ) {
+    return _periodDoc(billingPeriodId).collection("movements");
   }
 
   Future<void> save(MovementEntity m) async {
     try {
-      final periodDoc = _getPeriodDoc(m.billingPeriodId);
+      final periodRef = _periodDoc(m.billingPeriodId);
 
-      await periodDoc.set({
+      await periodRef.set({
         'id': m.billingPeriodId,
         'year': m.billingPeriodYear,
         'month': m.billingPeriodMonth,
@@ -36,35 +39,47 @@ class MovementRepository {
         'status': 'active',
       }, SetOptions(merge: true));
 
-      await periodDoc
-          .collection("movements")
-          .add(MovementModel.fromEntity(m).toFirestore());
+      await _movementsRef(
+        m.billingPeriodId,
+      ).add(MovementModel.fromEntity(m).toFirestore());
     } catch (e) {
-      debugPrint("Error saving: $e");
+      debugPrint("Error saving movement: $e");
       rethrow;
     }
   }
 
   Future<void> update(MovementEntity m) async {
-    final path = _getMovementsPath(m.billingPeriodId);
-    await _firestore
-        .collection(path)
-        .doc(m.id)
-        .update(MovementModel.fromEntity(m).toFirestore());
+    try {
+      await _movementsRef(
+        m.billingPeriodId,
+      ).doc(m.id).update(MovementModel.fromEntity(m).toFirestore());
+    } catch (e) {
+      debugPrint("Error updating movement: $e");
+      rethrow;
+    }
   }
 
   Future<void> delete(MovementEntity m) async {
-    final path = _getMovementsPath(m.billingPeriodId);
-    await _firestore.collection(path).doc(m.id).delete();
+    try {
+      await _movementsRef(m.billingPeriodId).doc(m.id).delete();
+    } catch (e) {
+      debugPrint("Error deleting movement: $e");
+      rethrow;
+    }
   }
 
   Future<List<MovementEntity>> fetchByBillingPeriod(
     String billingPeriodId,
   ) async {
-    final path = _getMovementsPath(billingPeriodId);
-    final snapshot = await _firestore.collection(path).get();
-    return snapshot.docs.map((doc) {
-      return MovementModel.fromFirestore(doc.data(), doc.id);
-    }).toList();
+    try {
+      final snapshot = await _movementsRef(billingPeriodId).get();
+
+      return snapshot.docs.map((doc) {
+        return MovementModel.fromFirestore(doc.data(), doc.id);
+      }).toList();
+    } catch (e) {
+      debugPrint("Error fetching movements: $e");
+      rethrow;
+    }
   }
 }

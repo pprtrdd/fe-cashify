@@ -1,5 +1,7 @@
+import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/features/configuration/presentation/providers/settings_provider.dart';
 import 'package:cashify/features/transaction/domain/entities/movement_entity.dart';
+import 'package:cashify/features/transaction/presentation/providers/billing_period_provider.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
 import 'package:cashify/features/transaction/presentation/widgets/category_dropdown_field.dart';
 import 'package:cashify/features/transaction/presentation/widgets/custom_text_field.dart';
@@ -7,7 +9,6 @@ import 'package:cashify/features/transaction/presentation/widgets/month_year_pic
 import 'package:cashify/features/transaction/presentation/widgets/save_button.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:cashify/core/theme/app_colors.dart';
 
 class MovementFormScreen extends StatefulWidget {
   const MovementFormScreen({super.key});
@@ -36,13 +37,14 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
   void initState() {
     super.initState();
     _initializeDefaults();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final currentbillingPeriod = context
-          .read<SettingsProvider>()
-          .currentBillingPeriodId;
-      context.read<MovementProvider>().loadDataByBillingPeriod(
-        currentbillingPeriod,
+      final settingsProv = context.read<SettingsProvider>();
+      final periodProv = context.read<BillingPeriodProvider>();
+      final currentId = periodProv.getCurrentBillingPeriodId(
+        settingsProv.settings,
       );
+      context.read<MovementProvider>().loadDataByBillingPeriod(currentId);
     });
   }
 
@@ -54,8 +56,11 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
   }
 
   void _updateBillingPeriodTextField(DateTime date) {
-    _billingPeriodController.text =
-        "${date.month.toString().padLeft(2, '0')}/${date.year}";
+    final periodProv = context.read<BillingPeriodProvider>();
+    final settingsProv = context.read<SettingsProvider>();
+
+    final id = periodProv.getIdFromDate(date, settingsProv.settings.startDay);
+    _billingPeriodController.text = periodProv.formatId(id);
   }
 
   @override
@@ -186,7 +191,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                   const SizedBox(height: 15),
                   CustomTextField(
                     controller: _billingPeriodController,
-                    label: "Período de Facturación del Movimiento",
+                    label: "Asignar a Período",
                     icon: Icons.calendar_today,
                     readOnly: true,
                     onTap: () => _selectPeriod(context),
@@ -200,45 +205,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                     isRequired: false,
                   ),
                   const SizedBox(height: 20),
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    decoration: BoxDecoration(
-                      color: _isCompleted
-                          ? AppColors.success.withValues(alpha: 0.08)
-                          : AppColors.warning.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: _isCompleted
-                            ? AppColors.success.withValues(alpha: 0.2)
-                            : AppColors.warning.withValues(alpha: 0.2),
-                      ),
-                    ),
-                    child: SwitchListTile(
-                      activeThumbColor: AppColors.success,
-                      title: Text(
-                        _isCompleted
-                            ? "Movimiento Completado"
-                            : "Movimiento Pendiente",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: _isCompleted
-                              ? AppColors.success
-                              : AppColors.warning,
-                        ),
-                      ),
-                      secondary: Icon(
-                        _isCompleted
-                            ? Icons.check_circle
-                            : Icons.pending_actions,
-                        color: _isCompleted
-                            ? AppColors.success
-                            : AppColors.warning,
-                      ),
-                      value: _isCompleted,
-                      onChanged: (bool value) =>
-                          setState(() => _isCompleted = value),
-                    ),
-                  ),
+                  _buildStatusSwitch(),
                   const SizedBox(height: 30),
                   SaveButton(
                     isLoading: provider.isLoading,
@@ -253,6 +220,39 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
     );
   }
 
+  Widget _buildStatusSwitch() {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      decoration: BoxDecoration(
+        color: _isCompleted
+            ? AppColors.success.withAlpha(20)
+            : AppColors.warning.withAlpha(20),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: _isCompleted
+              ? AppColors.success.withAlpha(50)
+              : AppColors.warning.withAlpha(50),
+        ),
+      ),
+      child: SwitchListTile(
+        activeThumbColor: AppColors.success,
+        title: Text(
+          _isCompleted ? "Movimiento Completado" : "Movimiento Pendiente",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: _isCompleted ? AppColors.success : AppColors.warning,
+          ),
+        ),
+        secondary: Icon(
+          _isCompleted ? Icons.check_circle : Icons.pending_actions,
+          color: _isCompleted ? AppColors.success : AppColors.warning,
+        ),
+        value: _isCompleted,
+        onChanged: (bool value) => setState(() => _isCompleted = value),
+      ),
+    );
+  }
+
   InputDecoration _inputStyle(String label, IconData icon) {
     return InputDecoration(
       labelText: label,
@@ -261,11 +261,11 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
       fillColor: AppColors.surface,
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: AppColors.border.withValues(alpha: 0.5)),
+        borderSide: BorderSide(color: AppColors.border.withValues(alpha: 120)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: AppColors.primary, width: 2),
+        borderSide: const BorderSide(color: AppColors.primary, width: 2),
       ),
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
     );
@@ -292,10 +292,13 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
   void _save(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
       final settingsProv = context.read<SettingsProvider>();
+      final periodProv = context.read<BillingPeriodProvider>();
       final movementProv = context.read<MovementProvider>();
 
-      final String calculatedBillingPeriodId = settingsProv
-          .getBillingPeriodIdFromMonthYear(_selectedDate);
+      final String calculatedId = periodProv.getIdFromDate(
+        _selectedDate,
+        settingsProv.settings.startDay,
+      );
 
       final movement = MovementEntity(
         id: '',
@@ -310,22 +313,23 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
         paymentMethodId: _selectedPaymentMethod!,
         billingPeriodYear: _selectedDate.year,
         billingPeriodMonth: _selectedDate.month,
-        billingPeriodId: calculatedBillingPeriodId,
+        billingPeriodId: calculatedId,
         notes: _notesController.text.isNotEmpty ? _notesController.text : null,
         isCompleted: _isCompleted,
       );
 
       try {
-        await movementProv.createMovement(
-          movement,
-          settingsProv.currentBillingPeriodId,
-        );
+        final currentViewId =
+            periodProv.selectedPeriodId ??
+            periodProv.getCurrentBillingPeriodId(settingsProv.settings);
+
+        await movementProv.createMovement(movement, currentViewId);
 
         if (!context.mounted) return;
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Movimiento guardado con éxito'),
+            content: Text('Movimiento guardado'),
             backgroundColor: AppColors.success,
             behavior: SnackBarBehavior.floating,
           ),
@@ -334,7 +338,6 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
         Navigator.pop(context);
       } catch (e) {
         if (!context.mounted) return;
-
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error: ${e.toString()}'),

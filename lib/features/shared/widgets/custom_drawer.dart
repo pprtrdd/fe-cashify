@@ -1,8 +1,10 @@
 import 'package:cashify/core/auth/auth_service.dart';
 import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/features/configuration/presentation/pages/settings_screen.dart';
+import 'package:cashify/features/configuration/presentation/providers/settings_provider.dart';
 import 'package:cashify/features/transaction/presentation/pages/movement_form_screen.dart';
 import 'package:cashify/features/transaction/presentation/pages/pending_movements_screen.dart';
+import 'package:cashify/features/transaction/presentation/providers/billing_period_provider.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -19,11 +21,30 @@ class CustomDrawer extends StatelessWidget {
     final bool hasValidPhoto =
         user?.photoURL != null && user!.photoURL!.isNotEmpty;
 
+    final periodProv = context.watch<BillingPeriodProvider>();
+    final settingsProv = context.watch<SettingsProvider>();
+
+    final String realCurrentId = periodProv.getCurrentBillingPeriodId(
+      settingsProv.settings,
+    );
+    final realRange = periodProv.getRangeFromId(
+      realCurrentId,
+      settingsProv.settings.startDay,
+    );
+
+    final String realMonthName = periodProv.formatId(realCurrentId);
+    final String realDateRangeStr =
+        "${realRange.start.day}/${realRange.start.month} al ${realRange.end.day}/${realRange.end.month}";
+
+    final activeViewId = periodProv.selectedPeriodId ?? realCurrentId;
+
     return Drawer(
       backgroundColor: AppColors.surface,
       child: Column(
         children: [
-          UserAccountsDrawerHeader(
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(20, 50, 20, 20),
             decoration: const BoxDecoration(
               color: AppColors.primary,
               gradient: LinearGradient(
@@ -32,36 +53,134 @@ class CustomDrawer extends StatelessWidget {
                 end: Alignment.bottomRight,
               ),
             ),
-            currentAccountPicture: CircleAvatar(
-              backgroundColor: AppColors.background,
-              backgroundImage: hasValidPhoto
-                  ? NetworkImage(user.photoURL!)
-                  : null,
-              child: !hasValidPhoto
-                  ? Text(
-                      displayName.isNotEmpty
-                          ? displayName[0].toUpperCase()
-                          : 'U',
-                      style: const TextStyle(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 28,
-                      ),
-                    )
-                  : null,
-            ),
-            accountName: Text(
-              displayName,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-            accountEmail: Text(
-              email,
-              style: const TextStyle(color: Colors.white70),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CircleAvatar(
+                  radius: 35,
+                  backgroundColor: AppColors.background,
+                  backgroundImage: hasValidPhoto
+                      ? NetworkImage(user.photoURL!)
+                      : null,
+                  child: !hasValidPhoto
+                      ? Text(
+                          displayName.isNotEmpty
+                              ? displayName[0].toUpperCase()
+                              : 'U',
+                          style: const TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 32,
+                          ),
+                        )
+                      : null,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  displayName,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                ),
+                Text(
+                  email,
+                  style: TextStyle(
+                    color: Colors.white.withAlpha(180),
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const Divider(color: Colors.white24, height: 1),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.bolt_rounded,
+                      color: Colors.white70,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 8),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "CICLO ACTUAL EN CURSO",
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          "$realMonthName ($realDateRangeStr)",
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+            child: DropdownButtonFormField<String>(
+              initialValue: periodProv.periods.contains(activeViewId)
+                  ? activeViewId
+                  : null,
+              decoration: InputDecoration(
+                labelText: "ESTÁS VIENDO",
+                labelStyle: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primary,
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                filled: true,
+                fillColor: AppColors.primary.withAlpha(15),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(
+                    color: AppColors.primary,
+                    width: 0.5,
+                  ),
+                ),
+                prefixIcon: const Icon(
+                  Icons.remove_red_eye_outlined,
+                  size: 20,
+                  color: AppColors.primary,
+                ),
+              ),
+              items: periodProv.periods.map((String id) {
+                return DropdownMenuItem<String>(
+                  value: id,
+                  child: Text(
+                    periodProv.formatId(id),
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                );
+              }).toList(),
+              onChanged: (String? newValue) {
+                if (newValue != null) {
+                  periodProv.selectPeriod(newValue);
+                  Navigator.pop(context);
+                }
+              },
+            ),
+          ),
+          const Divider(indent: 20, endIndent: 20),
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.symmetric(vertical: 8),
+              padding: EdgeInsets.zero,
               children: [
                 _DrawerItem(
                   icon: Icons.add_circle_outline,
@@ -77,48 +196,30 @@ class CustomDrawer extends StatelessWidget {
                     );
                   },
                 ),
-                const Divider(
-                  indent: 20,
-                  endIndent: 20,
-                  color: AppColors.divider,
-                ),
                 Consumer<MovementProvider>(
                   builder: (context, provider, child) {
                     final pendingCount = provider.movements
                         .where((m) => !m.isCompleted)
                         .length;
-
-                    return Column(
-                      children: [
-                        _DrawerItem(
-                          icon: Icons.pending_actions,
-                          label: "Movimientos Pendientes",
-                          iconColor: AppColors.warning,
-                          trailing: pendingCount > 0
-                              ? Badge(
-                                  backgroundColor: AppColors.notification,
-                                  label: Text('$pendingCount'),
-                                )
-                              : null,
-                          onTap: () {
-                            Navigator.pop(context);
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const PendingMovementsScreen(),
-                              ),
-                            );
-                          },
-                        ),
-                        _DrawerItem(
-                          icon: Icons.credit_card_outlined,
-                          label: "Cuotas Restantes",
-                          iconColor: AppColors.warning,
-                          onTap: () {
-                            Navigator.pop(context);
-                          },
-                        ),
-                      ],
+                    return _DrawerItem(
+                      icon: Icons.pending_actions,
+                      label: "Movimientos Pendientes",
+                      iconColor: AppColors.warning,
+                      trailing: pendingCount > 0
+                          ? Badge(
+                              backgroundColor: AppColors.notification,
+                              label: Text('$pendingCount'),
+                            )
+                          : null,
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const PendingMovementsScreen(),
+                          ),
+                        );
+                      },
                     );
                   },
                 ),
@@ -129,7 +230,7 @@ class CustomDrawer extends StatelessWidget {
           _DrawerItem(
             icon: Icons.settings_outlined,
             label: "Configuración",
-            iconColor: AppColors.textPrimary.withValues(alpha: 0.7),
+            iconColor: AppColors.textPrimary.withValues(alpha: 180),
             onTap: () {
               Navigator.pop(context);
               Navigator.push(
@@ -145,7 +246,6 @@ class CustomDrawer extends StatelessWidget {
             iconColor: AppColors.danger,
             onTap: () async {
               await AuthService().signOut();
-
               if (context.mounted) Navigator.pop(context);
             },
           ),
@@ -182,7 +282,10 @@ class _DrawerItem extends StatelessWidget {
         style: TextStyle(
           color: textColor ?? AppColors.textPrimary,
           fontSize: 15,
-          fontWeight: (textColor != null || iconColor == AppColors.warning)
+          fontWeight:
+              (textColor != null ||
+                  iconColor == AppColors.primary ||
+                  iconColor == AppColors.warning)
               ? FontWeight.bold
               : FontWeight.w500,
         ),

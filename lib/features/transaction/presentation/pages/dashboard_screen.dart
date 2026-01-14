@@ -1,12 +1,13 @@
-import 'package:cashify/features/configuration/presentation/providers/settings_provider.dart';
-import 'package:cashify/features/shared/widgets/custom_drawer.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/core/utils/formatters.dart';
-import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
+import 'package:cashify/features/configuration/presentation/providers/settings_provider.dart';
+import 'package:cashify/features/shared/widgets/custom_drawer.dart';
 import 'package:cashify/features/transaction/presentation/pages/movement_form_screen.dart';
 import 'package:cashify/features/transaction/presentation/pages/pending_movements_screen.dart';
+import 'package:cashify/features/transaction/presentation/providers/billing_period_provider.dart';
+import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -17,44 +18,43 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   String? _lastPeriodLoaded;
-  @override
-  void initState() {
-    super.initState();
-  }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    final currentPeriod = context
-        .watch<SettingsProvider>()
-        .currentBillingPeriodId;
+    final settingsProv = context.watch<SettingsProvider>();
+    final periodProv = context.watch<BillingPeriodProvider>();
+    final targetPeriod =
+        periodProv.selectedPeriodId ??
+        periodProv.getCurrentBillingPeriodId(settingsProv.settings);
 
-    if (_lastPeriodLoaded != currentPeriod) {
-      _lastPeriodLoaded = currentPeriod;
-
+    if (_lastPeriodLoaded != targetPeriod) {
+      _lastPeriodLoaded = targetPeriod;
       Future.microtask(() => _refreshData());
     }
   }
 
   Future<void> _refreshData() async {
     final settingsProv = context.read<SettingsProvider>();
+    final periodProv = context.read<BillingPeriodProvider>();
+    final movementProv = context.read<MovementProvider>();
+
     if (settingsProv.settings.startDay == 1 && !settingsProv.isLoading) {
       await settingsProv.loadSettings();
     }
 
-    if (mounted) {
-      final billingPeriodId = settingsProv.currentBillingPeriodId;
-      await context.read<MovementProvider>().loadDataByBillingPeriod(
-        billingPeriodId,
-      );
-    }
+    if (!mounted) return;
+
+    final billingPeriodId =
+        periodProv.selectedPeriodId ??
+        periodProv.getCurrentBillingPeriodId(settingsProv.settings);
+
+    await movementProv.loadDataByBillingPeriod(billingPeriodId);
   }
 
   @override
   Widget build(BuildContext context) {
-    final settingsProv = context.watch<SettingsProvider>();
-
     return Scaffold(
       backgroundColor: AppColors.background,
       drawer: const CustomDrawer(),
@@ -78,8 +78,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 children: [
                   _buildMainBalanceCard(provider.totalBalance),
                   const SizedBox(height: 12),
-                  _buildPeriodSelector(context, settingsProv),
-                  const SizedBox(height: 12),
+                  _buildCurrentPeriodLabel(),
+                  const SizedBox(height: 24),
                   Row(
                     children: [
                       _buildMiniInfo(
@@ -133,37 +133,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildPeriodSelector(BuildContext context, SettingsProvider settings) {
-    final range = settings.currentBillingPeriodRange;
+  Widget _buildCurrentPeriodLabel() {
+    final periodProv = context.watch<BillingPeriodProvider>();
+    final settingsProv = context.watch<SettingsProvider>();
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.calendar_month_rounded, color: AppColors.primary),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Período: ${settings.currentBillingPeriodId}",
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              Text(
-                "${range.start.day}/${range.start.month} - ${range.end.day}/${range.end.month}",
-                style: TextStyle(fontSize: 11, color: AppColors.textLight),
-              ),
-            ],
+    final activeId =
+        periodProv.selectedPeriodId ??
+        periodProv.getCurrentBillingPeriodId(settingsProv.settings);
+
+    final range = periodProv.getRangeFromId(
+      activeId,
+      settingsProv.settings.startDay,
+    );
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(
+          Icons.calendar_view_month,
+          size: 14,
+          color: AppColors.textLight.withValues(alpha: 0.7),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          "${periodProv.formatId(activeId)} (${range.start.day}/${range.start.month} - ${range.end.day}/${range.end.month})",
+          style: TextStyle(
+            fontSize: 12,
+            color: AppColors.textLight.withValues(alpha: 0.8),
+            fontWeight: FontWeight.w500,
           ),
-          const Spacer(),
-          const Icon(Icons.keyboard_arrow_down_rounded),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -270,6 +270,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildMainBalanceCard(double total) {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: AppColors.primary,
