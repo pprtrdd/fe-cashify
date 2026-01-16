@@ -97,11 +97,20 @@ class PendingMovementsScreen extends StatelessWidget {
                     ),
                     const Divider(),
                     ...movements.map(
-                      (movement) => _buildMovementRow(
-                        context,
-                        movement,
-                        provider,
-                        isIngreso,
+                      (movement) => _MovementRow(
+                        movement: movement,
+                        provider: provider,
+                        isIngreso: isIngreso,
+                        onDelete: () => _showDeleteConfirmation(
+                          context,
+                          movement,
+                          provider,
+                        ),
+                        onComplete: () => _showCompleteConfirmation(
+                          context,
+                          movement,
+                          provider,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -111,63 +120,6 @@ class PendingMovementsScreen extends StatelessWidget {
             },
           );
         },
-      ),
-    );
-  }
-
-  Widget _buildMovementRow(
-    BuildContext context,
-    MovementEntity movement,
-    MovementProvider provider,
-    bool isIngreso,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 16, right: 4, top: 4, bottom: 4),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 3,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  movement.description,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                if (movement.source.isNotEmpty)
-                  Text(
-                    "Origen: ${movement.source}",
-                    style: TextStyle(color: AppColors.textLight, fontSize: 11),
-                  ),
-              ],
-            ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  Formatters.currencyWithSymbol(movement.totalAmount),
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                    color: isIngreso ? AppColors.income : AppColors.expense,
-                  ),
-                ),
-                Text(
-                  "${Formatters.currencyWithSymbol(movement.amount)} x ${movement.quantity}",
-                  style: TextStyle(color: AppColors.textFaded, fontSize: 10),
-                ),
-              ],
-            ),
-          ),
-          _buildPopupMenu(context, movement, provider),
-        ],
       ),
     );
   }
@@ -297,20 +249,98 @@ class PendingMovementsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPopupMenu(
+  void _showCompleteConfirmation(
     BuildContext context,
     MovementEntity movement,
     MovementProvider provider,
   ) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) =>
+          _CompleteMovementDialog(movement: movement, provider: provider),
+    );
+  }
+}
+
+class _MovementRow extends StatelessWidget {
+  final MovementEntity movement;
+  final MovementProvider provider;
+  final bool isIngreso;
+  final VoidCallback onDelete;
+  final VoidCallback onComplete;
+
+  const _MovementRow({
+    required this.movement,
+    required this.provider,
+    required this.isIngreso,
+    required this.onDelete,
+    required this.onComplete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 16, right: 4, top: 4, bottom: 4),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 3,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  movement.description,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                if (movement.source.isNotEmpty)
+                  Text(
+                    "Origen: ${movement.source}",
+                    style: TextStyle(color: AppColors.textLight, fontSize: 11),
+                  ),
+              ],
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  Formatters.currencyWithSymbol(movement.totalAmount),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: isIngreso ? AppColors.income : AppColors.expense,
+                  ),
+                ),
+                Text(
+                  "${Formatters.currencyWithSymbol(movement.amount)} x ${movement.quantity}",
+                  style: TextStyle(color: AppColors.textFaded, fontSize: 10),
+                ),
+              ],
+            ),
+          ),
+          _buildPopupMenu(context),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPopupMenu(BuildContext context) {
     return PopupMenuButton<String>(
       icon: Icon(Icons.more_vert, size: 20, color: AppColors.textFaded),
       padding: EdgeInsets.zero,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       onSelected: (value) {
         if (value == 'complete') {
-          _showCompleteConfirmation(context, movement, provider);
+          onComplete();
         } else if (value == 'delete') {
-          _showDeleteConfirmation(context, movement, provider);
+          onDelete();
         }
       },
       itemBuilder: (context) => [
@@ -335,141 +365,160 @@ class PendingMovementsScreen extends StatelessWidget {
       ],
     );
   }
+}
 
-  void _showCompleteConfirmation(
-    BuildContext context,
-    MovementEntity movement,
-    MovementProvider provider,
-  ) {
-    final TextEditingController amountController = TextEditingController(
-      text: movement.amount.toString(),
+class _CompleteMovementDialog extends StatefulWidget {
+  final MovementEntity movement;
+  final MovementProvider provider;
+
+  const _CompleteMovementDialog({
+    required this.movement,
+    required this.provider,
+  });
+
+  @override
+  State<_CompleteMovementDialog> createState() =>
+      _CompleteMovementDialogState();
+}
+
+class _CompleteMovementDialogState extends State<_CompleteMovementDialog> {
+  late TextEditingController _amountController;
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    _amountController = TextEditingController(
+      text: widget.movement.amount.toString(),
     );
-    final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+  }
 
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Column(
-          children: [
-            CircleAvatar(
-              radius: 24,
-              backgroundColor: AppColors.income.withValues(alpha: 0.1),
-              child: const Icon(
-                Icons.account_balance_wallet_outlined,
-                color: AppColors.income,
-              ),
+  @override
+  void dispose() {
+    _amountController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      title: Column(
+        children: [
+          CircleAvatar(
+            radius: 24,
+            backgroundColor: AppColors.income.withValues(alpha: 0.1),
+            child: const Icon(
+              Icons.account_balance_wallet_outlined,
+              color: AppColors.income,
             ),
-            const SizedBox(height: 12),
-            const Text(
-              "Monto Real",
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-        content: Form(
-          key: formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                "Confirma el monto final pagado/recibido para '${movement.description}':",
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 13, color: AppColors.textLight),
-              ),
-              const SizedBox(height: 20),
-              TextFormField(
-                controller: amountController,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: false,
-                ),
-                textAlign: TextAlign.center,
-                autofocus: true,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w900,
-                  fontSize: 28,
-                  color: AppColors.textPrimary,
-                ),
-                decoration: InputDecoration(
-                  prefixText: "\$ ",
-                  hintText: "0",
-                  filled: true,
-                  fillColor: AppColors.background,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide.none,
-                  ),
-                  errorStyle: const TextStyle(fontSize: 11),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) return "Ingresa un monto";
-                  final val = int.tryParse(value);
-                  if (val == null || val <= 0) {
-                    return "El monto debe ser mayor a 0";
-                  }
-                  return null;
-                },
-              ),
-            ],
           ),
-        ),
-        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        actions: [
-          Row(
-            children: [
-              Expanded(
-                child: TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text(
-                    "Cancelar",
-                    style: TextStyle(color: AppColors.textFaded),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.income,
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  onPressed: () async {
-                    if (formKey.currentState!.validate()) {
-                      final newAmount = int.parse(amountController.text);
-                      Navigator.pop(context);
-
-                      await provider.confirmAndCompleteMovement(
-                        movement,
-                        newAmount,
-                      );
-
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              "Movimiento registrado correctamente",
-                            ),
-                            backgroundColor: AppColors.income,
-                          ),
-                        );
-                      }
-                    }
-                  },
-                  child: const Text(
-                    "Confirmar",
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-            ],
+          const SizedBox(height: 12),
+          const Text(
+            "Monto Real",
+            style: TextStyle(fontWeight: FontWeight.bold),
           ),
         ],
       ),
+      content: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              "Confirma el monto final pagado/recibido para '${widget.movement.description}':",
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 13, color: AppColors.textLight),
+            ),
+            const SizedBox(height: 20),
+            TextFormField(
+              controller: _amountController,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: false,
+              ),
+              textAlign: TextAlign.center,
+              autofocus: true,
+              style: const TextStyle(
+                fontWeight: FontWeight.w900,
+                fontSize: 28,
+                color: AppColors.textPrimary,
+              ),
+              decoration: InputDecoration(
+                prefixText: "\$ ",
+                hintText: "0",
+                filled: true,
+                fillColor: AppColors.background,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide.none,
+                ),
+                errorStyle: const TextStyle(fontSize: 11),
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) return "Ingresa un monto";
+                final val = int.tryParse(value);
+                if (val == null || val <= 0) {
+                  return "El monto debe ser mayor a 0";
+                }
+                return null;
+              },
+            ),
+          ],
+        ),
+      ),
+      actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      actions: [
+        Row(
+          children: [
+            Expanded(
+              child: TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(
+                  "Cancelar",
+                  style: TextStyle(color: AppColors.textFaded),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.income,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: () async {
+                  if (_formKey.currentState!.validate()) {
+                    final newAmount = int.parse(_amountController.text);
+                    Navigator.pop(context);
+
+                    await widget.provider.confirmAndCompleteMovement(
+                      widget.movement,
+                      newAmount,
+                    );
+
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("Movimiento registrado correctamente"),
+                          backgroundColor: AppColors.income,
+                        ),
+                      );
+                    }
+                  }
+                },
+                child: const Text(
+                  "Confirmar",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

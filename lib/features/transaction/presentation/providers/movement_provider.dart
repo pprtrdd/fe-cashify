@@ -23,6 +23,8 @@ class MovementProvider extends ChangeNotifier {
   List<CategoryEntity> _categories = [];
   List<MovementEntity> _movements = [];
   List<PaymentMethodEntity> _paymentMethods = [];
+  Map<String, CategoryEntity> _categoryMap = {};
+  Set<String> _incomeCategoryIds = {};
 
   String? _lastLoadedBillingPeriodId;
   List<CategoryEntity> get categories => _categories;
@@ -48,12 +50,7 @@ class MovementProvider extends ChangeNotifier {
   Map<String, int> get extraGrouped => _extraGrouped;
 
   bool get hasExtraCategories => _categories.any((c) => c.isExtra);
-  Set<String> get incomeCategoryIds {
-    return _categories
-        .where((cat) => !cat.isExpense)
-        .map((cat) => cat.id)
-        .toSet();
-  }
+  Set<String> get incomeCategoryIds => _incomeCategoryIds;
 
   void _calculateDashboardData() {
     _realTotal = 0;
@@ -77,9 +74,7 @@ class MovementProvider extends ChangeNotifier {
     final completedMovements = _movements.where((m) => m.isCompleted);
 
     for (var mov in completedMovements) {
-      final cat = _categories.cast<CategoryEntity?>().firstWhere(
-        (c) => c?.id == mov.categoryId,
-      );
+      final cat = _categoryMap[mov.categoryId];
 
       if (cat == null) continue;
 
@@ -118,6 +113,12 @@ class MovementProvider extends ChangeNotifier {
       _categories = results[0] as List<CategoryEntity>;
       _paymentMethods = results[1] as List<PaymentMethodEntity>;
       _movements = results[2] as List<MovementEntity>;
+
+      _categoryMap = {for (var c in _categories) c.id: c};
+      _incomeCategoryIds = _categories
+          .where((cat) => !cat.isExpense)
+          .map((cat) => cat.id)
+          .toSet();
 
       _calculateDashboardData();
     } catch (e) {
@@ -209,11 +210,7 @@ class MovementProvider extends ChangeNotifier {
   }
 
   String getCategoryName(String id) {
-    try {
-      return _categories.firstWhere((cat) => cat.id == id).name;
-    } catch (_) {
-      return "Categoría no encontrada";
-    }
+    return _categoryMap[id]?.name ?? "Categoría no encontrada";
   }
 
   Future<void> confirmAndCompleteMovement(
