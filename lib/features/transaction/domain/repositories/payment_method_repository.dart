@@ -1,18 +1,34 @@
-import 'package:cashify/features/transaction/domain/entities/payment_method_entity.dart';
 import 'package:cashify/features/transaction/data/models/payment_method_model.dart';
+import 'package:cashify/features/transaction/domain/entities/payment_method_entity.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 
 class PaymentMethodRepository {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore;
+
+  PaymentMethodRepository(this._firestore);
+
+  CollectionReference? get _paymentMethodsRef {
+    return _firestore.collection('payment_methods');
+  }
 
   Future<List<PaymentMethodEntity>> fetchPaymentMethods() async {
-    final snapshot = await _firestore
-        .collection('payment_methods')
-        .orderBy('name')
-        .get();
+    try {
+      final ref = _paymentMethodsRef;
+      if (ref == null) throw Exception('ref is null');
+      final snapshot = await ref.orderBy('name').get();
 
-    return snapshot.docs
-        .map((doc) => PaymentMethodModel.fromFirestore(doc.data(), doc.id))
-        .toList();
+      return snapshot.docs
+          .map(
+            (doc) => PaymentMethodModel.fromFirestore(
+              doc.data() as Map<String, dynamic>,
+              doc.id,
+            ),
+          )
+          .toList();
+    } catch (e) {
+      debugPrint("Error fetching payment methods: $e");
+      rethrow;
+    }
   }
 }

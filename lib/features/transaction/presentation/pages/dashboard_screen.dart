@@ -70,18 +70,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 24),
-
                   _buildCategoryTableBox(
                     title: "GASTOS PLANEADOS",
                     icon: Icons.list_alt_rounded,
                     data: provider.plannedGrouped,
                     totalSection: provider.plannedTotal,
                   ),
-
                   const SizedBox(height: 20),
-
                   if (provider.hasExtraCategories)
                     _buildCategoryTableBox(
                       title: "GASTOS EXTRAS",
@@ -89,7 +85,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       data: provider.extraGrouped,
                       totalSection: provider.totalExtra,
                     ),
-
                   const SizedBox(height: 80),
                 ],
               ),

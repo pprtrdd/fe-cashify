@@ -1,5 +1,6 @@
 import 'package:cashify/core/auth/auth_wrapper.dart';
-import 'package:cashify/core/theme/app_colors.dart'; // Importa tus colores
+import 'package:cashify/core/theme/app_colors.dart';
+import 'package:cashify/features/configuration/presentation/providers/settings_provider.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
 import 'package:cashify/firebase_options.dart';
 import 'package:cashify/injection_container.dart' as di;
@@ -14,13 +15,15 @@ void main() async {
 
   await dotenv.load(fileName: ".env");
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
   await di.init();
 
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => sl<MovementProvider>()),
+        ChangeNotifierProvider(
+          create: (_) => sl<SettingsProvider>()..loadSettings(),
+        ),
       ],
       child: const MainApp(),
     ),

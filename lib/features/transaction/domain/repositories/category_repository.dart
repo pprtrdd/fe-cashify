@@ -5,27 +5,40 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 
 class CategoryRepository {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore;
+  final FirebaseAuth _auth;
+
+  CategoryRepository(this._firestore, this._auth);
+
+  CollectionReference? get _categoriesRef {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) return null;
+
+    return _firestore.collection('users').doc(uid).collection('categories');
+  }
 
   Future<List<CategoryEntity>> fetchCategories() async {
     try {
-      final user = _auth.currentUser;
-
-      if (user == null) return [];
-
-      final snapshot = await _firestore
-          .collection('users')
-          .doc(user.uid)
-          .collection('categories')
-          .get();
+      final ref = _categoriesRef;
+      if (ref == null) throw Exception('ref is null');
+      final snapshot = await ref.orderBy('name').get();
 
       return snapshot.docs.map((doc) {
-        return CategoryModel.fromFirestore(doc.data(), doc.id);
+        return CategoryModel.fromFirestore(
+          doc.data() as Map<String, dynamic>,
+          doc.id,
+        );
       }).toList();
     } catch (e) {
       debugPrint("Error fetching categories: $e");
-      return [];
+      rethrow;
     }
+  }
+
+  Future<void> addCategory(CategoryEntity category) async {
+    final ref = _categoriesRef;
+    if (ref == null) throw Exception('ref is null');
+    final model = CategoryModel.fromEntity(category);
+    await ref.add(model.toFirestore());
   }
 }

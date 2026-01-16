@@ -38,7 +38,6 @@ class SummaryCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-
             FittedBox(
               fit: BoxFit.scaleDown,
               child: Text(

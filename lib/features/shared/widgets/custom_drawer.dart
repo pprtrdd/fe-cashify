@@ -1,5 +1,6 @@
 import 'package:cashify/core/auth/auth_service.dart';
 import 'package:cashify/core/theme/app_colors.dart';
+import 'package:cashify/features/configuration/presentation/pages/settings_screen.dart';
 import 'package:cashify/features/transaction/presentation/pages/movement_form_screen.dart';
 import 'package:cashify/features/transaction/presentation/pages/pending_movements_screen.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
@@ -125,6 +126,18 @@ class CustomDrawer extends StatelessWidget {
             ),
           ),
           const Divider(color: AppColors.divider),
+          _DrawerItem(
+            icon: Icons.settings_outlined,
+            label: "Configuración",
+            iconColor: AppColors.textPrimary.withValues(alpha: 0.7),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SettingsPage()),
+              );
+            },
+          ),
           _DrawerItem(
             icon: Icons.logout_rounded,
             label: "Cerrar Sesión",

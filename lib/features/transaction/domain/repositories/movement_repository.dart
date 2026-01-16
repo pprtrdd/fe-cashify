@@ -5,19 +5,26 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 
 class MovementRepository {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore;
+  final FirebaseAuth _auth;
+
+  MovementRepository(this._firestore, this._auth);
+
+  String get _currentUid {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) throw Exception("Usuario no autenticado");
+    
+    return uid;
+  }
+
+  String _getMovementsPath(int year, int month) {
+    final periodId = "${year}_$month";
+
+    return "users/$_currentUid/billing_periods/$periodId/movements";
+  }
 
   Future<void> save(MovementEntity m) async {
-    final user = _auth.currentUser;
-
-    if (user == null) throw Exception("Usuario no autenticado");
-
-    final path = getMovementsPath(
-      user.uid,
-      m.billingPeriodYear,
-      m.billingPeriodMonth,
-    );
+    final path = _getMovementsPath(m.billingPeriodYear, m.billingPeriodMonth);
 
     try {
       await _firestore
@@ -47,15 +54,7 @@ class MovementRepository {
   }
 
   Future<void> update(MovementEntity m) async {
-    final user = _auth.currentUser;
-
-    if (user == null) throw Exception("Usuario no autenticado");
-
-    final path = getMovementsPath(
-      user.uid,
-      m.billingPeriodYear,
-      m.billingPeriodMonth,
-    );
+    final path = _getMovementsPath(m.billingPeriodYear, m.billingPeriodMonth);
 
     try {
       await _firestore
@@ -85,15 +84,7 @@ class MovementRepository {
   }
 
   Future<void> delete(MovementEntity m) async {
-    final user = _auth.currentUser;
-
-    if (user == null) throw Exception("Usuario no autenticado");
-
-    final path = getMovementsPath(
-      user.uid,
-      m.billingPeriodYear,
-      m.billingPeriodMonth,
-    );
+    final path = _getMovementsPath(m.billingPeriodYear, m.billingPeriodMonth);
 
     try {
       await _firestore.collection(path).doc(m.id).delete();
@@ -104,11 +95,7 @@ class MovementRepository {
   }
 
   Future<List<MovementEntity>> fetchByPeriod(int year, int month) async {
-    final user = _auth.currentUser;
-
-    if (user == null) throw Exception("Usuario no autenticado");
-
-    final path = getMovementsPath(user.uid, year, month);
+    final path = _getMovementsPath(year, month);
 
     try {
       final snapshot = await _firestore
@@ -123,11 +110,5 @@ class MovementRepository {
       debugPrint("Error fetching movements: $e");
       rethrow;
     }
-  }
-
-  String getMovementsPath(String uid, int year, int month) {
-    final periodId = "${year}_$month";
-
-    return "users/$uid/billing_periods/$periodId/movements";
   }
 }

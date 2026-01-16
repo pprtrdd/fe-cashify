@@ -92,14 +92,12 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                     onChanged: (val) => setState(() => _selectedCategory = val),
                   ),
                   const SizedBox(height: 15),
-
                   CustomTextField(
                     controller: _descController,
                     label: "Descripción",
                     icon: Icons.description,
                   ),
                   const SizedBox(height: 15),
-
                   CustomTextField(
                     controller: _sourceController,
                     label: "Origen",
@@ -107,7 +105,6 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                     isRequired: false,
                   ),
                   const SizedBox(height: 15),
-
                   Row(
                     children: [
                       Expanded(
@@ -119,7 +116,6 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                         ),
                       ),
                       const SizedBox(width: 15),
-
                       Expanded(
                         child: CustomTextField(
                           controller: _amountController,
@@ -131,7 +127,6 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                     ],
                   ),
                   const SizedBox(height: 15),
-
                   Row(
                     children: [
                       Expanded(
@@ -163,7 +158,6 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                     ],
                   ),
                   const SizedBox(height: 15),
-
                   DropdownButtonFormField<String>(
                     initialValue: _selectedPaymentMethod,
                     decoration: _inputStyle("Método de Pago", Icons.payment),
@@ -180,7 +174,6 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                     validator: (v) => v == null ? "Requerido" : null,
                   ),
                   const SizedBox(height: 15),
-
                   CustomTextField(
                     controller: _periodController,
                     label: "Período",
@@ -189,7 +182,6 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                     onTap: () => _selectPeriod(context),
                   ),
                   const SizedBox(height: 15),
-
                   CustomTextField(
                     controller: _notesController,
                     label: "Notas",
@@ -198,7 +190,6 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                     isRequired: false,
                   ),
                   const SizedBox(height: 20),
-
                   AnimatedContainer(
                     duration: const Duration(milliseconds: 300),
                     decoration: BoxDecoration(
@@ -239,7 +230,6 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                     ),
                   ),
                   const SizedBox(height: 30),
-
                   SaveButton(
                     isLoading: provider.isLoading,
                     onPressed: () => _save(context),
