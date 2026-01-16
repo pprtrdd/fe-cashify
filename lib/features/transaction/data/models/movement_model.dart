@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class MovementModel extends MovementEntity {
   const MovementModel({
     required super.id,
+    required super.groupId,
     required super.categoryId,
     required super.description,
     required super.source,
@@ -22,6 +23,7 @@ class MovementModel extends MovementEntity {
   factory MovementModel.fromFirestore(Map<String, dynamic> json, String docId) {
     return MovementModel(
       id: docId,
+      groupId: json['groupId'],
       categoryId: json['categoryId'],
       description: json['description'],
       source: json['source'],
@@ -41,6 +43,7 @@ class MovementModel extends MovementEntity {
   Map<String, dynamic> toFirestore() {
     return {
       'categoryId': categoryId,
+      'groupId': groupId,
       'description': description,
       'source': source,
       'quantity': quantity,
@@ -60,6 +63,7 @@ class MovementModel extends MovementEntity {
   factory MovementModel.fromEntity(MovementEntity e) {
     return MovementModel(
       id: e.id,
+      groupId: e.groupId,
       categoryId: e.categoryId,
       description: e.description,
       source: e.source,

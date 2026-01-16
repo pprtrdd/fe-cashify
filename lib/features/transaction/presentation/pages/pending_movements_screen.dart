@@ -92,8 +92,9 @@ class _CategoryGroupCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isIngreso = provider.incomeCategoryIds.contains(categoryId);
-    final Color categoryColor =
-        isIngreso ? AppColors.income : AppColors.expense;
+    final Color categoryColor = isIngreso
+        ? AppColors.income
+        : AppColors.expense;
 
     final categoryTotal = movements.fold<int>(
       0,
@@ -155,10 +156,9 @@ class _CategoryGroupCard extends StatelessWidget {
     );
   }
 
-  void _showDeleteConfirmation(
-    BuildContext context,
-    MovementEntity movement,
-  ) {
+  void _showDeleteConfirmation(BuildContext context, MovementEntity movement) {
+    final hasMoreInstallments = movement.totalInstallments > 1;
+
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -176,16 +176,20 @@ class _CategoryGroupCard extends StatelessWidget {
                 CircleAvatar(
                   radius: 28,
                   backgroundColor: AppColors.expense.withValues(alpha: 0.1),
-                  child: const Icon(
-                    Icons.delete_sweep_rounded,
+                  child: Icon(
+                    hasMoreInstallments
+                        ? Icons.layers_clear_rounded
+                        : Icons.delete_sweep_rounded,
                     color: AppColors.expense,
                     size: 32,
                   ),
                 ),
                 const SizedBox(height: 20),
-                const Text(
-                  "¿Eliminar registro?",
-                  style: TextStyle(
+                Text(
+                  hasMoreInstallments
+                      ? "Eliminar Cuotas"
+                      : "¿Eliminar registro?",
+                  style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textPrimary,
@@ -193,7 +197,9 @@ class _CategoryGroupCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  "Estás a punto de borrar '${movement.description}'. Esta operación no se puede deshacer.",
+                  hasMoreInstallments
+                      ? "Este movimiento tiene cuotas. ¿Deseas eliminar solo esta o todas las restantes?"
+                      : "Estás a punto de borrar '${movement.description}'. Esta operación no se puede deshacer.",
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,
@@ -202,47 +208,47 @@ class _CategoryGroupCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 32),
-                Row(
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Expanded(
-                      child: TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: Text(
-                          "Conservar",
-                          style: TextStyle(
-                            color: AppColors.textFaded,
-                            fontWeight: FontWeight.w600,
-                          ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.expense,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
                         ),
                       ),
+                      onPressed: () async {
+                        Navigator.pop(context);
+                        await provider.deleteMovement(movement);
+                      },
+                      child: Text(
+                        hasMoreInstallments ? "Solo esta cuota" : "Eliminar",
+                      ),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.expense,
-                          foregroundColor: Colors.white,
-                          elevation: 0,
+                    if (hasMoreInstallments) ...[
+                      const SizedBox(height: 8),
+                      OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.expense,
+                          side: const BorderSide(color: AppColors.expense),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
                         onPressed: () async {
                           Navigator.pop(context);
-                          await provider.deleteMovement(movement);
-
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("Movimiento eliminado"),
-                              ),
-                            );
-                          }
+                          await provider.deleteMovementGroup(movement);
                         },
-                        child: const Text(
-                          "Eliminar",
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
+                        child: const Text("Todas las cuotas del grupo"),
+                      ),
+                    ],
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text(
+                        "Cancelar",
+                        style: TextStyle(color: AppColors.textFaded),
                       ),
                     ),
                   ],
@@ -300,11 +306,33 @@ class _MovementRow extends StatelessWidget {
                     color: AppColors.textPrimary,
                   ),
                 ),
-                if (movement.source.isNotEmpty)
-                  Text(
-                    "Origen: ${movement.source}",
-                    style: TextStyle(color: AppColors.textLight, fontSize: 11),
-                  ),
+                Row(
+                  children: [
+                    if (movement.totalInstallments > 1)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 6),
+                        child: Text(
+                          "[${movement.currentInstallment}/${movement.totalInstallments}]",
+                          style: const TextStyle(
+                            color: AppColors.income,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    if (movement.source.isNotEmpty)
+                      Flexible(
+                        child: Text(
+                          "Origen: ${movement.source}",
+                          style: TextStyle(
+                            color: AppColors.textLight,
+                            fontSize: 11,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                  ],
+                ),
               ],
             ),
           ),

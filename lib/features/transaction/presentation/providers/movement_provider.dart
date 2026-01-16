@@ -117,6 +117,7 @@ class MovementProvider extends ChangeNotifier {
   Future<void> _fetchMovementsOnly(String billingPeriodId) async {
     _movements = await movementUseCase.fetchByBillingPeriod(billingPeriodId);
     _calculateDashboardData();
+    notifyListeners();
   }
 
   Future<void> loadDataByBillingPeriod(String billingPeriodId) async {
@@ -158,8 +159,10 @@ class MovementProvider extends ChangeNotifier {
     try {
       _isLoading = true;
       notifyListeners();
-
-      List<MovementEntity> movementsToSave = [movement];
+      final String groupId = DateTime.now().millisecondsSinceEpoch.toString();
+      List<MovementEntity> movementsToSave = [
+        movement.copyWith(groupId: groupId),
+      ];
 
       if (movement.totalInstallments > 1 && movement.currentInstallment == 1) {
         for (int i = 1; i < movement.totalInstallments; i++) {
@@ -174,6 +177,7 @@ class MovementProvider extends ChangeNotifier {
           movementsToSave.add(
             movement.copyWith(
               id: '',
+              groupId: groupId,
               currentInstallment: i + 1,
               billingPeriodYear: nextDate.year,
               billingPeriodMonth: nextDate.month,
@@ -185,9 +189,7 @@ class MovementProvider extends ChangeNotifier {
       }
 
       await movementUseCase.addAll(movementsToSave);
-
       onPeriodsCreated();
-
       await _fetchMovementsOnly(currentViewId);
     } catch (e) {
       debugPrint("Error al crear cuotas: $e");
@@ -229,6 +231,30 @@ class MovementProvider extends ChangeNotifier {
       _calculateDashboardData();
     } catch (e) {
       debugPrint("Error al eliminar movimiento: $e");
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> deleteMovementGroup(MovementEntity movement) async {
+    if (movement.groupId.isEmpty) {
+      return deleteMovement(movement);
+    }
+
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      await movementUseCase.deleteGroup(
+        movement.billingPeriodId,
+        movement.groupId,
+      );
+
+      await _fetchMovementsOnly(movement.billingPeriodId);
+    } catch (e) {
+      debugPrint("Error al eliminar grupo de movimientos: $e");
       rethrow;
     } finally {
       _isLoading = false;

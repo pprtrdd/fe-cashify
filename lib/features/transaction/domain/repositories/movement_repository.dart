@@ -94,6 +94,27 @@ class MovementRepository {
     }
   }
 
+  Future<void> deleteGroup(String billingPeriodId, String groupId) async {
+    try {
+      final snapshot = await _firestore
+          .collectionGroup('movements')
+          .where('groupId', isEqualTo: groupId)
+          .get();
+
+      if (snapshot.docs.isEmpty) return;
+
+      final batch = _firestore.batch();
+      for (var doc in snapshot.docs) {
+        batch.delete(doc.reference);
+      }
+
+      await batch.commit();
+    } catch (e) {
+      debugPrint("Error deleting group (collectionGroup): $e");
+      rethrow;
+    }
+  }
+
   Future<List<MovementEntity>> fetchByBillingPeriod(
     String billingPeriodId,
   ) async {

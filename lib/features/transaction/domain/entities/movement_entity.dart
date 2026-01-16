@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 
 class MovementEntity extends Equatable {
   final String id;
+  final String groupId;
   final String categoryId;
   final String description;
   final String source;
@@ -18,6 +19,7 @@ class MovementEntity extends Equatable {
 
   const MovementEntity({
     required this.id,
+    required this.groupId,
     required this.categoryId,
     required this.description,
     required this.source,
@@ -55,6 +57,7 @@ class MovementEntity extends Equatable {
 
   MovementEntity copyWith({
     String? id,
+    String? groupId,
     String? categoryId,
     String? description,
     String? source,
@@ -71,6 +74,7 @@ class MovementEntity extends Equatable {
   }) {
     return MovementEntity(
       id: id ?? this.id,
+      groupId: groupId ?? this.groupId,
       categoryId: categoryId ?? this.categoryId,
       description: description ?? this.description,
       source: source ?? this.source,
