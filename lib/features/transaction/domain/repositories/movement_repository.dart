@@ -48,6 +48,32 @@ class MovementRepository {
     }
   }
 
+  Future<void> saveMultiple(List<MovementEntity> movements) async {
+    final batch = _firestore.batch();
+
+    try {
+      for (var m in movements) {
+        final periodRef = _periodDoc(m.billingPeriodId);
+        final movementRef = _movementsRef(m.billingPeriodId).doc();
+
+        batch.set(periodRef, {
+          'id': m.billingPeriodId,
+          'year': m.billingPeriodYear,
+          'month': m.billingPeriodMonth,
+          'lastUpdate': FieldValue.serverTimestamp(),
+          'status': 'active',
+        }, SetOptions(merge: true));
+
+        batch.set(movementRef, MovementModel.fromEntity(m).toFirestore());
+      }
+
+      await batch.commit();
+    } catch (e) {
+      debugPrint("Error en saveMultiple Batch: $e");
+      rethrow;
+    }
+  }
+
   Future<void> update(MovementEntity m) async {
     try {
       await _movementsRef(

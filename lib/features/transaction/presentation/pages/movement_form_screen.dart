@@ -301,12 +301,18 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
       final movement = _createMovementEntity(periodProv, settingsProv);
 
       try {
-        // Determinar qué vista actualizar (la seleccionada o la actual calculada)
         final currentViewId =
             periodProv.selectedPeriodId ??
             periodProv.getCurrentBillingPeriodId(settingsProv.settings);
 
-        await movementProv.createMovement(movement, currentViewId);
+        await movementProv.createMovement(
+          movement,
+          currentViewId,
+          settingsProv.settings.startDay,
+          () async {
+            await periodProv.loadPeriods();
+          },
+        );
 
         if (!context.mounted) return;
 

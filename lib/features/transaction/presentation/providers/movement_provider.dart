@@ -1,3 +1,4 @@
+import 'package:cashify/core/utils/billing_utils.dart';
 import 'package:cashify/features/transaction/domain/entities/category_entity.dart';
 import 'package:cashify/features/transaction/domain/entities/movement_entity.dart';
 import 'package:cashify/features/transaction/domain/entities/payment_method_entity.dart';
@@ -150,17 +151,46 @@ class MovementProvider extends ChangeNotifier {
 
   Future<void> createMovement(
     MovementEntity movement,
-    String currentBillingPeriodId,
+    String currentViewId,
+    int startDay,
+    VoidCallback onPeriodsCreated,
   ) async {
     try {
       _isLoading = true;
       notifyListeners();
 
-      await movementUseCase.add(movement);
+      List<MovementEntity> movementsToSave = [movement];
 
-      await _fetchMovementsOnly(currentBillingPeriodId);
+      if (movement.totalInstallments > 1 && movement.currentInstallment == 1) {
+        for (int i = 1; i < movement.totalInstallments; i++) {
+          final nextDate = DateTime(
+            movement.billingPeriodYear,
+            movement.billingPeriodMonth + i,
+            2,
+          );
+
+          final nextPeriodId = BillingUtils.generateId(nextDate, startDay);
+
+          movementsToSave.add(
+            movement.copyWith(
+              id: '',
+              currentInstallment: i + 1,
+              billingPeriodYear: nextDate.year,
+              billingPeriodMonth: nextDate.month,
+              billingPeriodId: nextPeriodId,
+              isCompleted: false,
+            ),
+          );
+        }
+      }
+
+      await movementUseCase.addAll(movementsToSave);
+
+      onPeriodsCreated();
+
+      await _fetchMovementsOnly(currentViewId);
     } catch (e) {
-      debugPrint("Error al crear movimiento: $e");
+      debugPrint("Error al crear cuotas: $e");
       rethrow;
     } finally {
       _isLoading = false;

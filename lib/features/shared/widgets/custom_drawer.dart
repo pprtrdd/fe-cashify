@@ -198,7 +198,7 @@ class _PeriodDropdown extends StatelessWidget {
       child: DropdownButtonFormField<String>(
         initialValue: periodProv.periods.contains(activeViewId)
             ? activeViewId
-            : null,
+            : (periodProv.periods.isNotEmpty ? periodProv.periods.first : null),
         decoration: InputDecoration(
           labelText: "ESTÁS VIENDO",
           labelStyle: const TextStyle(
