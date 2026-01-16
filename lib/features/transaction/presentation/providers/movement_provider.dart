@@ -23,6 +23,8 @@ class MovementProvider extends ChangeNotifier {
   List<CategoryEntity> _categories = [];
   List<MovementEntity> _movements = [];
   List<PaymentMethodEntity> _paymentMethods = [];
+  Map<String, CategoryEntity> _categoryMap = {};
+  Set<String> _incomeCategoryIds = {};
 
   String? _lastLoadedBillingPeriodId;
   List<CategoryEntity> get categories => _categories;
@@ -48,14 +50,9 @@ class MovementProvider extends ChangeNotifier {
   Map<String, int> get extraGrouped => _extraGrouped;
 
   bool get hasExtraCategories => _categories.any((c) => c.isExtra);
-  Set<String> get incomeCategoryIds {
-    return _categories
-        .where((cat) => !cat.isExpense)
-        .map((cat) => cat.id)
-        .toSet();
-  }
+  Set<String> get incomeCategoryIds => _incomeCategoryIds;
 
-  void _calculateDashboardData() {
+  void _resetTotals() {
     _realTotal = 0;
     _plannedTotal = 0;
     _totalExtra = 0;
@@ -63,10 +60,14 @@ class MovementProvider extends ChangeNotifier {
     _totalExpenses = 0.0;
     _plannedGrouped = {};
     _extraGrouped = {};
+  }
+
+  void _calculateDashboardData() {
+    _resetTotals();
 
     if (_categories.isEmpty) return;
 
-    for (var cat in _categories) {
+    for (final cat in _categories) {
       if (cat.isExtra) {
         _extraGrouped[cat.name] = 0;
       } else {
@@ -74,22 +75,22 @@ class MovementProvider extends ChangeNotifier {
       }
     }
 
-    final completedMovements = _movements.where((m) => m.isCompleted);
+    for (final mov in _movements) {
+      if (!mov.isCompleted) continue;
 
-    for (var mov in completedMovements) {
-      final cat = _categories.cast<CategoryEntity?>().firstWhere(
-        (c) => c?.id == mov.categoryId,
-      );
-
+      final cat = _categoryMap[mov.categoryId];
       if (cat == null) continue;
 
+      final amount = mov.totalAmount;
+      final doubleAmount = amount.toDouble();
+
       if (cat.isExpense) {
-        _totalExpenses += mov.totalAmount.toDouble();
+        _totalExpenses += doubleAmount;
       } else {
-        _totalIncomes += mov.totalAmount.toDouble();
+        _totalIncomes += doubleAmount;
       }
 
-      int relativeValue = cat.isExpense ? -mov.totalAmount : mov.totalAmount;
+      final relativeValue = cat.isExpense ? -amount : amount;
       _realTotal += relativeValue;
 
       if (cat.isExtra) {
@@ -104,10 +105,26 @@ class MovementProvider extends ChangeNotifier {
     }
   }
 
+  void _rebuildCategoryCache() {
+    _categoryMap = {for (var c in _categories) c.id: c};
+    _incomeCategoryIds = _categories
+        .where((cat) => !cat.isExpense)
+        .map((cat) => cat.id)
+        .toSet();
+  }
+
+  Future<void> _fetchMovementsOnly(String billingPeriodId) async {
+    _movements = await movementUseCase.fetchByBillingPeriod(billingPeriodId);
+    _calculateDashboardData();
+  }
+
   Future<void> loadDataByBillingPeriod(String billingPeriodId) async {
+    if (_isLoading && _lastLoadedBillingPeriodId == billingPeriodId) return;
+
     _lastLoadedBillingPeriodId = billingPeriodId;
     _isLoading = true;
     notifyListeners();
+
     try {
       final results = await Future.wait([
         categoryUsecases.fetchAll(),
@@ -119,6 +136,7 @@ class MovementProvider extends ChangeNotifier {
       _paymentMethods = results[1] as List<PaymentMethodEntity>;
       _movements = results[2] as List<MovementEntity>;
 
+      _rebuildCategoryCache();
       _calculateDashboardData();
     } catch (e) {
       debugPrint(
@@ -139,7 +157,8 @@ class MovementProvider extends ChangeNotifier {
       notifyListeners();
 
       await movementUseCase.add(movement);
-      await loadDataByBillingPeriod(currentBillingPeriodId);
+
+      await _fetchMovementsOnly(currentBillingPeriodId);
     } catch (e) {
       debugPrint("Error al crear movimiento: $e");
       rethrow;
@@ -209,11 +228,7 @@ class MovementProvider extends ChangeNotifier {
   }
 
   String getCategoryName(String id) {
-    try {
-      return _categories.firstWhere((cat) => cat.id == id).name;
-    } catch (_) {
-      return "Categoría no encontrada";
-    }
+    return _categoryMap[id]?.name ?? "Categoría no encontrada";
   }
 
   Future<void> confirmAndCompleteMovement(

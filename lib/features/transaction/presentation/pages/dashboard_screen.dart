@@ -61,7 +61,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       appBar: AppBar(
         title: const Text("Cashify"),
         centerTitle: true,
-        actions: [_buildNotificationBadge(context)],
+        actions: const [_NotificationBadge()],
       ),
       body: Consumer<MovementProvider>(
         builder: (context, provider, child) {
@@ -76,29 +76,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 children: [
-                  _buildMainBalanceCard(provider.totalBalance),
+                  _MainBalanceCard(total: provider.totalBalance),
                   const SizedBox(height: 12),
-                  _buildCurrentPeriodLabel(),
+                  const _CurrentPeriodLabel(),
                   const SizedBox(height: 24),
                   Row(
                     children: [
-                      _buildMiniInfo(
-                        "Ingresos",
-                        provider.totalIncomes,
-                        AppColors.income,
-                        Icons.add_circle_outline,
+                      _MiniInfoCard(
+                        label: "Ingresos",
+                        amount: provider.totalIncomes,
+                        color: AppColors.income,
+                        icon: Icons.add_circle_outline,
                       ),
                       const SizedBox(width: 12),
-                      _buildMiniInfo(
-                        "Gastos",
-                        provider.totalExpenses,
-                        AppColors.expense,
-                        Icons.remove_circle_outline,
+                      _MiniInfoCard(
+                        label: "Gastos",
+                        amount: provider.totalExpenses,
+                        color: AppColors.expense,
+                        icon: Icons.remove_circle_outline,
                       ),
                     ],
                   ),
                   const SizedBox(height: 24),
-                  _buildCategoryTableBox(
+                  _CategoryTableBox(
                     title: "GASTOS PLANEADOS",
                     icon: Icons.list_alt_rounded,
                     data: provider.plannedGrouped,
@@ -106,7 +106,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   const SizedBox(height: 20),
                   if (provider.hasExtraCategories)
-                    _buildCategoryTableBox(
+                    _CategoryTableBox(
                       title: "GASTOS EXTRAS",
                       icon: Icons.auto_awesome_outlined,
                       data: provider.extraGrouped,
@@ -126,14 +126,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
             context,
             MaterialPageRoute(builder: (_) => const MovementFormScreen()),
           );
-          _refreshData();
+          if (mounted) _refreshData();
         },
         child: const Icon(Icons.add, color: Colors.white, size: 30),
       ),
     );
   }
+}
 
-  Widget _buildCurrentPeriodLabel() {
+class _CurrentPeriodLabel extends StatelessWidget {
+  const _CurrentPeriodLabel();
+
+  @override
+  Widget build(BuildContext context) {
     final periodProv = context.watch<BillingPeriodProvider>();
     final settingsProv = context.watch<SettingsProvider>();
 
@@ -166,13 +171,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ],
     );
   }
+}
 
-  Widget _buildCategoryTableBox({
-    required String title,
-    required IconData icon,
-    required Map<String, int> data,
-    required double totalSection,
-  }) {
+class _CategoryTableBox extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final Map<String, int> data;
+  final double totalSection;
+
+  const _CategoryTableBox({
+    required this.title,
+    required this.icon,
+    required this.data,
+    required this.totalSection,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
@@ -217,58 +232,63 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             )
           else
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: data.length,
-              separatorBuilder: (context, index) => Divider(
-                height: 1,
-                color: AppColors.border.withValues(alpha: 0.2),
-                indent: 16,
-                endIndent: 16,
-              ),
-              itemBuilder: (context, index) {
-                final entry = data.entries.elementAt(index);
-                final isNegative = entry.value < 0;
-
-                return Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        entry.key,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: AppColors.textPrimary,
-                          fontWeight: FontWeight.w400,
+            ...data.entries.map((entry) {
+              final isNegative = entry.value < 0;
+              return Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          entry.key,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: AppColors.textPrimary,
+                            fontWeight: FontWeight.w400,
+                          ),
                         ),
-                      ),
-                      Text(
-                        Formatters.currencyWithSymbol(entry.value.abs()),
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: isNegative
-                              ? AppColors.expense
-                              : AppColors.income,
+                        Text(
+                          Formatters.currencyWithSymbol(entry.value.abs()),
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: isNegative
+                                ? AppColors.expense
+                                : AppColors.income,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                );
-              },
-            ),
+                  if (entry.key != data.keys.last)
+                    Divider(
+                      height: 1,
+                      color: AppColors.border.withValues(alpha: 0.2),
+                      indent: 16,
+                      endIndent: 16,
+                    ),
+                ],
+              );
+            }),
           const SizedBox(height: 8),
         ],
       ),
     );
   }
+}
 
-  Widget _buildMainBalanceCard(double total) {
+class _MainBalanceCard extends StatelessWidget {
+  final double total;
+
+  const _MainBalanceCard({required this.total});
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -295,13 +315,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
+}
 
-  Widget _buildMiniInfo(
-    String label,
-    double amount,
-    Color color,
-    IconData icon,
-  ) {
+class _MiniInfoCard extends StatelessWidget {
+  final String label;
+  final double amount;
+  final Color color;
+  final IconData icon;
+
+  const _MiniInfoCard({
+    required this.label,
+    required this.amount,
+    required this.color,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(16),
@@ -337,8 +367,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
+}
 
-  Widget _buildNotificationBadge(BuildContext context) {
+class _NotificationBadge extends StatelessWidget {
+  const _NotificationBadge();
+
+  @override
+  Widget build(BuildContext context) {
     return Consumer<MovementProvider>(
       builder: (context, provider, _) {
         final pendingCount = provider.movements

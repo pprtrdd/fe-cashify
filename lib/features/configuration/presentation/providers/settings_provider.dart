@@ -13,11 +13,14 @@ class SettingsProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
 
   Future<void> loadSettings() async {
+    if (_isLoading) return;
+
     _isLoading = true;
     notifyListeners();
     try {
       _settings = await settingsUsecases.get();
     } catch (e) {
+      debugPrint('Error loading settings: $e');
       _settings = UserSettingsEntity.empty();
     } finally {
       _isLoading = false;
@@ -26,6 +29,8 @@ class SettingsProvider extends ChangeNotifier {
   }
 
   Future<void> updateSettings(UserSettingsEntity newSettings) async {
+    if (_settings == newSettings) return;
+
     await settingsUsecases.save(newSettings);
     _settings = newSettings;
     notifyListeners();
