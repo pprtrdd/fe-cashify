@@ -11,26 +11,8 @@ class UserSettingsEntity extends Equatable {
     required this.endDay,
   });
 
-  Map<String, dynamic> toMap() {
-    return {
-      'billing': {
-        'periodType': periodType,
-        'startDay': startDay,
-        'endDay': endDay,
-      },
-      'updatedAt': DateTime.now().toIso8601String(),
-    };
-  }
-
-  factory UserSettingsEntity.fromMap(Map<String, dynamic> map) {
-    final billing = map['billing'] as Map<String, dynamic>? ?? {};
-    
-    return UserSettingsEntity(
-      periodType: billing['periodType'],
-      startDay: (billing['startDay'] as num).toInt(),
-      endDay: (billing['endDay'] as num).toInt(),
-    );
-  }
+  @override
+  List<Object?> get props => [periodType, startDay, endDay];
 
   factory UserSettingsEntity.empty() {
     return const UserSettingsEntity(
@@ -39,9 +21,6 @@ class UserSettingsEntity extends Equatable {
       endDay: 31,
     );
   }
-
-  @override
-  List<Object?> get props => [periodType, startDay, endDay];
 
   UserSettingsEntity copyWith({
     String? periodType,

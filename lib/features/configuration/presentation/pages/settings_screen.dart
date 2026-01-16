@@ -13,102 +13,136 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  late String _periodType;
-  late TextEditingController _startDayController;
-  late TextEditingController _endDayController;
+  String? _periodType;
+  TextEditingController? _startDayController;
+  TextEditingController? _endDayController;
+
+  bool _isInitialized = false;
 
   @override
-  void initState() {
-    super.initState();
-    final settings = context.read<SettingsProvider>().settings;
+  void dispose() {
+    _startDayController?.dispose();
+    _endDayController?.dispose();
+    super.dispose();
+  }
+
+  void _initializeLocalState(UserSettingsEntity settings) {
+    if (_isInitialized) return;
+
     _periodType = settings.periodType;
     _startDayController = TextEditingController(
       text: settings.startDay.toString(),
     );
     _endDayController = TextEditingController(text: settings.endDay.toString());
+
+    _isInitialized = true;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text("Configuración"),
-        centerTitle: true,
-        elevation: 0,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _buildSectionHeader(
-              "FINANZAS Y FACTURACIÓN",
-              Icons.account_balance_wallet_outlined,
-            ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: AppColors.border.withValues(alpha: 0.5),
+    return Consumer<SettingsProvider>(
+      builder: (context, provider, child) {
+        if (provider.isLoading) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        _initializeLocalState(provider.settings);
+
+        if (_startDayController == null || _endDayController == null) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        return Scaffold(
+          backgroundColor: AppColors.background,
+          appBar: AppBar(
+            title: const Text("Configuración"),
+            centerTitle: true,
+            elevation: 0,
+          ),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildSectionHeader(
+                  "FINANZAS Y FACTURACIÓN",
+                  Icons.account_balance_wallet_outlined,
                 ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "Tipo de Período",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildPeriodToggle(),
-                  const SizedBox(height: 24),
-                  if (_periodType == 'custom_range') ...[
-                    const Text(
-                      "Rango de Fechas",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: AppColors.border.withValues(alpha: 0.5),
                     ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildDayInput("Inicio", _startDayController),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Tipo de Período",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildDayInput("Fin", _endDayController),
+                      ),
+                      const SizedBox(height: 16),
+                      _buildPeriodToggle(),
+                      const SizedBox(height: 24),
+                      if (_periodType == 'custom_range') ...[
+                        const Text(
+                          "Rango de Fechas",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildDayInput(
+                                "Inicio",
+                                _startDayController!,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildDayInput("Fin", _endDayController!),
+                            ),
+                          ],
+                        ),
+                        _buildPeriodPreview(),
+                        const SizedBox(height: 8),
+                        const Text(
+                          "Ejemplo: Si tu tarjeta corta el 24, inicia el 24 y termina el 23.",
+                          style: TextStyle(fontSize: 11, color: Colors.grey),
+                        ),
+                      ] else ...[
+                        Text(
+                          "Los movimientos se agruparán automáticamente por mes calendario (del 1 al 30/31).",
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: AppColors.textLight,
+                          ),
                         ),
                       ],
-                    ),
-                    _buildPeriodPreview(),
-                    const SizedBox(height: 8),
-                    const Text(
-                      "Ejemplo: Si tu tarjeta corta el 24, inicia el 24 y termina el 23.",
-                      style: TextStyle(fontSize: 11, color: Colors.grey),
-                    ),
-                  ] else ...[
-                    Text(
-                      "Los movimientos se agruparán automáticamente por mes calendario (del 1 al 30/31).",
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: AppColors.textLight,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 32),
+                _buildSaveButton(),
+              ],
             ),
-            const SizedBox(height: 32),
-            _buildSaveButton(),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -229,15 +263,14 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void _handleSave() async {
-    final start = int.tryParse(_startDayController.text) ?? 1;
-    final end = int.tryParse(_endDayController.text) ?? 31;
-    
+    final start = int.tryParse(_startDayController?.text ?? '1') ?? 1;
+    final end = int.tryParse(_endDayController?.text ?? '31') ?? 31;
+
     if (_periodType == 'custom_range') {
       if (start < 1 || start > 31 || end < 1 || end > 31) {
         _showError("Los días deben estar entre 1 y 31");
         return;
       }
-
       if (start == end) {
         _showError("El día de inicio y fin no pueden ser iguales");
         return;
@@ -245,7 +278,7 @@ class _SettingsPageState extends State<SettingsPage> {
     }
 
     final newSettings = UserSettingsEntity(
-      periodType: _periodType,
+      periodType: _periodType!,
       startDay: _periodType == 'month_to_month' ? 1 : start,
       endDay: _periodType == 'month_to_month' ? 31 : end,
     );
@@ -258,31 +291,25 @@ class _SettingsPageState extends State<SettingsPage> {
         );
       }
     } catch (e) {
-      _showError(e.toString());
-      rethrow;
+      _showError("Error al guardar: $e");
     }
   }
 
   Widget _buildPeriodPreview() {
     if (_periodType == 'month_to_month') return const SizedBox.shrink();
 
-    final startDay = int.tryParse(_startDayController.text) ?? 1;
-    final endDay = int.tryParse(_endDayController.text) ?? 31;
+    final startDay = int.tryParse(_startDayController?.text ?? '1') ?? 1;
+    final endDay = int.tryParse(_endDayController?.text ?? '31') ?? 31;
 
     if (startDay < 1 || startDay > 31 || endDay < 1 || endDay > 31) {
-      return _previewBox(
-        "Días inválidos (deben ser entre 1 y 31)",
-        Colors.orange,
-      );
+      return _previewBox("Días inválidos", Colors.orange);
     }
 
     final now = DateTime.now();
     DateTime startDate = DateTime(now.year, now.month, startDay);
-
     if (now.day < startDay) {
       startDate = DateTime(now.year, now.month - 1, startDay);
     }
-
     DateTime endDate = DateTime(startDate.year, startDate.month + 1, endDay);
 
     String startStr = "${startDate.day} ${_getLocalMonthName(startDate.month)}";
@@ -309,10 +336,7 @@ class _SettingsPageState extends State<SettingsPage> {
       'Nov',
       'Dic',
     ];
-    int index = (month - 1) % 12;
-    if (index < 0) index += 12;
-
-    return months[index];
+    return months[(month - 1) % 12];
   }
 
   Widget _previewBox(String text, Color color) {

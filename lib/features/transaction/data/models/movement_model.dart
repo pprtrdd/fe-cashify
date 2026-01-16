@@ -21,18 +21,18 @@ class MovementModel extends MovementEntity {
   factory MovementModel.fromFirestore(Map<String, dynamic> json, String docId) {
     return MovementModel(
       id: docId,
-      categoryId: json['categoryId']?.toString() ?? '',
-      description: json['description']?.toString() ?? '',
-      source: json['source']?.toString() ?? '',
-      quantity: (json['quantity'] as num?)?.toInt() ?? 0,
-      amount: (json['amount'] as num?)?.toInt() ?? 0,
-      currentInstallment: (json['currentInstallment'] as num?)?.toInt() ?? 0,
-      totalInstallments: (json['totalInstallments'] as num?)?.toInt() ?? 0,
-      paymentMethodId: json['paymentMethodId']?.toString() ?? '',
-      billingPeriodMonth: (json['billingPeriodMonth'] as num?)?.toInt() ?? 0,
-      billingPeriodYear: (json['billingPeriodYear'] as num?)?.toInt() ?? 0,
-      notes: json['notes']?.toString(),
-      isCompleted: json['isCompleted'] is bool ? json['isCompleted'] : false,
+      categoryId: json['categoryId'],
+      description: json['description'],
+      source: json['source'],
+      quantity: (json['quantity'] as num).toInt(),
+      amount: (json['amount'] as num).toInt(),
+      currentInstallment: (json['currentInstallment'] as num).toInt(),
+      totalInstallments: (json['totalInstallments'] as num).toInt(),
+      paymentMethodId: json['paymentMethodId'].toString(),
+      billingPeriodMonth: (json['billingPeriodMonth'] as num).toInt(),
+      billingPeriodYear: (json['billingPeriodYear'] as num).toInt(),
+      notes: json['notes'].toString(),
+      isCompleted: json['isCompleted'],
     );
   }
 
@@ -52,5 +52,23 @@ class MovementModel extends MovementEntity {
       'isCompleted': isCompleted,
       'createdAt': FieldValue.serverTimestamp(),
     };
+  }
+
+  factory MovementModel.fromEntity(MovementEntity e) {
+    return MovementModel(
+      id: e.id,
+      categoryId: e.categoryId,
+      description: e.description,
+      source: e.source,
+      quantity: e.quantity,
+      amount: e.amount,
+      currentInstallment: e.currentInstallment,
+      totalInstallments: e.totalInstallments,
+      paymentMethodId: e.paymentMethodId,
+      billingPeriodMonth: e.billingPeriodMonth,
+      billingPeriodYear: e.billingPeriodYear,
+      notes: e.notes,
+      isCompleted: e.isCompleted,
+    );
   }
 }

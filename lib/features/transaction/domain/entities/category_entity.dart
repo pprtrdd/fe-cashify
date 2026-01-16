@@ -13,6 +13,9 @@ class CategoryEntity extends Equatable {
     required this.isExtra,
   });
 
+  @override
+  List<Object?> get props => [id, name, isExpense, isExtra];
+
   CategoryEntity copyWith({
     String? id,
     String? name,
@@ -26,7 +29,4 @@ class CategoryEntity extends Equatable {
       isExtra: isExtra ?? this.isExtra,
     );
   }
-
-  @override
-  List<Object?> get props => [id, name, isExpense, isExtra];
 }

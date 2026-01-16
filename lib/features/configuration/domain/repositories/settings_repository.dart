@@ -1,3 +1,4 @@
+import 'package:cashify/features/configuration/data/models/user_settings_model.dart';
 import 'package:cashify/features/configuration/domain/entities/user_settings_entity.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -18,22 +19,24 @@ class SettingsRepository {
         .doc('settings');
   }
 
-  Future<void> saveSettings(UserSettingsEntity settings) async {
+  Future<void> saveSettings(UserSettingsEntity e) async {
     final ref = _settingsRef;
     if (ref == null) throw Exception("Usuario no autenticado");
-    await ref.set(settings.toMap(), SetOptions(merge: true));
+
+    final model = UserSettingsModel.fromEntity(e);
+    await ref.set(model.toFirestore(), SetOptions(merge: true));
   }
 
   Future<UserSettingsEntity> getSettings() async {
     final ref = _settingsRef;
+    if (ref == null) throw Exception("Usuario no autenticado");
 
-    if (ref == null) return UserSettingsEntity.empty();
     final doc = await ref.get();
-
     if (doc.exists && doc.data() != null) {
-      return UserSettingsEntity.fromMap(doc.data() as Map<String, dynamic>);
+      return UserSettingsModel.fromFirestore(
+        doc.data() as Map<String, dynamic>,
+      );
     }
-
     return UserSettingsEntity.empty();
   }
 }

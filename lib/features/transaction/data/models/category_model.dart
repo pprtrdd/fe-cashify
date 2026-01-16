@@ -8,12 +8,12 @@ class CategoryModel extends CategoryEntity {
     required super.isExtra,
   });
 
-  factory CategoryModel.fromFirestore(Map<String, dynamic> data, String id) {
+  factory CategoryModel.fromFirestore(Map<String, dynamic> json, String id) {
     return CategoryModel(
       id: id,
-      name: data['name']?.toString() ?? 'Sin nombre',
-      isExpense: data['isExpense'] is bool ? data['isExpense'] : true,
-      isExtra: data['isExtra'] is bool ? data['isExtra'] : false,
+      name: json['name'].toString(),
+      isExpense: json['isExpense'],
+      isExtra: json['isExtra'],
     );
   }
 
@@ -21,12 +21,12 @@ class CategoryModel extends CategoryEntity {
     return {'name': name, 'isExpense': isExpense, 'isExtra': isExtra};
   }
 
-  factory CategoryModel.fromEntity(CategoryEntity entity) {
+  factory CategoryModel.fromEntity(CategoryEntity e) {
     return CategoryModel(
-      id: entity.id,
-      name: entity.name,
-      isExpense: entity.isExpense,
-      isExtra: entity.isExtra,
+      id: e.id,
+      name: e.name,
+      isExpense: e.isExpense,
+      isExtra: e.isExtra,
     );
   }
 }
