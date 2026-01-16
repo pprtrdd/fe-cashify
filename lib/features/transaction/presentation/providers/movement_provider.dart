@@ -159,6 +159,7 @@ class MovementProvider extends ChangeNotifier {
     try {
       _isLoading = true;
       notifyListeners();
+
       final String groupId = DateTime.now().millisecondsSinceEpoch.toString();
       List<MovementEntity> movementsToSave = [
         movement.copyWith(groupId: groupId),
@@ -215,6 +216,27 @@ class MovementProvider extends ChangeNotifier {
     } catch (e) {
       debugPrint("Error al actualizar movimiento: $e");
       rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> updateMovementGroup({
+    required MovementEntity baseMovement,
+    required bool onlyPending,
+  }) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      await movementUseCase.updateGroup(baseMovement, onlyPending);
+
+      if (_lastLoadedBillingPeriodId != null) {
+        await _fetchMovementsOnly(_lastLoadedBillingPeriodId!);
+      }
+    } catch (e) {
+      debugPrint("Error updateMovementGroup: $e");
     } finally {
       _isLoading = false;
       notifyListeners();

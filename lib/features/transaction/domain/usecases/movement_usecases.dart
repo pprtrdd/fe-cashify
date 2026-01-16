@@ -22,6 +22,10 @@ class MovementUseCase {
     return await repository.update(movement);
   }
 
+  Future<void> updateGroup(MovementEntity movement, bool onlyPending) async {
+    return await repository.updateGroup(movement, onlyPending);
+  }
+
   Future<void> delete(MovementEntity movement) async {
     return await repository.delete(movement);
   }

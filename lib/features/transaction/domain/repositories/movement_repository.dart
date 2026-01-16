@@ -85,6 +85,44 @@ class MovementRepository {
     }
   }
 
+  Future<void> updateGroup(
+    MovementEntity baseMovement,
+    bool onlyPending,
+  ) async {
+    try {
+      final snapshot = await _firestore
+          .collectionGroup('movements')
+          .where('groupId', isEqualTo: baseMovement.groupId)
+          .get();
+
+      final batch = _firestore.batch();
+
+      for (var doc in snapshot.docs) {
+        final data = doc.data();
+        final bool isCompleted = data['isCompleted'];
+        final String docId = doc.id;
+
+        if (onlyPending && isCompleted && docId != baseMovement.id) {
+          continue;
+        }
+
+        batch.update(doc.reference, {
+          'description': baseMovement.description,
+          'amount': baseMovement.amount,
+          'categoryId': baseMovement.categoryId,
+          'paymentMethodId': baseMovement.paymentMethodId,
+          'source': baseMovement.source,
+          if (docId == baseMovement.id) 'isCompleted': baseMovement.isCompleted,
+        });
+      }
+
+      await batch.commit();
+    } catch (e) {
+      debugPrint("Error en updateGroup Repository: $e");
+      rethrow;
+    }
+  }
+
   Future<void> delete(MovementEntity m) async {
     try {
       await _movementsRef(m.billingPeriodId).doc(m.id).delete();
