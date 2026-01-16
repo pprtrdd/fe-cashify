@@ -32,90 +32,19 @@ class PendingMovementsScreen extends StatelessWidget {
             (MovementEntity m) => m.categoryId,
           );
 
+          final keys = groupedItems.keys.toList();
+
           return ListView.builder(
             padding: const EdgeInsets.all(16),
-            itemCount: groupedItems.keys.length,
+            itemCount: keys.length,
             itemBuilder: (context, index) {
-              final categoryId = groupedItems.keys.elementAt(index);
+              final categoryId = keys[index];
               final movements = groupedItems[categoryId]!;
 
-              final bool isIngreso = provider.incomeCategoryIds.contains(
-                categoryId,
-              );
-              final Color categoryColor = isIngreso
-                  ? AppColors.income
-                  : AppColors.expense;
-
-              final categoryTotal = movements.fold<int>(
-                0,
-                (sum, item) => sum + item.totalAmount,
-              );
-
-              return Container(
-                margin: const EdgeInsets.only(bottom: 24),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: AppColors.border.withValues(alpha: 0.5),
-                  ),
-                ),
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 16, 12, 8),
-                      child: Row(
-                        children: [
-                          Icon(
-                            isIngreso
-                                ? Icons.arrow_upward
-                                : Icons.arrow_downward,
-                            size: 16,
-                            color: categoryColor,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            provider.getCategoryName(categoryId).toUpperCase(),
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: categoryColor,
-                              letterSpacing: 1.1,
-                              fontSize: 12,
-                            ),
-                          ),
-                          const Spacer(),
-                          Text(
-                            Formatters.currencyWithSymbol(categoryTotal),
-                            style: TextStyle(
-                              fontWeight: FontWeight.w900,
-                              color: categoryColor,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Divider(),
-                    ...movements.map(
-                      (movement) => _MovementRow(
-                        movement: movement,
-                        provider: provider,
-                        isIngreso: isIngreso,
-                        onDelete: () => _showDeleteConfirmation(
-                          context,
-                          movement,
-                          provider,
-                        ),
-                        onComplete: () => _showCompleteConfirmation(
-                          context,
-                          movement,
-                          provider,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                  ],
-                ),
+              return _CategoryGroupCard(
+                categoryId: categoryId,
+                movements: movements,
+                provider: provider,
               );
             },
           );
@@ -147,11 +76,88 @@ class PendingMovementsScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+class _CategoryGroupCard extends StatelessWidget {
+  final String categoryId;
+  final List<MovementEntity> movements;
+  final MovementProvider provider;
+
+  const _CategoryGroupCard({
+    required this.categoryId,
+    required this.movements,
+    required this.provider,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isIngreso = provider.incomeCategoryIds.contains(categoryId);
+    final Color categoryColor =
+        isIngreso ? AppColors.income : AppColors.expense;
+
+    final categoryTotal = movements.fold<int>(
+      0,
+      (sum, item) => sum + item.totalAmount,
+    );
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 24),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+      ),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 12, 8),
+            child: Row(
+              children: [
+                Icon(
+                  isIngreso ? Icons.arrow_upward : Icons.arrow_downward,
+                  size: 16,
+                  color: categoryColor,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  provider.getCategoryName(categoryId).toUpperCase(),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: categoryColor,
+                    letterSpacing: 1.1,
+                    fontSize: 12,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  Formatters.currencyWithSymbol(categoryTotal),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    color: categoryColor,
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Divider(),
+          ...movements.map(
+            (movement) => _MovementRow(
+              movement: movement,
+              isIngreso: isIngreso,
+              onDelete: () => _showDeleteConfirmation(context, movement),
+              onComplete: () => _showCompleteConfirmation(context, movement),
+            ),
+          ),
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
 
   void _showDeleteConfirmation(
     BuildContext context,
     MovementEntity movement,
-    MovementProvider provider,
   ) {
     showDialog(
       context: context,
@@ -252,7 +258,6 @@ class PendingMovementsScreen extends StatelessWidget {
   void _showCompleteConfirmation(
     BuildContext context,
     MovementEntity movement,
-    MovementProvider provider,
   ) {
     showDialog(
       context: context,
@@ -265,14 +270,12 @@ class PendingMovementsScreen extends StatelessWidget {
 
 class _MovementRow extends StatelessWidget {
   final MovementEntity movement;
-  final MovementProvider provider;
   final bool isIngreso;
   final VoidCallback onDelete;
   final VoidCallback onComplete;
 
   const _MovementRow({
     required this.movement,
-    required this.provider,
     required this.isIngreso,
     required this.onDelete,
     required this.onComplete,

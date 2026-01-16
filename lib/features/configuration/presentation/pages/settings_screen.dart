@@ -10,24 +10,22 @@ class SettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<SettingsProvider>(
-      builder: (context, provider, child) {
-        if (provider.isLoading) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: const Text("Configuración"),
+        centerTitle: true,
+        elevation: 0,
+      ),
+      body: Consumer<SettingsProvider>(
+        builder: (context, provider, child) {
+          if (provider.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-        return Scaffold(
-          backgroundColor: AppColors.background,
-          appBar: AppBar(
-            title: const Text("Configuración"),
-            centerTitle: true,
-            elevation: 0,
-          ),
-          body: _SettingsForm(settings: provider.settings),
-        );
-      },
+          return _SettingsForm(settings: provider.settings);
+        },
+      ),
     );
   }
 }
@@ -72,82 +70,66 @@ class _SettingsFormState extends State<_SettingsForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _buildSectionHeader(
-            "FINANZAS Y FACTURACIÓN",
-            Icons.account_balance_wallet_outlined,
+          const _SectionHeader(
+            title: "FINANZAS Y FACTURACIÓN",
+            icon: Icons.account_balance_wallet_outlined,
           ),
           const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: AppColors.border.withValues(alpha: 0.5),
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "Tipo de Período",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                ),
-                const SizedBox(height: 16),
-                _buildPeriodToggle(),
-                const SizedBox(height: 24),
-                if (_billingPeriodType == 'custom_range') ...[
-                  const Text(
-                    "Rango de Fechas",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildDayInput("Inicio", _startDayController),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(child: _buildDayInput("Fin", _endDayController)),
-                    ],
-                  ),
-                  _buildPeriodPreview(),
-                  const SizedBox(height: 8),
-                  const Text(
-                    "Ejemplo: Si tu tarjeta corta el 24, inicia el 24 y termina el 23.",
-                    style: TextStyle(fontSize: 11, color: Colors.grey),
-                  ),
-                ] else ...[
-                  Text(
-                    "Los movimientos se agruparán automáticamente por mes calendario (del 1 al 30/31).",
-                    style: TextStyle(fontSize: 13, color: AppColors.textLight),
-                  ),
-                ],
-              ],
-            ),
-          ),
+          _buildMainCard(),
           const SizedBox(height: 32),
-          _buildSaveButton(),
+          _SaveButton(onPressed: _handleSave),
         ],
       ),
     );
   }
 
-  Widget _buildSectionHeader(String title, IconData icon) {
-    return Row(
-      children: [
-        Icon(icon, size: 18, color: AppColors.primary),
-        const SizedBox(width: 8),
-        Text(
-          title,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 13,
-            letterSpacing: 0.5,
-            color: AppColors.textLight,
+  Widget _buildMainCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            "Tipo de Período",
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
           ),
-        ),
-      ],
+          const SizedBox(height: 16),
+          _buildPeriodToggle(),
+          const SizedBox(height: 24),
+          if (_billingPeriodType == 'custom_range') ...[
+            const Text(
+              "Rango de Fechas",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildDayInput("Inicio", _startDayController),
+                ),
+                const SizedBox(width: 12),
+                Expanded(child: _buildDayInput("Fin", _endDayController)),
+              ],
+            ),
+            _buildPeriodPreview(),
+            const SizedBox(height: 8),
+            const Text(
+              "Ejemplo: Si tu tarjeta corta el 24, inicia el 24 y termina el 23.",
+              style: TextStyle(fontSize: 11, color: Colors.grey),
+            ),
+          ] else ...[
+            Text(
+              "Los movimientos se agruparán automáticamente por mes calendario (del 1 al 30/31).",
+              style: TextStyle(fontSize: 13, color: AppColors.textLight),
+            ),
+          ],
+        ],
+      ),
     );
   }
 
@@ -167,11 +149,12 @@ class _SettingsFormState extends State<_SettingsForm> {
   }
 
   Widget _buildToggleButton(String label, String value) {
-    bool isSelected = _billingPeriodType == value;
+    final bool isSelected = _billingPeriodType == value;
     return Expanded(
       child: GestureDetector(
         onTap: () => setState(() => _billingPeriodType = value),
-        child: Container(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
             color: isSelected ? AppColors.primary : Colors.transparent,
@@ -229,26 +212,6 @@ class _SettingsFormState extends State<_SettingsForm> {
     );
   }
 
-  Widget _buildSaveButton() {
-    return ElevatedButton(
-      onPressed: _handleSave,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.primary,
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        elevation: 0,
-      ),
-      child: const Text(
-        "GUARDAR CAMBIOS",
-        style: TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-          letterSpacing: 1,
-        ),
-      ),
-    );
-  }
-
   void _handleSave() async {
     final start = int.tryParse(_startDayController.text) ?? 1;
     final end = int.tryParse(_endDayController.text) ?? 31;
@@ -289,7 +252,7 @@ class _SettingsFormState extends State<_SettingsForm> {
     final endDay = int.tryParse(_endDayController.text) ?? 31;
 
     if (startDay < 1 || startDay > 31 || endDay < 1 || endDay > 31) {
-      return _previewBox("Días inválidos", Colors.orange);
+      return const _PreviewBox(text: "Días inválidos", color: Colors.orange);
     }
 
     final now = DateTime.now();
@@ -302,9 +265,9 @@ class _SettingsFormState extends State<_SettingsForm> {
     String startStr = "${startDate.day} ${_getLocalMonthName(startDate.month)}";
     String endStr = "${endDate.day} ${_getLocalMonthName(endDate.month)}";
 
-    return _previewBox(
-      "Tu periodo actual: $startStr al $endStr",
-      AppColors.primary,
+    return _PreviewBox(
+      text: "Tu periodo actual: $startStr al $endStr",
+      color: AppColors.primary,
     );
   }
 
@@ -326,7 +289,47 @@ class _SettingsFormState extends State<_SettingsForm> {
     return months[(month - 1) % 12];
   }
 
-  Widget _previewBox(String text, Color color) {
+  void _showError(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(msg), backgroundColor: Colors.redAccent),
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  final String title;
+  final IconData icon;
+
+  const _SectionHeader({required this.title, required this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: AppColors.primary),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+            letterSpacing: 0.5,
+            color: AppColors.textLight,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PreviewBox extends StatelessWidget {
+  final String text;
+  final Color color;
+
+  const _PreviewBox({required this.text, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(top: 16),
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
@@ -353,10 +356,31 @@ class _SettingsFormState extends State<_SettingsForm> {
       ),
     );
   }
+}
 
-  void _showError(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), backgroundColor: Colors.redAccent),
+class _SaveButton extends StatelessWidget {
+  final VoidCallback onPressed;
+
+  const _SaveButton({required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppColors.primary,
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        elevation: 0,
+      ),
+      child: const Text(
+        "GUARDAR CAMBIOS",
+        style: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 1,
+        ),
+      ),
     );
   }
 }

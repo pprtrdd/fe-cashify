@@ -82,19 +82,19 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<MovementProvider>(
-      builder: (context, provider, child) {
-        return Scaffold(
-          backgroundColor: AppColors.background,
-          appBar: AppBar(
-            title: const Text("Nuevo Movimiento"),
-            centerTitle: true,
-            leading: IconButton(
-              icon: const Icon(Icons.close),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ),
-          body: SingleChildScrollView(
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: const Text("Nuevo Movimiento"),
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.close),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: Consumer<MovementProvider>(
+        builder: (context, provider, child) {
+          return SingleChildScrollView(
             padding: const EdgeInsets.all(20.0),
             child: Form(
               key: _formKey,
@@ -120,74 +120,11 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                     isRequired: false,
                   ),
                   const SizedBox(height: 15),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: CustomTextField(
-                          controller: _qtyController,
-                          label: "Cant.",
-                          icon: Icons.shopping_basket,
-                          isNumeric: true,
-                        ),
-                      ),
-                      const SizedBox(width: 15),
-                      Expanded(
-                        child: CustomTextField(
-                          controller: _amountController,
-                          label: "Monto",
-                          icon: Icons.attach_money,
-                          isNumeric: true,
-                        ),
-                      ),
-                    ],
-                  ),
+                  _buildMoneySection(),
                   const SizedBox(height: 15),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: CustomTextField(
-                          controller: _currentInstallmentController,
-                          label: "Cuota",
-                          icon: Icons.tag,
-                          isNumeric: true,
-                        ),
-                      ),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 8),
-                        child: Text(
-                          "/",
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: CustomTextField(
-                          controller: _totalInstallmentsController,
-                          label: "Total",
-                          icon: Icons.layers,
-                          isNumeric: true,
-                        ),
-                      ),
-                    ],
-                  ),
+                  _buildInstallmentsSection(),
                   const SizedBox(height: 15),
-                  DropdownButtonFormField<String>(
-                    initialValue: _selectedPaymentMethod,
-                    decoration: _inputStyle("Método de Pago", Icons.payment),
-                    items: provider.paymentMethods
-                        .map(
-                          (m) => DropdownMenuItem(
-                            value: m.id,
-                            child: Text(m.name),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (val) =>
-                        setState(() => _selectedPaymentMethod = val),
-                    validator: (v) => v == null ? "Requerido" : null,
-                  ),
+                  _buildPaymentMethodDropdown(provider),
                   const SizedBox(height: 15),
                   CustomTextField(
                     controller: _billingPeriodController,
@@ -214,9 +151,75 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                 ],
               ),
             ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildMoneySection() {
+    return Row(
+      children: [
+        Expanded(
+          child: CustomTextField(
+            controller: _qtyController,
+            label: "Cant.",
+            icon: Icons.shopping_basket,
+            isNumeric: true,
           ),
-        );
-      },
+        ),
+        const SizedBox(width: 15),
+        Expanded(
+          child: CustomTextField(
+            controller: _amountController,
+            label: "Monto",
+            icon: Icons.attach_money,
+            isNumeric: true,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInstallmentsSection() {
+    return Row(
+      children: [
+        Expanded(
+          child: CustomTextField(
+            controller: _currentInstallmentController,
+            label: "Cuota",
+            icon: Icons.tag,
+            isNumeric: true,
+          ),
+        ),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 8),
+          child: Text(
+            "/",
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+        ),
+        Expanded(
+          child: CustomTextField(
+            controller: _totalInstallmentsController,
+            label: "Total",
+            icon: Icons.layers,
+            isNumeric: true,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPaymentMethodDropdown(MovementProvider provider) {
+    return DropdownButtonFormField<String>(
+      initialValue: _selectedPaymentMethod,
+      decoration: _inputStyle("Método de Pago", Icons.payment),
+      items: provider.paymentMethods
+          .map((m) => DropdownMenuItem(value: m.id, child: Text(m.name)))
+          .toList(),
+      onChanged: (val) => setState(() => _selectedPaymentMethod = val),
+      validator: (v) => v == null ? "Requerido" : null,
     );
   }
 
@@ -295,30 +298,10 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
       final periodProv = context.read<BillingPeriodProvider>();
       final movementProv = context.read<MovementProvider>();
 
-      final String calculatedId = periodProv.getIdFromDate(
-        _selectedDate,
-        settingsProv.settings.startDay,
-      );
-
-      final movement = MovementEntity(
-        id: '',
-        categoryId: _selectedCategory!,
-        description: _descController.text,
-        source: _sourceController.text,
-        quantity: int.tryParse(_qtyController.text) ?? 1,
-        amount: int.tryParse(_amountController.text) ?? 0,
-        currentInstallment:
-            int.tryParse(_currentInstallmentController.text) ?? 1,
-        totalInstallments: int.tryParse(_totalInstallmentsController.text) ?? 1,
-        paymentMethodId: _selectedPaymentMethod!,
-        billingPeriodYear: _selectedDate.year,
-        billingPeriodMonth: _selectedDate.month,
-        billingPeriodId: calculatedId,
-        notes: _notesController.text.isNotEmpty ? _notesController.text : null,
-        isCompleted: _isCompleted,
-      );
+      final movement = _createMovementEntity(periodProv, settingsProv);
 
       try {
+        // Determinar qué vista actualizar (la seleccionada o la actual calculada)
         final currentViewId =
             periodProv.selectedPeriodId ??
             periodProv.getCurrentBillingPeriodId(settingsProv.settings);
@@ -347,5 +330,32 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
         );
       }
     }
+  }
+
+  MovementEntity _createMovementEntity(
+    BillingPeriodProvider periodProv,
+    SettingsProvider settingsProv,
+  ) {
+    final String calculatedId = periodProv.getIdFromDate(
+      _selectedDate,
+      settingsProv.settings.startDay,
+    );
+
+    return MovementEntity(
+      id: '',
+      categoryId: _selectedCategory!,
+      description: _descController.text,
+      source: _sourceController.text,
+      quantity: int.tryParse(_qtyController.text) ?? 1,
+      amount: int.tryParse(_amountController.text) ?? 0,
+      currentInstallment: int.tryParse(_currentInstallmentController.text) ?? 1,
+      totalInstallments: int.tryParse(_totalInstallmentsController.text) ?? 1,
+      paymentMethodId: _selectedPaymentMethod!,
+      billingPeriodYear: _selectedDate.year,
+      billingPeriodMonth: _selectedDate.month,
+      billingPeriodId: calculatedId,
+      notes: _notesController.text.isNotEmpty ? _notesController.text : null,
+      isCompleted: _isCompleted,
+    );
   }
 }
