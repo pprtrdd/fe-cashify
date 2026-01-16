@@ -62,17 +62,22 @@ class BillingPeriodProvider extends ChangeNotifier {
   }
 
   void selectPeriod(String periodId) {
+    if (_selectedPeriodId == periodId) return;
+
     _selectedPeriodId = periodId;
     notifyListeners();
   }
 
   Future<void> loadPeriods() async {
+    if (_isLoading) return;
+
     _isLoading = true;
     notifyListeners();
 
     try {
       _periods = await usecases.fetchAll();
     } catch (e) {
+      debugPrint('Error loading billing periods: $e');
       _periods = [];
     } finally {
       _isLoading = false;
