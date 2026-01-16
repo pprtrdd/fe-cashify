@@ -11,7 +11,7 @@ class SettingsRepository {
 
   DocumentReference? get _settingsRef {
     final uid = _auth.currentUser?.uid;
-    if (uid == null) return null;
+    if (uid == null) throw Exception("Usuario no autenticado");
     return _firestore
         .collection('users')
         .doc(uid)
@@ -21,16 +21,14 @@ class SettingsRepository {
 
   Future<void> saveSettings(UserSettingsEntity e) async {
     final ref = _settingsRef;
-    if (ref == null) throw Exception("Usuario no autenticado");
-
+    if (ref == null) throw Exception("ref is null");
     final model = UserSettingsModel.fromEntity(e);
     await ref.set(model.toFirestore(), SetOptions(merge: true));
   }
 
   Future<UserSettingsEntity> getSettings() async {
     final ref = _settingsRef;
-    if (ref == null) throw Exception("Usuario no autenticado");
-
+    if (ref == null) throw Exception("ref is null");
     final doc = await ref.get();
     if (doc.exists && doc.data() != null) {
       return UserSettingsModel.fromFirestore(

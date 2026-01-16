@@ -2,11 +2,11 @@ import 'package:cashify/features/transaction/domain/entities/category_entity.dar
 import 'package:cashify/features/transaction/domain/repositories/category_repository.dart';
 
 class CategoryUsecases {
-  final CategoryRepository categoryRepository;
+  final CategoryRepository repository;
 
-  CategoryUsecases({required this.categoryRepository});
+  CategoryUsecases({required this.repository});
 
   Future<List<CategoryEntity>> fetchAll() async {
-    return categoryRepository.fetchCategories();
+    return repository.fetchCategories();
   }
 }

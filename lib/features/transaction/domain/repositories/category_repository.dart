@@ -12,7 +12,7 @@ class CategoryRepository {
 
   CollectionReference? get _categoriesRef {
     final uid = _auth.currentUser?.uid;
-    if (uid == null) return null;
+    if (uid == null) throw Exception("Usuario no autenticado");
 
     return _firestore.collection('users').doc(uid).collection('categories');
   }
@@ -33,12 +33,5 @@ class CategoryRepository {
       debugPrint("Error fetching categories: $e");
       rethrow;
     }
-  }
-
-  Future<void> addCategory(CategoryEntity category) async {
-    final ref = _categoriesRef;
-    if (ref == null) throw Exception('ref is null');
-    final model = CategoryModel.fromEntity(category);
-    await ref.add(model.toFirestore());
   }
 }

@@ -1,11 +1,13 @@
-import 'package:cashify/features/shared/widgets/custom_drawer.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/core/utils/formatters.dart';
-import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
+import 'package:cashify/features/configuration/presentation/providers/settings_provider.dart';
+import 'package:cashify/features/shared/widgets/custom_drawer.dart';
 import 'package:cashify/features/transaction/presentation/pages/movement_form_screen.dart';
 import 'package:cashify/features/transaction/presentation/pages/pending_movements_screen.dart';
+import 'package:cashify/features/transaction/presentation/providers/billing_period_provider.dart';
+import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -15,26 +17,50 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  String? _lastPeriodLoaded;
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<MovementProvider>().loadAllData();
-    });
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final settingsProv = context.watch<SettingsProvider>();
+    final periodProv = context.watch<BillingPeriodProvider>();
+    final targetPeriod =
+        periodProv.selectedPeriodId ??
+        periodProv.getCurrentBillingPeriodId(settingsProv.settings);
+
+    if (_lastPeriodLoaded != targetPeriod) {
+      _lastPeriodLoaded = targetPeriod;
+      Future.microtask(() => _refreshData());
+    }
+  }
+
+  Future<void> _refreshData() async {
+    final settingsProv = context.read<SettingsProvider>();
+    final periodProv = context.read<BillingPeriodProvider>();
+    final movementProv = context.read<MovementProvider>();
+
+    if (settingsProv.settings.startDay == 1 && !settingsProv.isLoading) {
+      await settingsProv.loadSettings();
+    }
+
+    if (!mounted) return;
+
+    final billingPeriodId =
+        periodProv.selectedPeriodId ??
+        periodProv.getCurrentBillingPeriodId(settingsProv.settings);
+
+    await movementProv.loadDataByBillingPeriod(billingPeriodId);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: _scaffoldKey,
       backgroundColor: AppColors.background,
       drawer: const CustomDrawer(),
       appBar: AppBar(
         title: const Text("Cashify"),
         centerTitle: true,
-        elevation: 0,
         actions: [_buildNotificationBadge(context)],
       ),
       body: Consumer<MovementProvider>(
@@ -44,15 +70,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
           }
 
           return RefreshIndicator(
-            onRefresh: () => provider.loadAllData(),
+            onRefresh: _refreshData,
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.all(16.0),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   _buildMainBalanceCard(provider.totalBalance),
                   const SizedBox(height: 12),
+                  _buildCurrentPeriodLabel(),
+                  const SizedBox(height: 24),
                   Row(
                     children: [
                       _buildMiniInfo(
@@ -94,12 +121,49 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.primary,
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const MovementFormScreen()),
-        ),
+        onPressed: () async {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const MovementFormScreen()),
+          );
+          _refreshData();
+        },
         child: const Icon(Icons.add, color: Colors.white, size: 30),
       ),
+    );
+  }
+
+  Widget _buildCurrentPeriodLabel() {
+    final periodProv = context.watch<BillingPeriodProvider>();
+    final settingsProv = context.watch<SettingsProvider>();
+
+    final activeId =
+        periodProv.selectedPeriodId ??
+        periodProv.getCurrentBillingPeriodId(settingsProv.settings);
+
+    final range = periodProv.getRangeFromId(
+      activeId,
+      settingsProv.settings.startDay,
+    );
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(
+          Icons.calendar_view_month,
+          size: 14,
+          color: AppColors.textLight.withValues(alpha: 0.7),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          "${periodProv.formatId(activeId)} (${range.start.day}/${range.start.month} - ${range.end.day}/${range.end.month})",
+          style: TextStyle(
+            fontSize: 12,
+            color: AppColors.textLight.withValues(alpha: 0.8),
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
     );
   }
 
@@ -144,7 +208,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
           const Divider(),
-
           if (data.isEmpty)
             const Padding(
               padding: EdgeInsets.all(20),
@@ -207,6 +270,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildMainBalanceCard(double total) {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: AppColors.primary,

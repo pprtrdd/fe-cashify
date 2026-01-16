@@ -14,6 +14,7 @@ class MovementModel extends MovementEntity {
     required super.paymentMethodId,
     required super.billingPeriodMonth,
     required super.billingPeriodYear,
+    required super.billingPeriodId,
     super.notes,
     required super.isCompleted,
   });
@@ -31,6 +32,7 @@ class MovementModel extends MovementEntity {
       paymentMethodId: json['paymentMethodId'].toString(),
       billingPeriodMonth: (json['billingPeriodMonth'] as num).toInt(),
       billingPeriodYear: (json['billingPeriodYear'] as num).toInt(),
+      billingPeriodId: json['billingPeriodId'],
       notes: json['notes'].toString(),
       isCompleted: json['isCompleted'],
     );
@@ -48,6 +50,7 @@ class MovementModel extends MovementEntity {
       'paymentMethodId': paymentMethodId,
       'billingPeriodMonth': billingPeriodMonth,
       'billingPeriodYear': billingPeriodYear,
+      'billingPeriodId': billingPeriodId,
       'notes': notes,
       'isCompleted': isCompleted,
       'createdAt': FieldValue.serverTimestamp(),
@@ -67,6 +70,7 @@ class MovementModel extends MovementEntity {
       paymentMethodId: e.paymentMethodId,
       billingPeriodMonth: e.billingPeriodMonth,
       billingPeriodYear: e.billingPeriodYear,
+      billingPeriodId: e.billingPeriodId,
       notes: e.notes,
       isCompleted: e.isCompleted,
     );

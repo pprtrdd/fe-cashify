@@ -12,6 +12,7 @@ class MovementEntity extends Equatable {
   final String paymentMethodId;
   final int billingPeriodYear;
   final int billingPeriodMonth;
+  final String billingPeriodId;
   final String? notes;
   final bool isCompleted;
 
@@ -27,6 +28,7 @@ class MovementEntity extends Equatable {
     required this.paymentMethodId,
     required this.billingPeriodYear,
     required this.billingPeriodMonth,
+    required this.billingPeriodId,
     this.notes,
     required this.isCompleted,
   });
@@ -63,6 +65,7 @@ class MovementEntity extends Equatable {
     String? paymentMethodId,
     int? billingPeriodYear,
     int? billingPeriodMonth,
+    String? billingPeriodId,
     String? notes,
     bool? isCompleted,
   }) {
@@ -78,6 +81,7 @@ class MovementEntity extends Equatable {
       paymentMethodId: paymentMethodId ?? this.paymentMethodId,
       billingPeriodYear: billingPeriodYear ?? this.billingPeriodYear,
       billingPeriodMonth: billingPeriodMonth ?? this.billingPeriodMonth,
+      billingPeriodId: billingPeriodId ?? this.billingPeriodId,
       notes: notes ?? this.notes,
       isCompleted: isCompleted ?? this.isCompleted,
     );

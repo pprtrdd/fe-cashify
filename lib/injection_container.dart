@@ -1,12 +1,15 @@
 import 'package:cashify/features/configuration/domain/repositories/settings_repository.dart';
 import 'package:cashify/features/configuration/domain/usecases/settings_usecases.dart';
 import 'package:cashify/features/configuration/presentation/providers/settings_provider.dart';
+import 'package:cashify/features/transaction/domain/repositories/billing_period_repository.dart';
 import 'package:cashify/features/transaction/domain/repositories/category_repository.dart';
 import 'package:cashify/features/transaction/domain/repositories/movement_repository.dart';
 import 'package:cashify/features/transaction/domain/repositories/payment_method_repository.dart';
+import 'package:cashify/features/transaction/domain/usecases/billing_period_usecases.dart';
 import 'package:cashify/features/transaction/domain/usecases/category_usecases.dart';
 import 'package:cashify/features/transaction/domain/usecases/movement_usecases.dart';
 import 'package:cashify/features/transaction/domain/usecases/payment_method_usecases.dart';
+import 'package:cashify/features/transaction/presentation/providers/billing_period_provider.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -26,17 +29,17 @@ Future<void> init() async {
       paymentMethodUsecases: sl(),
     ),
   );
+  sl.registerFactory(() => BillingPeriodProvider(usecases: sl()));
   sl.registerFactory(() => SettingsProvider(settingsUsecases: sl()));
 
   /* --------------------------------------------------------------------------- */
   /* USE CASES (Lazy Singletons)                                                 */
   /* --------------------------------------------------------------------------- */
-  sl.registerLazySingleton(() => MovementUseCase(movementRepository: sl()));
-  sl.registerLazySingleton(() => CategoryUsecases(categoryRepository: sl()));
-  sl.registerLazySingleton(
-    () => PaymentMethodUsecases(paymentMethodRepository: sl()),
-  );
+  sl.registerLazySingleton(() => MovementUseCase(repository: sl()));
+  sl.registerLazySingleton(() => CategoryUsecases(repository: sl()));
+  sl.registerLazySingleton(() => PaymentMethodUsecases(repository: sl()));
   sl.registerLazySingleton(() => SettingsUsecases(repository: sl()));
+  sl.registerLazySingleton(() => BillingPeriodUsecases(repository: sl()));
 
   /* --------------------------------------------------------------------------- */
   /* REPOSITORIES (Lazy Singletons)                                              */
@@ -52,6 +55,9 @@ Future<void> init() async {
   );
   sl.registerLazySingleton(
     () => SettingsRepository(sl<FirebaseFirestore>(), sl<FirebaseAuth>()),
+  );
+  sl.registerLazySingleton(
+    () => BillingPeriodRepository(sl<FirebaseFirestore>(), sl<FirebaseAuth>()),
   );
 
   /* --------------------------------------------------------------------------- */
