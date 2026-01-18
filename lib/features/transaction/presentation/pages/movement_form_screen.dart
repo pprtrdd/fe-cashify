@@ -349,6 +349,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
 
     return MovementEntity(
       id: '',
+      userId: '',
       groupId: '',
       categoryId: _selectedCategory!,
       description: _descController.text,

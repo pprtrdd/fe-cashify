@@ -31,7 +31,7 @@ class MovementUseCase {
   }
 
   Future<void> deleteGroup(String billingPeriodId, String groupId) async {
-    return await repository.deleteGroup(billingPeriodId, groupId);
+    return await repository.deleteGroup(groupId);
   }
 
   Future<List<MovementEntity>> fetchByBillingPeriod(String periodId) async {

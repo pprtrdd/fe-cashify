@@ -27,7 +27,7 @@ function exportFullSpreadsheetToFirestore() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheets = ss.getSheets();
   const dateInfo = extractDateFromFileName(ss.getName());
-  
+
   let totalDocs = 0;
   const paymentMethodMap = { "Crédito": "CREDIT", "Credito": "CREDIT", "Débito": "DEBIT", "Debito": "DEBIT", "Efectivo": "CASH" };
 
@@ -36,7 +36,7 @@ function exportFullSpreadsheetToFirestore() {
     const currentSheet = sheets[s];
     const categoryName = currentSheet.getName();
     const categoryId = categoryName.toUpperCase().replace(/\s+/g, '_');
-    
+
     if (!DEBUG_MODE && !SessionCache.categories[categoryId]) {
       ensureExists(firestore, `users/${USER_ID}/categories`, categoryId, {
         name: categoryName, isExpense: true, isSystem: false, isExtra: false
@@ -49,7 +49,7 @@ function exportFullSpreadsheetToFirestore() {
 
     for (let i = 2; i < data.length; i++) {
       const row = data[i];
-      if (!row[0]) continue; 
+      if (!row[0]) continue;
 
       let currentInst = 1, totalInst = 1;
       const instRaw = row[5] ? row[5].toString() : "1/1";
@@ -79,6 +79,7 @@ function exportFullSpreadsheetToFirestore() {
           }
 
           const movement = {
+            userId: USER_ID,
             categoryId,
             description: row[0].toString(),
             source: row[1] ? row[1].toString() : "",
@@ -92,19 +93,23 @@ function exportFullSpreadsheetToFirestore() {
             billingPeriodId: tPeriodId,
             notes: row[7] ? row[7].toString() : null,
             createdAt: new Date(),
-            groupId: groupId, 
+            groupId: groupId,
             isCompleted: isOriginal ? (Number(row[2]) !== 0) : false,
           };
 
           firestore.createDocument(`users/${USER_ID}/billing_periods/${tPeriodId}/movements`, movement);
           totalDocs++;
+          categoryTotalDocs++;
         }
       }
+
+      Logger.log(`✅ Procesado ${categoryName}: ${row[0].toString()} creado.`);
     }
 
-    Logger.log(`✅ Procesado ${categoryName} con ${categoryTotalDocs} registros.`);
+    Logger.log(`✅ Procesado ${categoryName}: ${categoryTotalDocs} registros.`);
   }
-  Logger.log(`✅ Finalizado. Creados ${totalDocs} registros en total.`);
+
+  Logger.log(`✅ Finalizado: ${totalDocs} registros creados.`);
 }
 
 function extractDateFromFileName(name) {
