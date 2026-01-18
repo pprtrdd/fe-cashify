@@ -71,6 +71,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
           return RefreshIndicator(
             onRefresh: _refreshData,
+            color: AppColors.primary,
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.all(16.0),
@@ -128,7 +129,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           );
           if (mounted) _refreshData();
         },
-        child: const Icon(Icons.add, color: Colors.white, size: 30),
+        child: const Icon(Icons.add, color: AppColors.textOnPrimary, size: 30),
       ),
     );
   }
@@ -208,27 +209,30 @@ class _CategoryTableBox extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                     fontSize: 13,
                     letterSpacing: 0.5,
+                    color: AppColors.textPrimary,
                   ),
                 ),
                 const Spacer(),
                 Text(
-                  Formatters.currencyWithSymbol(totalSection.abs()),
-                  style: const TextStyle(
+                  "${totalSection > 0 ? '+' : (totalSection < 0 ? '-' : '')} ${Formatters.currencyWithSymbol(totalSection.abs().toInt())}",
+                  style: TextStyle(
                     fontWeight: FontWeight.w900,
                     fontSize: 13,
-                    color: AppColors.textPrimary,
+                    color: totalSection < 0
+                        ? AppColors.expense
+                        : AppColors.income,
                   ),
                 ),
               ],
             ),
           ),
-          const Divider(),
+          const Divider(color: AppColors.divider),
           if (data.isEmpty)
-            const Padding(
-              padding: EdgeInsets.all(20),
+            Padding(
+              padding: const EdgeInsets.all(20),
               child: Text(
                 "Sin movimientos registrados",
-                style: TextStyle(fontSize: 12, color: Colors.grey),
+                style: TextStyle(fontSize: 12, color: AppColors.textLight),
               ),
             )
           else
@@ -289,27 +293,56 @@ class _MainBalanceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isPositive = total > 0;
+    final bool isNegative = total < 0;
+    final String symbol = isPositive ? "+" : (isNegative ? "-" : "");
+    final Color backgroundColor = AppColors.primary;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppColors.primary,
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: backgroundColor.withValues(alpha: 0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         children: [
-          const Text(
-            "Balance Total Real",
-            style: TextStyle(color: Colors.white70, fontSize: 13),
+          Text(
+            "Balance Total del Periodo",
+            style: TextStyle(
+              color: AppColors.textOnPrimary.withValues(alpha: 0.8),
+              fontSize: 13,
+            ),
           ),
           const SizedBox(height: 4),
-          Text(
-            Formatters.currencyWithSymbol(total.toInt()),
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (isNegative || isPositive)
+                Text(
+                  symbol,
+                  style: const TextStyle(
+                    color: AppColors.textOnPrimary,
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              Text(
+                Formatters.currencyWithSymbol(total.abs().toInt()),
+                style: const TextStyle(
+                  color: AppColors.textOnPrimary,
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -382,7 +415,10 @@ class _NotificationBadge extends StatelessWidget {
         return IconButton(
           icon: Badge(
             backgroundColor: AppColors.notification,
-            label: Text('$pendingCount'),
+            label: Text(
+              '$pendingCount',
+              style: const TextStyle(color: AppColors.textOnPrimary),
+            ),
             isLabelVisible: pendingCount > 0,
             child: const Icon(Icons.notifications_none_rounded),
           ),

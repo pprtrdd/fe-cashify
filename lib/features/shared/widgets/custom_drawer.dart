@@ -21,7 +21,7 @@ class CustomDrawer extends StatelessWidget {
         children: [
           const _UserHeader(),
           const _PeriodDropdown(),
-          const Divider(indent: 20, endIndent: 20),
+          const Divider(indent: 20, endIndent: 20, color: AppColors.divider),
           Expanded(
             child: ListView(
               padding: EdgeInsets.zero,
@@ -48,7 +48,7 @@ class CustomDrawer extends StatelessWidget {
           _DrawerItem(
             icon: Icons.settings_outlined,
             label: "Configuración",
-            iconColor: AppColors.textPrimary.withValues(alpha: 180),
+            iconColor: AppColors.textLight,
             onTap: () {
               Navigator.pop(context);
               Navigator.push(
@@ -103,10 +103,15 @@ class _UserHeader extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(20, 50, 20, 20),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.primary,
         gradient: LinearGradient(
-          colors: [AppColors.primary, Color(0xFF512DA8)],
+          colors: [
+            AppColors.primary,
+            AppColors.primary.withValues(
+              alpha: 0.8,
+            ),
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -135,29 +140,39 @@ class _UserHeader extends StatelessWidget {
           Text(
             displayName,
             style: const TextStyle(
-              color: Colors.white,
+              color: AppColors.textOnPrimary,
               fontWeight: FontWeight.bold,
               fontSize: 18,
             ),
           ),
           Text(
             email,
-            style: TextStyle(color: Colors.white.withAlpha(180), fontSize: 13),
+            style: TextStyle(
+              color: AppColors.textOnPrimary.withValues(alpha: 0.7),
+              fontSize: 13,
+            ),
           ),
           const SizedBox(height: 12),
-          const Divider(color: Colors.white24, height: 1),
+          Divider(
+            color: AppColors.textOnPrimary.withValues(alpha: 0.2),
+            height: 1,
+          ),
           const SizedBox(height: 12),
           Row(
             children: [
-              const Icon(Icons.bolt_rounded, color: Colors.white70, size: 16),
+              const Icon(
+                Icons.bolt_rounded,
+                color: AppColors.textOnPrimary,
+                size: 16,
+              ),
               const SizedBox(width: 8),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     "CICLO ACTUAL EN CURSO",
                     style: TextStyle(
-                      color: Colors.white70,
+                      color: AppColors.textOnPrimary.withValues(alpha: 0.6),
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
                     ),
@@ -165,7 +180,7 @@ class _UserHeader extends StatelessWidget {
                   Text(
                     "$realMonthName ($realDateRangeStr)",
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: AppColors.textOnPrimary,
                       fontWeight: FontWeight.bold,
                       fontSize: 13,
                     ),
@@ -196,6 +211,7 @@ class _PeriodDropdown extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
       child: DropdownButtonFormField<String>(
+        dropdownColor: AppColors.surface,
         initialValue: periodProv.periods.contains(activeViewId)
             ? activeViewId
             : (periodProv.periods.isNotEmpty ? periodProv.periods.first : null),
@@ -211,10 +227,17 @@ class _PeriodDropdown extends StatelessWidget {
             vertical: 8,
           ),
           filled: true,
-          fillColor: AppColors.primary.withAlpha(15),
+          fillColor: AppColors.primary.withValues(alpha: 0.05),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: const BorderSide(color: AppColors.primary, width: 0.5),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(
+              color: AppColors.primary.withValues(alpha: 0.3),
+              width: 0.5,
+            ),
           ),
           prefixIcon: const Icon(
             Icons.remove_red_eye_outlined,
@@ -227,7 +250,10 @@ class _PeriodDropdown extends StatelessWidget {
             value: id,
             child: Text(
               periodProv.formatId(id),
-              style: const TextStyle(fontSize: 14),
+              style: const TextStyle(
+                fontSize: 14,
+                color: AppColors.textPrimary,
+              ),
             ),
           );
         }).toList(),
@@ -263,7 +289,10 @@ class _PendingMovementsItem extends StatelessWidget {
           trailing: pendingCount > 0
               ? Badge(
                   backgroundColor: AppColors.notification,
-                  label: Text('$pendingCount'),
+                  label: Text(
+                    '$pendingCount',
+                    style: const TextStyle(color: AppColors.textOnPrimary),
+                  ),
                 )
               : null,
           onTap: () {

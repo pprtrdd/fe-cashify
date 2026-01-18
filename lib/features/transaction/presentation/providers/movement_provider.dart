@@ -83,7 +83,7 @@ class MovementProvider extends ChangeNotifier {
       if (cat == null) continue;
 
       final amount = mov.totalAmount;
-      final doubleAmount = amount.toDouble();
+      final double doubleAmount = amount.toDouble();
 
       if (cat.isExpense) {
         _totalExpenses += doubleAmount;
@@ -91,7 +91,7 @@ class MovementProvider extends ChangeNotifier {
         _totalIncomes += doubleAmount;
       }
 
-      final relativeValue = cat.isExpense ? -amount : amount;
+      final int relativeValue = cat.isExpense ? -amount : amount;
       _realTotal += relativeValue;
 
       if (cat.isExtra) {

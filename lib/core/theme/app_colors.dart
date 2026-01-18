@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
+  static const Color transparent = Colors.transparent;
+  
   // --- IDENTIDAD DE MARCA ---
   static const Color primary = Colors.deepPurple;
   static const Color background = Color(0xFFF8F9FA);

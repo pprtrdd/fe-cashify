@@ -31,6 +31,7 @@ class PendingMovementsScreen extends StatelessWidget {
           if (pendingItems.isEmpty) {
             return _buildEmptyState();
           }
+
           final groupedItems = groupBy(
             pendingItems,
             (MovementEntity m) => m.categoryId,
@@ -70,8 +71,13 @@ class PendingMovementsScreen extends StatelessWidget {
           const SizedBox(height: 16),
           const Text(
             "¡Todo al día!",
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+              color: AppColors.textPrimary,
+            ),
           ),
+          const SizedBox(height: 4),
           Text(
             "No tienes movimientos pendientes.",
             style: TextStyle(color: AppColors.textLight, fontSize: 15),
@@ -145,7 +151,7 @@ class _CategoryGroupCard extends StatelessWidget {
               ],
             ),
           ),
-          const Divider(),
+          const Divider(color: AppColors.divider),
           ...movements.map(
             (movement) => _MovementRow(
               movement: movement,
@@ -165,103 +171,90 @@ class _CategoryGroupCard extends StatelessWidget {
 
     showDialog(
       context: context,
-      barrierDismissible: true,
-      builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
-          ),
-          backgroundColor: AppColors.surface,
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CircleAvatar(
-                  radius: 28,
-                  backgroundColor: AppColors.expense.withValues(alpha: 0.1),
-                  child: Icon(
-                    hasMoreInstallments
-                        ? Icons.layers_clear_rounded
-                        : Icons.delete_sweep_rounded,
-                    color: AppColors.expense,
-                    size: 32,
-                  ),
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        backgroundColor: AppColors.surface,
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircleAvatar(
+                radius: 28,
+                backgroundColor: AppColors.expense.withValues(alpha: 0.1),
+                child: Icon(
+                  hasMoreInstallments ? Icons.layers_clear : Icons.delete_sweep,
+                  color: AppColors.expense,
+                  size: 32,
                 ),
-                const SizedBox(height: 20),
-                Text(
-                  hasMoreInstallments
-                      ? "Eliminar Cuotas"
-                      : "¿Eliminar registro?",
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                hasMoreInstallments ? "Eliminar Cuotas" : "¿Eliminar registro?",
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
                 ),
-                const SizedBox(height: 12),
-                Text(
-                  hasMoreInstallments
-                      ? "Este movimiento tiene cuotas. ¿Deseas eliminar solo esta o todas las restantes?"
-                      : "Estás a punto de borrar '${movement.description}'. Esta operación no se puede deshacer.",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: AppColors.textLight,
-                    height: 1.4,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                hasMoreInstallments
+                    ? "Este movimiento tiene cuotas. ¿Deseas eliminar solo esta o todas las restantes?"
+                    : "Estás a punto de borrar '${movement.description}'.",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: AppColors.textLight, height: 1.4),
+              ),
+              const SizedBox(height: 32),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.expense,
+                      foregroundColor: AppColors.textOnPrimary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: () async {
+                      Navigator.pop(context);
+                      await provider.deleteMovement(movement);
+                    },
+                    child: Text(
+                      hasMoreInstallments ? "Solo esta cuota" : "Eliminar",
+                    ),
                   ),
-                ),
-                const SizedBox(height: 32),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.expense,
-                        foregroundColor: Colors.white,
+                  if (hasMoreInstallments) ...[
+                    const SizedBox(height: 8),
+                    OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.expense,
+                        side: const BorderSide(color: AppColors.expense),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
                       onPressed: () async {
                         Navigator.pop(context);
-                        await provider.deleteMovement(movement);
+                        await provider.deleteMovementGroup(movement);
                       },
-                      child: Text(
-                        hasMoreInstallments ? "Solo esta cuota" : "Eliminar",
-                      ),
-                    ),
-                    if (hasMoreInstallments) ...[
-                      const SizedBox(height: 8),
-                      OutlinedButton(
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.expense,
-                          side: const BorderSide(color: AppColors.expense),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        onPressed: () async {
-                          Navigator.pop(context);
-                          await provider.deleteMovementGroup(movement);
-                        },
-                        child: const Text("Todas las cuotas del grupo"),
-                      ),
-                    ],
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: Text(
-                        "Cancelar",
-                        style: TextStyle(color: AppColors.textFaded),
-                      ),
+                      child: const Text("Todas las cuotas del grupo"),
                     ),
                   ],
-                ),
-              ],
-            ),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(
+                      "Cancelar",
+                      style: TextStyle(color: AppColors.textFaded),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
@@ -318,7 +311,7 @@ class _MovementRow extends StatelessWidget {
                         child: Text(
                           "[${movement.currentInstallment}/${movement.totalInstallments}]",
                           style: const TextStyle(
-                            color: AppColors.income,
+                            color: AppColors.primary,
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
                           ),
@@ -369,14 +362,12 @@ class _MovementRow extends StatelessWidget {
   Widget _buildPopupMenu(BuildContext context) {
     return PopupMenuButton<String>(
       icon: Icon(Icons.more_vert, size: 20, color: AppColors.textFaded),
-      padding: EdgeInsets.zero,
+      color: AppColors.surface,
+      elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       onSelected: (value) {
-        if (value == 'complete') {
-          onComplete();
-        } else if (value == 'delete') {
-          onDelete();
-        }
+        if (value == 'complete') onComplete();
+        if (value == 'delete') onDelete();
       },
       itemBuilder: (context) => [
         const PopupMenuItem(
@@ -384,8 +375,8 @@ class _MovementRow extends StatelessWidget {
           child: ListTile(
             leading: Icon(Icons.check_circle_outline, color: AppColors.income),
             title: Text('Completar'),
-            contentPadding: EdgeInsets.zero,
             dense: true,
+            contentPadding: EdgeInsets.zero,
           ),
         ),
         const PopupMenuItem(
@@ -393,8 +384,8 @@ class _MovementRow extends StatelessWidget {
           child: ListTile(
             leading: Icon(Icons.delete_outline, color: AppColors.expense),
             title: Text('Eliminar'),
-            contentPadding: EdgeInsets.zero,
             dense: true,
+            contentPadding: EdgeInsets.zero,
           ),
         ),
       ],
@@ -437,6 +428,7 @@ class _CompleteMovementDialogState extends State<_CompleteMovementDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      backgroundColor: AppColors.surface,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       title: Column(
         children: [
@@ -451,7 +443,10 @@ class _CompleteMovementDialogState extends State<_CompleteMovementDialog> {
           const SizedBox(height: 12),
           const Text(
             "Monto Real",
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
           ),
         ],
       ),
@@ -461,16 +456,14 @@ class _CompleteMovementDialogState extends State<_CompleteMovementDialog> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              "Confirma el monto final pagado/recibido para '${widget.movement.description}':",
+              "Confirma el monto final para '${widget.movement.description}':",
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 13, color: AppColors.textLight),
             ),
             const SizedBox(height: 20),
             TextFormField(
               controller: _amountController,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: false,
-              ),
+              keyboardType: TextInputType.number,
               textAlign: TextAlign.center,
               autofocus: true,
               style: const TextStyle(
@@ -480,28 +473,21 @@ class _CompleteMovementDialogState extends State<_CompleteMovementDialog> {
               ),
               decoration: InputDecoration(
                 prefixText: "\$ ",
-                hintText: "0",
                 filled: true,
                 fillColor: AppColors.background,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
                   borderSide: BorderSide.none,
                 ),
-                errorStyle: const TextStyle(fontSize: 11),
               ),
-              validator: (value) {
-                if (value == null || value.isEmpty) return "Ingresa un monto";
-                final val = int.tryParse(value);
-                if (val == null || val <= 0) {
-                  return "El monto debe ser mayor a 0";
-                }
-                return null;
-              },
+              validator: (v) =>
+                  (v == null || int.tryParse(v) == null || int.parse(v) <= 0)
+                  ? "Monto inválido"
+                  : null,
             ),
           ],
         ),
       ),
-      actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       actions: [
         Row(
           children: [
@@ -519,8 +505,7 @@ class _CompleteMovementDialogState extends State<_CompleteMovementDialog> {
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.income,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
+                  foregroundColor: AppColors.textOnPrimary,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -529,26 +514,13 @@ class _CompleteMovementDialogState extends State<_CompleteMovementDialog> {
                   if (_formKey.currentState!.validate()) {
                     final newAmount = int.parse(_amountController.text);
                     Navigator.pop(context);
-
                     await widget.provider.confirmAndCompleteMovement(
                       widget.movement,
                       newAmount,
                     );
-
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("Movimiento registrado correctamente"),
-                          backgroundColor: AppColors.income,
-                        ),
-                      );
-                    }
                   }
                 },
-                child: const Text(
-                  "Confirmar",
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
+                child: const Text("Confirmar"),
               ),
             ),
           ],
