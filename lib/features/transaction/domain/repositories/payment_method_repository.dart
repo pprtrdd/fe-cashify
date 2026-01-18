@@ -1,7 +1,6 @@
 import 'package:cashify/features/transaction/data/models/payment_method_model.dart';
 import 'package:cashify/features/transaction/domain/entities/payment_method_entity.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 
 class PaymentMethodRepository {
   final FirebaseFirestore _firestore;
@@ -27,7 +26,6 @@ class PaymentMethodRepository {
           )
           .toList();
     } catch (e) {
-      debugPrint("Error fetching payment methods: $e");
       rethrow;
     }
   }

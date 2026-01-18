@@ -1,6 +1,7 @@
 import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/features/configuration/domain/entities/user_settings_entity.dart';
 import 'package:cashify/features/configuration/presentation/providers/settings_provider.dart';
+import 'package:cashify/features/shared/helpers/ui_helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -228,11 +229,13 @@ class _SettingsFormState extends State<_SettingsForm> {
 
     if (_billingPeriodType == 'custom_range') {
       if (start < 1 || start > 31 || end < 1 || end > 31) {
-        _showError("Los días deben estar entre 1 y 31");
+        context.showErrorSnackBar("Los días deben estar entre 1 y 31");
         return;
       }
       if (start == end) {
-        _showError("El día de inicio y fin no pueden ser iguales");
+        context.showErrorSnackBar(
+          "El día de inicio y fin no pueden ser iguales",
+        );
         return;
       }
     }
@@ -245,13 +248,11 @@ class _SettingsFormState extends State<_SettingsForm> {
 
     try {
       await context.read<SettingsProvider>().updateSettings(newSettings);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Configuración actualizada")),
-        );
-      }
+      if (!mounted) return;
+      context.showSuccessSnackBar("Configuración actualizada");
     } catch (e) {
-      _showError("Error al guardar: $e");
+      if (!mounted) return;
+      context.showErrorSnackBar("Error al guardar: $e");
     }
   }
 
@@ -300,12 +301,6 @@ class _SettingsFormState extends State<_SettingsForm> {
       'Dic',
     ];
     return months[(month - 1) % 12];
-  }
-
-  void _showError(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), backgroundColor: AppColors.danger),
-    );
   }
 }
 

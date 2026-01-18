@@ -77,8 +77,7 @@ class BillingPeriodProvider extends ChangeNotifier {
     try {
       _periods = await usecases.fetchAll();
     } catch (e) {
-      debugPrint('Error loading billing periods: $e');
-      _periods = [];
+      rethrow;
     } finally {
       _isLoading = false;
       notifyListeners();

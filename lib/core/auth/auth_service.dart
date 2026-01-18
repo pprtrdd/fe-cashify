@@ -1,5 +1,4 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -12,8 +11,7 @@ class AuthService {
 
       return await _auth.signInWithPopup(googleProvider);
     } catch (e) {
-      debugPrint("Error during Google sign-in: $e");
-      return null;
+      rethrow;
     }
   }
 

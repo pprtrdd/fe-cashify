@@ -2,7 +2,6 @@ import 'package:cashify/features/transaction/data/models/movement_model.dart';
 import 'package:cashify/features/transaction/domain/entities/movement_entity.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 
 class MovementRepository {
   final FirebaseFirestore _firestore;
@@ -60,7 +59,6 @@ class MovementRepository {
 
       await batch.commit();
     } catch (e) {
-      debugPrint("Error en saveMultiple (Batch): $e");
       rethrow;
     }
   }
@@ -71,7 +69,6 @@ class MovementRepository {
         m.billingPeriodId,
       ).doc(m.id).update(MovementModel.fromEntity(m).toFirestore(_currentUid));
     } catch (e) {
-      debugPrint("Error updating movement: $e");
       rethrow;
     }
   }
@@ -109,7 +106,6 @@ class MovementRepository {
 
       await batch.commit();
     } catch (e) {
-      debugPrint("Error updating group: $e");
       rethrow;
     }
   }
@@ -118,7 +114,6 @@ class MovementRepository {
     try {
       await _movementsRef(m.billingPeriodId).doc(m.id).delete();
     } catch (e) {
-      debugPrint("Error deleting movement: $e");
       rethrow;
     }
   }
@@ -140,7 +135,6 @@ class MovementRepository {
 
       await batch.commit();
     } catch (e) {
-      debugPrint("Error deleting group: $e");
       rethrow;
     }
   }
@@ -155,7 +149,6 @@ class MovementRepository {
         return MovementModel.fromFirestore(doc.data(), doc.id);
       }).toList();
     } catch (e) {
-      debugPrint("Error fetching movements: $e");
       rethrow;
     }
   }

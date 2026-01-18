@@ -28,7 +28,7 @@ class BillingPeriodRepository {
 
       return snapshot.docs.map((doc) => doc.id).toList();
     } catch (e) {
-      throw Exception("Error al obtener periodos: $e");
+      rethrow;
     }
   }
 }

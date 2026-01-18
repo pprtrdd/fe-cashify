@@ -2,7 +2,6 @@ import 'package:cashify/features/transaction/data/models/category_model.dart';
 import 'package:cashify/features/transaction/domain/entities/category_entity.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 
 class CategoryRepository {
   final FirebaseFirestore _firestore;
@@ -30,7 +29,6 @@ class CategoryRepository {
         );
       }).toList();
     } catch (e) {
-      debugPrint("Error fetching categories: $e");
       rethrow;
     }
   }

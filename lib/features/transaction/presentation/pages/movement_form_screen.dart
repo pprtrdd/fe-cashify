@@ -1,5 +1,6 @@
 import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/features/configuration/presentation/providers/settings_provider.dart';
+import 'package:cashify/features/shared/helpers/ui_helpers.dart';
 import 'package:cashify/features/transaction/domain/entities/movement_entity.dart';
 import 'package:cashify/features/transaction/presentation/providers/billing_period_provider.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
@@ -310,30 +311,23 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
           currentViewId,
           settingsProv.settings.startDay,
           () async {
-            await periodProv.loadPeriods();
+            try {
+              await periodProv.loadPeriods();
+            } catch (e) {
+              if (!context.mounted) return;
+              context.showErrorSnackBar("Error al cargar periodos: $e");
+            }
           },
         );
 
         if (!context.mounted) return;
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Movimiento guardado'),
-            backgroundColor: AppColors.success,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        context.showSuccessSnackBar("Movimiento guardado correctamente");
 
         Navigator.pop(context);
       } catch (e) {
         if (!context.mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${e.toString()}'),
-            backgroundColor: AppColors.danger,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        context.showErrorSnackBar('Error saving movement: $e');
       }
     }
   }

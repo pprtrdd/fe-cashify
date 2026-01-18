@@ -64,7 +64,8 @@ class CustomDrawer extends StatelessWidget {
             iconColor: AppColors.danger,
             onTap: () async {
               await AuthService().signOut();
-              if (context.mounted) Navigator.pop(context);
+              if (!context.mounted) return;
+              Navigator.pop(context);
             },
           ),
           const SizedBox(height: 12),

@@ -143,7 +143,7 @@ class MovementProvider extends ChangeNotifier {
       _rebuildCategoryCache();
       _calculateDashboardData();
     } catch (e) {
-      debugPrint("Error: $e");
+      rethrow;
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -193,7 +193,6 @@ class MovementProvider extends ChangeNotifier {
       onPeriodsCreated();
       await _fetchMovementsOnly(currentViewId);
     } catch (e) {
-      debugPrint("Error al crear cuotas: $e");
       rethrow;
     } finally {
       _isLoading = false;
@@ -214,7 +213,6 @@ class MovementProvider extends ChangeNotifier {
         _calculateDashboardData();
       }
     } catch (e) {
-      debugPrint("Error al actualizar movimiento: $e");
       rethrow;
     } finally {
       _isLoading = false;
@@ -236,7 +234,7 @@ class MovementProvider extends ChangeNotifier {
         await _fetchMovementsOnly(_lastLoadedBillingPeriodId!);
       }
     } catch (e) {
-      debugPrint("Error updateMovementGroup: $e");
+      rethrow;
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -252,7 +250,6 @@ class MovementProvider extends ChangeNotifier {
       _movements.removeWhere((m) => m.id == movement.id);
       _calculateDashboardData();
     } catch (e) {
-      debugPrint("Error al eliminar movimiento: $e");
       rethrow;
     } finally {
       _isLoading = false;
@@ -276,7 +273,6 @@ class MovementProvider extends ChangeNotifier {
 
       await _fetchMovementsOnly(movement.billingPeriodId);
     } catch (e) {
-      debugPrint("Error al eliminar grupo de movimientos: $e");
       rethrow;
     } finally {
       _isLoading = false;
@@ -301,7 +297,6 @@ class MovementProvider extends ChangeNotifier {
       if (_lastLoadedBillingPeriodId != null) {
         await loadDataByBillingPeriod(_lastLoadedBillingPeriodId!);
       }
-      debugPrint("Error al sincronizar estado: $e");
     }
   }
 
@@ -330,7 +325,6 @@ class MovementProvider extends ChangeNotifier {
         _calculateDashboardData();
       }
     } catch (e) {
-      debugPrint("Error al completar movimiento: $e");
       if (_lastLoadedBillingPeriodId != null) {
         await loadDataByBillingPeriod(_lastLoadedBillingPeriodId!);
       }

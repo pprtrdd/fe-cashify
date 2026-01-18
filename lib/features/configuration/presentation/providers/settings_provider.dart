@@ -20,8 +20,7 @@ class SettingsProvider extends ChangeNotifier {
     try {
       _settings = await settingsUsecases.get();
     } catch (e) {
-      debugPrint('Error loading settings: $e');
-      _settings = UserSettingsEntity.empty();
+      rethrow;
     } finally {
       _isLoading = false;
       notifyListeners();

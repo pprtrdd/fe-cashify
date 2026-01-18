@@ -1,6 +1,7 @@
 import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/core/utils/formatters.dart';
 import 'package:cashify/features/configuration/presentation/providers/settings_provider.dart';
+import 'package:cashify/features/shared/helpers/ui_helpers.dart';
 import 'package:cashify/features/shared/widgets/custom_drawer.dart';
 import 'package:cashify/features/transaction/presentation/pages/movement_form_screen.dart';
 import 'package:cashify/features/transaction/presentation/pages/pending_movements_screen.dart';
@@ -41,7 +42,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final movementProv = context.read<MovementProvider>();
 
     if (settingsProv.settings.startDay == 1 && !settingsProv.isLoading) {
-      await settingsProv.loadSettings();
+      try {
+        await settingsProv.loadSettings();
+      } catch (e) {
+        if (!mounted) return;
+        context.showErrorSnackBar("Error al cargar configuración: $e");
+      }
     }
 
     if (!mounted) return;
