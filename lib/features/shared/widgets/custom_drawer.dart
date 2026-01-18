@@ -234,6 +234,10 @@ class _PeriodDropdown extends StatelessWidget {
         onChanged: (String? newValue) {
           if (newValue != null) {
             periodProv.selectPeriod(newValue);
+            Provider.of<MovementProvider>(
+              context,
+              listen: false,
+            ).loadDataByBillingPeriod(newValue);
             Navigator.pop(context);
           }
         },

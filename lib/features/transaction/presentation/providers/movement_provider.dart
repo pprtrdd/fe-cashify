@@ -125,6 +125,8 @@ class MovementProvider extends ChangeNotifier {
 
     _lastLoadedBillingPeriodId = billingPeriodId;
     _isLoading = true;
+    _movements = [];
+    _resetTotals();
     notifyListeners();
 
     try {
@@ -141,9 +143,7 @@ class MovementProvider extends ChangeNotifier {
       _rebuildCategoryCache();
       _calculateDashboardData();
     } catch (e) {
-      debugPrint(
-        "Error al cargar datos del periodo de facturación $billingPeriodId: $e",
-      );
+      debugPrint("Error: $e");
     } finally {
       _isLoading = false;
       notifyListeners();

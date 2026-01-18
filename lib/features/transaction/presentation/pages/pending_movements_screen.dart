@@ -20,6 +20,10 @@ class PendingMovementsScreen extends StatelessWidget {
       ),
       body: Consumer<MovementProvider>(
         builder: (context, provider, child) {
+          if (provider.isLoading && provider.movements.isEmpty) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
           final pendingItems = provider.movements
               .where((m) => !m.isCompleted)
               .toList();
