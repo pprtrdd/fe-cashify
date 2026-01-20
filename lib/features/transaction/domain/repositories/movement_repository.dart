@@ -145,9 +145,12 @@ class MovementRepository {
     try {
       final snapshot = await _movementsRef(billingPeriodId).get();
 
-      return snapshot.docs.map((doc) {
-        return MovementModel.fromFirestore(doc.data(), doc.id);
-      }).toList();
+      return snapshot.docs
+          .map((doc) {
+            return MovementModel.fromFirestore(doc.data(), doc.id);
+          })
+          .cast<MovementEntity>()
+          .toList();
     } catch (e) {
       rethrow;
     }

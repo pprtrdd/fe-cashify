@@ -22,12 +22,15 @@ class CategoryRepository {
       if (ref == null) throw Exception('ref is null');
       final snapshot = await ref.orderBy('name').get();
 
-      return snapshot.docs.map((doc) {
-        return CategoryModel.fromFirestore(
-          doc.data() as Map<String, dynamic>,
-          doc.id,
-        );
-      }).toList();
+      return snapshot.docs
+          .map((doc) {
+            return CategoryModel.fromFirestore(
+              doc.data() as Map<String, dynamic>,
+              doc.id,
+            );
+          })
+          .cast<CategoryEntity>()
+          .toList();
     } catch (e) {
       rethrow;
     }

@@ -42,6 +42,7 @@ class PendingMovementsScreen extends StatelessWidget {
           return ListView.builder(
             padding: const EdgeInsets.all(16),
             itemCount: keys.length,
+            key: ValueKey(pendingItems.length),
             itemBuilder: (context, index) {
               final categoryId = keys[index];
               final movements = groupedItems[categoryId]!;

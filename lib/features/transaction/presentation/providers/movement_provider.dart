@@ -325,12 +325,15 @@ class MovementProvider extends ChangeNotifier {
 
       if (index != -1) {
         _movements[index] = updatedMovement;
+        _movements = List.from(_movements);
+
         _calculateDashboardData();
       }
     } catch (e) {
       if (_lastLoadedBillingPeriodId != null) {
         await loadDataByBillingPeriod(_lastLoadedBillingPeriodId!);
       }
+      rethrow;
     } finally {
       _isLoading = false;
       notifyListeners();

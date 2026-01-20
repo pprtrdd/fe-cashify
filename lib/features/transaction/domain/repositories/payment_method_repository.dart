@@ -24,6 +24,7 @@ class PaymentMethodRepository {
               doc.id,
             ),
           )
+          .cast<PaymentMethodEntity>()
           .toList();
     } catch (e) {
       rethrow;
