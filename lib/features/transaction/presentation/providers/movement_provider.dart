@@ -1,3 +1,4 @@
+import 'package:cashify/core/utils/billing_utils.dart';
 import 'package:cashify/features/transaction/domain/entities/category_entity.dart';
 import 'package:cashify/features/transaction/domain/entities/movement_entity.dart';
 import 'package:cashify/features/transaction/domain/entities/payment_method_entity.dart';
@@ -116,6 +117,7 @@ class MovementProvider extends ChangeNotifier {
   Future<void> _fetchMovementsOnly(String billingPeriodId) async {
     _movements = await movementUseCase.fetchByBillingPeriod(billingPeriodId);
     _calculateDashboardData();
+    notifyListeners();
   }
 
   Future<void> loadDataByBillingPeriod(String billingPeriodId) async {
@@ -150,17 +152,48 @@ class MovementProvider extends ChangeNotifier {
 
   Future<void> createMovement(
     MovementEntity movement,
-    String currentBillingPeriodId,
+    String currentViewId,
+    int startDay,
+    VoidCallback onPeriodsCreated,
   ) async {
     try {
       _isLoading = true;
       notifyListeners();
 
-      await movementUseCase.add(movement);
+      final String groupId = DateTime.now().millisecondsSinceEpoch.toString();
+      List<MovementEntity> movementsToSave = [
+        movement.copyWith(groupId: groupId),
+      ];
 
-      await _fetchMovementsOnly(currentBillingPeriodId);
+      if (movement.totalInstallments > 1 && movement.currentInstallment == 1) {
+        for (int i = 1; i < movement.totalInstallments; i++) {
+          final nextDate = DateTime(
+            movement.billingPeriodYear,
+            movement.billingPeriodMonth + i,
+            2,
+          );
+
+          final nextPeriodId = BillingUtils.generateId(nextDate, startDay);
+
+          movementsToSave.add(
+            movement.copyWith(
+              id: '',
+              groupId: groupId,
+              currentInstallment: i + 1,
+              billingPeriodYear: nextDate.year,
+              billingPeriodMonth: nextDate.month,
+              billingPeriodId: nextPeriodId,
+              isCompleted: false,
+            ),
+          );
+        }
+      }
+
+      await movementUseCase.addAll(movementsToSave);
+      onPeriodsCreated();
+      await _fetchMovementsOnly(currentViewId);
     } catch (e) {
-      debugPrint("Error al crear movimiento: $e");
+      debugPrint("Error al crear cuotas: $e");
       rethrow;
     } finally {
       _isLoading = false;
@@ -189,6 +222,27 @@ class MovementProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> updateMovementGroup({
+    required MovementEntity baseMovement,
+    required bool onlyPending,
+  }) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      await movementUseCase.updateGroup(baseMovement, onlyPending);
+
+      if (_lastLoadedBillingPeriodId != null) {
+        await _fetchMovementsOnly(_lastLoadedBillingPeriodId!);
+      }
+    } catch (e) {
+      debugPrint("Error updateMovementGroup: $e");
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   Future<void> deleteMovement(MovementEntity movement) async {
     _isLoading = true;
     notifyListeners();
@@ -199,6 +253,30 @@ class MovementProvider extends ChangeNotifier {
       _calculateDashboardData();
     } catch (e) {
       debugPrint("Error al eliminar movimiento: $e");
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> deleteMovementGroup(MovementEntity movement) async {
+    if (movement.groupId.isEmpty) {
+      return deleteMovement(movement);
+    }
+
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      await movementUseCase.deleteGroup(
+        movement.billingPeriodId,
+        movement.groupId,
+      );
+
+      await _fetchMovementsOnly(movement.billingPeriodId);
+    } catch (e) {
+      debugPrint("Error al eliminar grupo de movimientos: $e");
       rethrow;
     } finally {
       _isLoading = false;
