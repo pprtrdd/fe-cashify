@@ -2,7 +2,6 @@ import 'package:cashify/features/transaction/data/models/movement_model.dart';
 import 'package:cashify/features/transaction/domain/entities/movement_entity.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 
 class MovementRepository {
   final FirebaseFirestore _firestore;
@@ -27,49 +26,39 @@ class MovementRepository {
     return _periodDoc(billingPeriodId).collection("movements");
   }
 
-  Future<void> save(MovementEntity m) async {
-    try {
-      final periodRef = _periodDoc(m.billingPeriodId);
-
-      await periodRef.set({
-        'id': m.billingPeriodId,
-        'year': m.billingPeriodYear,
-        'month': m.billingPeriodMonth,
-        'lastUpdate': FieldValue.serverTimestamp(),
-        'status': 'active',
-      }, SetOptions(merge: true));
-
-      await _movementsRef(
-        m.billingPeriodId,
-      ).add(MovementModel.fromEntity(m).toFirestore());
-    } catch (e) {
-      debugPrint("Error saving movement: $e");
-      rethrow;
-    }
-  }
+  Future<void> save(MovementEntity m) async => saveMultiple([m]);
 
   Future<void> saveMultiple(List<MovementEntity> movements) async {
+    if (movements.isEmpty) return;
+
     final batch = _firestore.batch();
+    final updatedPeriods = <String>{};
 
     try {
       for (var m in movements) {
-        final periodRef = _periodDoc(m.billingPeriodId);
-        final movementRef = _movementsRef(m.billingPeriodId).doc();
+        final periodId = m.billingPeriodId;
+        final periodRef = _periodDoc(periodId);
+        final movementRef = _movementsRef(periodId).doc();
 
-        batch.set(periodRef, {
-          'id': m.billingPeriodId,
-          'year': m.billingPeriodYear,
-          'month': m.billingPeriodMonth,
-          'lastUpdate': FieldValue.serverTimestamp(),
-          'status': 'active',
-        }, SetOptions(merge: true));
+        if (!updatedPeriods.contains(periodId)) {
+          batch.set(periodRef, {
+            'id': periodId,
+            'year': m.billingPeriodYear,
+            'month': m.billingPeriodMonth,
+            'lastUpdate': FieldValue.serverTimestamp(),
+            'status': 'active',
+          }, SetOptions(merge: true));
+          updatedPeriods.add(periodId);
+        }
 
-        batch.set(movementRef, MovementModel.fromEntity(m).toFirestore());
+        batch.set(
+          movementRef,
+          MovementModel.fromEntity(m).toFirestore(_currentUid),
+        );
       }
 
       await batch.commit();
     } catch (e) {
-      debugPrint("Error en saveMultiple Batch: $e");
       rethrow;
     }
   }
@@ -78,9 +67,8 @@ class MovementRepository {
     try {
       await _movementsRef(
         m.billingPeriodId,
-      ).doc(m.id).update(MovementModel.fromEntity(m).toFirestore());
+      ).doc(m.id).update(MovementModel.fromEntity(m).toFirestore(_currentUid));
     } catch (e) {
-      debugPrint("Error updating movement: $e");
       rethrow;
     }
   }
@@ -118,7 +106,6 @@ class MovementRepository {
 
       await batch.commit();
     } catch (e) {
-      debugPrint("Error en updateGroup Repository: $e");
       rethrow;
     }
   }
@@ -127,15 +114,15 @@ class MovementRepository {
     try {
       await _movementsRef(m.billingPeriodId).doc(m.id).delete();
     } catch (e) {
-      debugPrint("Error deleting movement: $e");
       rethrow;
     }
   }
 
-  Future<void> deleteGroup(String billingPeriodId, String groupId) async {
+  Future<void> deleteGroup(String groupId) async {
     try {
       final snapshot = await _firestore
           .collectionGroup('movements')
+          .where('userId', isEqualTo: _currentUid)
           .where('groupId', isEqualTo: groupId)
           .get();
 
@@ -148,7 +135,6 @@ class MovementRepository {
 
       await batch.commit();
     } catch (e) {
-      debugPrint("Error deleting group (collectionGroup): $e");
       rethrow;
     }
   }
@@ -159,11 +145,13 @@ class MovementRepository {
     try {
       final snapshot = await _movementsRef(billingPeriodId).get();
 
-      return snapshot.docs.map((doc) {
-        return MovementModel.fromFirestore(doc.data(), doc.id);
-      }).toList();
+      return snapshot.docs
+          .map((doc) {
+            return MovementModel.fromFirestore(doc.data(), doc.id);
+          })
+          .cast<MovementEntity>()
+          .toList();
     } catch (e) {
-      debugPrint("Error fetching movements: $e");
       rethrow;
     }
   }

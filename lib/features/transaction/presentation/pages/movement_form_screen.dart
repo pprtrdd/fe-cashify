@@ -1,5 +1,7 @@
 import 'package:cashify/core/theme/app_colors.dart';
+import 'package:cashify/core/utils/billing_period_utils.dart';
 import 'package:cashify/features/configuration/presentation/providers/settings_provider.dart';
+import 'package:cashify/features/shared/helpers/ui_helpers.dart';
 import 'package:cashify/features/transaction/domain/entities/movement_entity.dart';
 import 'package:cashify/features/transaction/presentation/providers/billing_period_provider.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
@@ -40,9 +42,9 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final settingsProv = context.read<SettingsProvider>();
-      final periodProv = context.read<BillingPeriodProvider>();
-      final currentId = periodProv.getCurrentBillingPeriodId(
-        settingsProv.settings,
+      final currentId = BillingPeriodUtils.generateId(
+        DateTime.now(),
+        settingsProv.settings.startDay,
       );
       context.read<MovementProvider>().loadDataByBillingPeriod(currentId);
     });
@@ -59,7 +61,10 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
     final periodProv = context.read<BillingPeriodProvider>();
     final settingsProv = context.read<SettingsProvider>();
 
-    final id = periodProv.getIdFromDate(date, settingsProv.settings.startDay);
+    final id = BillingPeriodUtils.generateId(
+      date,
+      settingsProv.settings.startDay,
+    );
     _billingPeriodController.text = periodProv.formatId(id);
   }
 
@@ -303,37 +308,33 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
       try {
         final currentViewId =
             periodProv.selectedPeriodId ??
-            periodProv.getCurrentBillingPeriodId(settingsProv.settings);
+            BillingPeriodUtils.generateId(
+              DateTime.now(),
+              settingsProv.settings.startDay,
+            );
 
         await movementProv.createMovement(
           movement,
           currentViewId,
           settingsProv.settings.startDay,
           () async {
-            await periodProv.loadPeriods();
+            try {
+              await periodProv.loadPeriods();
+            } catch (e) {
+              if (!context.mounted) return;
+              context.showErrorSnackBar("Error al cargar periodos: $e");
+            }
           },
         );
 
         if (!context.mounted) return;
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Movimiento guardado'),
-            backgroundColor: AppColors.success,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        context.showSuccessSnackBar("Movimiento guardado correctamente");
 
         Navigator.pop(context);
       } catch (e) {
         if (!context.mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${e.toString()}'),
-            backgroundColor: AppColors.danger,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        context.showErrorSnackBar('Error saving movement: $e');
       }
     }
   }
@@ -342,13 +343,14 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
     BillingPeriodProvider periodProv,
     SettingsProvider settingsProv,
   ) {
-    final String calculatedId = periodProv.getIdFromDate(
+    final String calculatedId = BillingPeriodUtils.generateId(
       _selectedDate,
       settingsProv.settings.startDay,
     );
 
     return MovementEntity(
       id: '',
+      userId: '',
       groupId: '',
       categoryId: _selectedCategory!,
       description: _descController.text,

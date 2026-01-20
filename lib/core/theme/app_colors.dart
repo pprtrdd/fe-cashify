@@ -1,28 +1,35 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // --- IDENTIDAD DE MARCA ---
-  static const Color primary = Colors.deepPurple;
-  static const Color background = Color(0xFFF8F9FA);
-  static const Color surface = Colors.white;
-  static const Color textOnPrimary = Colors.white;
+  static const Color transparent = Colors.transparent;
+  
+  // --- MARCA Y SUPERFICIES ---
+  static const Color primary = Color(0xFF311B92);    // Morado muy oscuro (casi negro)
+  static const Color background = Color(0xFFF0F2F5); 
+  static const Color surface = Color(0xFFFFFFFF);    
+  static const Color textOnPrimary = Color(0xFFFFFFFF); 
 
-  // --- SEMÁNTICA FINANCIERA ---
-  static const Color income = Colors.green;           // Entradas de dinero
-  static const Color expense = Colors.red;            // Salidas de dinero
-  static const Color extra = Color(0xFFED6C02);       // Gastos extra / Naranja fuerte
+  // --- SEMÁNTICA FINANCIERA ACCESIBLE ---
+  // Usamos azul para ingresos y naranja vibrante para gastos
+  static const Color income = Color(0xFF0056B3);     // Azul fuerte (se distingue del naranja)
+  static const Color expense = Color(0xFFD9534F);    // Rojo anaranjado (más brillante)
+  static const Color extra = Color(0xFF854000);      // Marrón oscuro
 
-  // --- ESTADOS Y FEEDBACK ---
-  static const Color success = Colors.green;          // Éxito / Completado
-  static const Color warning = Colors.orange;         // Pendiente / Alerta
-  static const Color danger = Colors.red;             // Error / Crítico / Cerrar Sesión
-  static const Color notification = Colors.redAccent; // Badges de conteo
+  // --- SEMÁNTICA DE ESTADO ---
+  static const Color success = Color(0xFF0056B3);    
+  static const Color warning = Color(0xFFFFC107);    // Amarillo ámbar (muy visible)
+  static const Color danger = Color(0xFFD9534F);     
+  static const Color notification = Color(0xFFFF5252); // Rojo vibrante (muy visible)
+  static const Color info = Color(0xFF17A2B8);       
 
-  // --- UI NEUTROS Y TEXTOS ---
-  static const Color textPrimary = Color(0xFF212121); // Texto principal
-  static final Color textLight = Colors.grey[700]!;   // Subtítulos y headers
-  static final Color textFaded = Colors.grey[500]!;   // Textos muy secundarios
-  static final Color fieldFill = Colors.grey[50]!;    // Fondo de inputs
-  static const Color divider = Color(0xFFE0E0E0);     // Líneas divisoras
-  static final Color border = Colors.grey[300]!;      // Bordes de tarjetas o tablas
+  // --- TEXTOS ---
+  static const Color textPrimary = Color(0xFF000000); // Negro puro para máximo contraste
+  static const Color textSecondary = Color(0xFF424242); 
+  static const Color textLight = Color(0xFF616161);     
+  static const Color textFaded = Color(0xFF757575);     
+
+  // --- UI ---
+  static const Color divider = Color(0xFFBDBDBD);     // Más oscuro para que se vea
+  static const Color border = Color(0xFF9E9E9E);      
+  static const Color fieldFill = Color(0xFFE3E6E8);
 }

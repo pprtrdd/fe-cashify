@@ -1,5 +1,6 @@
 import 'package:cashify/core/auth/auth_service.dart';
 import 'package:cashify/core/theme/app_colors.dart';
+import 'package:cashify/features/shared/helpers/ui_helpers.dart';
 import 'package:flutter/material.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -17,18 +18,10 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       await AuthService().signInWithGoogle();
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Error al iniciar sesión: $e"),
-            backgroundColor: AppColors.danger,
-          ),
-        );
-      }
+      if (!mounted) return;
+      context.showErrorSnackBar("Error al iniciar sesión: $e");
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      setState(() => _isLoading = false);
     }
   }
 
@@ -42,10 +35,7 @@ class _LoginScreenState extends State<LoginScreen> {
           children: [
             const _AppLogo(),
             const SizedBox(height: 40),
-            _LoginButton(
-              isLoading: _isLoading,
-              onPressed: _handleLogin,
-            ),
+            _LoginButton(isLoading: _isLoading, onPressed: _handleLogin),
           ],
         ),
       ),
@@ -60,11 +50,7 @@ class _AppLogo extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: const [
-        Icon(
-          Icons.account_balance_wallet,
-          size: 80,
-          color: AppColors.primary,
-        ),
+        Icon(Icons.account_balance_wallet, size: 80, color: AppColors.primary),
         SizedBox(height: 20),
         Text(
           "Cashify",

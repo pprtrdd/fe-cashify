@@ -2,7 +2,6 @@ import 'package:cashify/features/transaction/data/models/category_model.dart';
 import 'package:cashify/features/transaction/domain/entities/category_entity.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 
 class CategoryRepository {
   final FirebaseFirestore _firestore;
@@ -23,14 +22,16 @@ class CategoryRepository {
       if (ref == null) throw Exception('ref is null');
       final snapshot = await ref.orderBy('name').get();
 
-      return snapshot.docs.map((doc) {
-        return CategoryModel.fromFirestore(
-          doc.data() as Map<String, dynamic>,
-          doc.id,
-        );
-      }).toList();
+      return snapshot.docs
+          .map((doc) {
+            return CategoryModel.fromFirestore(
+              doc.data() as Map<String, dynamic>,
+              doc.id,
+            );
+          })
+          .cast<CategoryEntity>()
+          .toList();
     } catch (e) {
-      debugPrint("Error fetching categories: $e");
       rethrow;
     }
   }

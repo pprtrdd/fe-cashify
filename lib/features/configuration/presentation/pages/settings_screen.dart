@@ -1,6 +1,7 @@
 import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/features/configuration/domain/entities/user_settings_entity.dart';
 import 'package:cashify/features/configuration/presentation/providers/settings_provider.dart';
+import 'package:cashify/features/shared/helpers/ui_helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -96,7 +97,11 @@ class _SettingsFormState extends State<_SettingsForm> {
         children: [
           const Text(
             "Tipo de Período",
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              color: AppColors.textPrimary,
+            ),
           ),
           const SizedBox(height: 16),
           _buildPeriodToggle(),
@@ -104,23 +109,25 @@ class _SettingsFormState extends State<_SettingsForm> {
           if (_billingPeriodType == 'custom_range') ...[
             const Text(
               "Rango de Fechas",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+                color: AppColors.textPrimary,
+              ),
             ),
             const SizedBox(height: 12),
             Row(
               children: [
-                Expanded(
-                  child: _buildDayInput("Inicio", _startDayController),
-                ),
+                Expanded(child: _buildDayInput("Inicio", _startDayController)),
                 const SizedBox(width: 12),
                 Expanded(child: _buildDayInput("Fin", _endDayController)),
               ],
             ),
             _buildPeriodPreview(),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               "Ejemplo: Si tu tarjeta corta el 24, inicia el 24 y termina el 23.",
-              style: TextStyle(fontSize: 11, color: Colors.grey),
+              style: TextStyle(fontSize: 11, color: AppColors.textFaded),
             ),
           ] else ...[
             Text(
@@ -157,7 +164,7 @@ class _SettingsFormState extends State<_SettingsForm> {
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.primary : Colors.transparent,
+            color: isSelected ? AppColors.primary : AppColors.transparent,
             borderRadius: BorderRadius.circular(10),
           ),
           child: Text(
@@ -166,7 +173,7 @@ class _SettingsFormState extends State<_SettingsForm> {
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.bold,
-              color: isSelected ? Colors.white : AppColors.textLight,
+              color: isSelected ? AppColors.textOnPrimary : AppColors.textLight,
             ),
           ),
         ),
@@ -193,10 +200,14 @@ class _SettingsFormState extends State<_SettingsForm> {
           }
         });
       },
-      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+      style: const TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.bold,
+        color: AppColors.textPrimary,
+      ),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: const TextStyle(fontSize: 12),
+        labelStyle: TextStyle(fontSize: 12, color: AppColors.textLight),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 12,
@@ -218,11 +229,13 @@ class _SettingsFormState extends State<_SettingsForm> {
 
     if (_billingPeriodType == 'custom_range') {
       if (start < 1 || start > 31 || end < 1 || end > 31) {
-        _showError("Los días deben estar entre 1 y 31");
+        context.showErrorSnackBar("Los días deben estar entre 1 y 31");
         return;
       }
       if (start == end) {
-        _showError("El día de inicio y fin no pueden ser iguales");
+        context.showErrorSnackBar(
+          "El día de inicio y fin no pueden ser iguales",
+        );
         return;
       }
     }
@@ -235,13 +248,11 @@ class _SettingsFormState extends State<_SettingsForm> {
 
     try {
       await context.read<SettingsProvider>().updateSettings(newSettings);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Configuración actualizada")),
-        );
-      }
+      if (!mounted) return;
+      context.showSuccessSnackBar("Configuración actualizada");
     } catch (e) {
-      _showError("Error al guardar: $e");
+      if (!mounted) return;
+      context.showErrorSnackBar("Error al guardar: $e");
     }
   }
 
@@ -252,7 +263,10 @@ class _SettingsFormState extends State<_SettingsForm> {
     final endDay = int.tryParse(_endDayController.text) ?? 31;
 
     if (startDay < 1 || startDay > 31 || endDay < 1 || endDay > 31) {
-      return const _PreviewBox(text: "Días inválidos", color: Colors.orange);
+      return const _PreviewBox(
+        text: "Días inválidos",
+        color: AppColors.warning,
+      );
     }
 
     final now = DateTime.now();
@@ -287,12 +301,6 @@ class _SettingsFormState extends State<_SettingsForm> {
       'Dic',
     ];
     return months[(month - 1) % 12];
-  }
-
-  void _showError(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), backgroundColor: Colors.redAccent),
-    );
   }
 }
 
@@ -376,7 +384,7 @@ class _SaveButton extends StatelessWidget {
       child: const Text(
         "GUARDAR CAMBIOS",
         style: TextStyle(
-          color: Colors.white,
+          color: AppColors.textOnPrimary,
           fontWeight: FontWeight.bold,
           letterSpacing: 1,
         ),

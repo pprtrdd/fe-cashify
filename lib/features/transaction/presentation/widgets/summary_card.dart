@@ -12,40 +12,50 @@ class SummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final bool isNeg = total < 0;
     final Color baseColor = isNeg ? AppColors.expense : AppColors.income;
+    const Color contentColor = AppColors.textOnPrimary;
 
     return Card(
-      elevation: 4,
-      shadowColor: baseColor.withValues(alpha: 0.3),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Container(
+        width: double.infinity,
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [baseColor, baseColor.withValues(alpha: 0.7)],
+            colors: [baseColor, baseColor.withValues(alpha: 0.8)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
-          borderRadius: BorderRadius.circular(15),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: baseColor.withValues(alpha: 0.25),
+              blurRadius: 15,
+              offset: const Offset(0, 8),
+            ),
+          ],
         ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              title,
-              style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
+              title.toUpperCase(),
+              style: TextStyle(
+                color: contentColor.withValues(alpha: 0.7),
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.2,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             FittedBox(
               fit: BoxFit.scaleDown,
               child: Text(
-                "${isNeg ? '- ' : '+ '}${Formatters.currencyWithSymbol(total.abs())}",
+                "${isNeg ? '-' : '+'} ${Formatters.currencyWithSymbol(total.abs())}",
                 style: const TextStyle(
-                  color: AppColors.textOnPrimary,
-                  fontSize: 36,
-                  fontWeight: FontWeight.bold,
+                  color: contentColor,
+                  fontSize: 32,
+                  fontWeight: FontWeight.w900,
                 ),
               ),
             ),

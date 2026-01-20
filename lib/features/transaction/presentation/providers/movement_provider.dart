@@ -1,4 +1,4 @@
-import 'package:cashify/core/utils/billing_utils.dart';
+import 'package:cashify/core/utils/billing_period_utils.dart';
 import 'package:cashify/features/transaction/domain/entities/category_entity.dart';
 import 'package:cashify/features/transaction/domain/entities/movement_entity.dart';
 import 'package:cashify/features/transaction/domain/entities/payment_method_entity.dart';
@@ -83,7 +83,7 @@ class MovementProvider extends ChangeNotifier {
       if (cat == null) continue;
 
       final amount = mov.totalAmount;
-      final doubleAmount = amount.toDouble();
+      final double doubleAmount = amount.toDouble();
 
       if (cat.isExpense) {
         _totalExpenses += doubleAmount;
@@ -91,7 +91,7 @@ class MovementProvider extends ChangeNotifier {
         _totalIncomes += doubleAmount;
       }
 
-      final relativeValue = cat.isExpense ? -amount : amount;
+      final int relativeValue = cat.isExpense ? -amount : amount;
       _realTotal += relativeValue;
 
       if (cat.isExtra) {
@@ -125,6 +125,8 @@ class MovementProvider extends ChangeNotifier {
 
     _lastLoadedBillingPeriodId = billingPeriodId;
     _isLoading = true;
+    _movements = [];
+    _resetTotals();
     notifyListeners();
 
     try {
@@ -141,9 +143,7 @@ class MovementProvider extends ChangeNotifier {
       _rebuildCategoryCache();
       _calculateDashboardData();
     } catch (e) {
-      debugPrint(
-        "Error al cargar datos del periodo de facturación $billingPeriodId: $e",
-      );
+      rethrow;
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -173,7 +173,10 @@ class MovementProvider extends ChangeNotifier {
             2,
           );
 
-          final nextPeriodId = BillingUtils.generateId(nextDate, startDay);
+          final nextPeriodId = BillingPeriodUtils.generateId(
+            nextDate,
+            startDay,
+          );
 
           movementsToSave.add(
             movement.copyWith(
@@ -193,7 +196,6 @@ class MovementProvider extends ChangeNotifier {
       onPeriodsCreated();
       await _fetchMovementsOnly(currentViewId);
     } catch (e) {
-      debugPrint("Error al crear cuotas: $e");
       rethrow;
     } finally {
       _isLoading = false;
@@ -214,7 +216,6 @@ class MovementProvider extends ChangeNotifier {
         _calculateDashboardData();
       }
     } catch (e) {
-      debugPrint("Error al actualizar movimiento: $e");
       rethrow;
     } finally {
       _isLoading = false;
@@ -236,7 +237,7 @@ class MovementProvider extends ChangeNotifier {
         await _fetchMovementsOnly(_lastLoadedBillingPeriodId!);
       }
     } catch (e) {
-      debugPrint("Error updateMovementGroup: $e");
+      rethrow;
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -252,7 +253,6 @@ class MovementProvider extends ChangeNotifier {
       _movements.removeWhere((m) => m.id == movement.id);
       _calculateDashboardData();
     } catch (e) {
-      debugPrint("Error al eliminar movimiento: $e");
       rethrow;
     } finally {
       _isLoading = false;
@@ -276,7 +276,6 @@ class MovementProvider extends ChangeNotifier {
 
       await _fetchMovementsOnly(movement.billingPeriodId);
     } catch (e) {
-      debugPrint("Error al eliminar grupo de movimientos: $e");
       rethrow;
     } finally {
       _isLoading = false;
@@ -301,7 +300,6 @@ class MovementProvider extends ChangeNotifier {
       if (_lastLoadedBillingPeriodId != null) {
         await loadDataByBillingPeriod(_lastLoadedBillingPeriodId!);
       }
-      debugPrint("Error al sincronizar estado: $e");
     }
   }
 
@@ -327,13 +325,15 @@ class MovementProvider extends ChangeNotifier {
 
       if (index != -1) {
         _movements[index] = updatedMovement;
+        _movements = List.from(_movements);
+
         _calculateDashboardData();
       }
     } catch (e) {
-      debugPrint("Error al completar movimiento: $e");
       if (_lastLoadedBillingPeriodId != null) {
         await loadDataByBillingPeriod(_lastLoadedBillingPeriodId!);
       }
+      rethrow;
     } finally {
       _isLoading = false;
       notifyListeners();
