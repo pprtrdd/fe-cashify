@@ -1,4 +1,5 @@
 import 'package:cashify/core/theme/app_colors.dart';
+import 'package:cashify/core/utils/billing_period_utils.dart';
 import 'package:cashify/features/configuration/presentation/providers/settings_provider.dart';
 import 'package:cashify/features/shared/helpers/ui_helpers.dart';
 import 'package:cashify/features/transaction/domain/entities/movement_entity.dart';
@@ -41,9 +42,9 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final settingsProv = context.read<SettingsProvider>();
-      final periodProv = context.read<BillingPeriodProvider>();
-      final currentId = periodProv.getCurrentBillingPeriodId(
-        settingsProv.settings,
+      final currentId = BillingPeriodUtils.generateId(
+        DateTime.now(),
+        settingsProv.settings.startDay,
       );
       context.read<MovementProvider>().loadDataByBillingPeriod(currentId);
     });
@@ -60,7 +61,10 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
     final periodProv = context.read<BillingPeriodProvider>();
     final settingsProv = context.read<SettingsProvider>();
 
-    final id = periodProv.getIdFromDate(date, settingsProv.settings.startDay);
+    final id = BillingPeriodUtils.generateId(
+      date,
+      settingsProv.settings.startDay,
+    );
     _billingPeriodController.text = periodProv.formatId(id);
   }
 
@@ -304,7 +308,10 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
       try {
         final currentViewId =
             periodProv.selectedPeriodId ??
-            periodProv.getCurrentBillingPeriodId(settingsProv.settings);
+            BillingPeriodUtils.generateId(
+              DateTime.now(),
+              settingsProv.settings.startDay,
+            );
 
         await movementProv.createMovement(
           movement,
@@ -336,7 +343,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
     BillingPeriodProvider periodProv,
     SettingsProvider settingsProv,
   ) {
-    final String calculatedId = periodProv.getIdFromDate(
+    final String calculatedId = BillingPeriodUtils.generateId(
       _selectedDate,
       settingsProv.settings.startDay,
     );

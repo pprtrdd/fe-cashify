@@ -1,4 +1,5 @@
 import 'package:cashify/core/theme/app_colors.dart';
+import 'package:cashify/core/utils/billing_period_utils.dart';
 import 'package:cashify/core/utils/formatters.dart';
 import 'package:cashify/features/configuration/presentation/providers/settings_provider.dart';
 import 'package:cashify/features/shared/helpers/ui_helpers.dart';
@@ -28,7 +29,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final periodProv = context.watch<BillingPeriodProvider>();
     final targetPeriod =
         periodProv.selectedPeriodId ??
-        periodProv.getCurrentBillingPeriodId(settingsProv.settings);
+        BillingPeriodUtils.generateId(
+          DateTime.now(),
+          settingsProv.settings.startDay,
+        );
 
     if (_lastPeriodLoaded != targetPeriod) {
       _lastPeriodLoaded = targetPeriod;
@@ -54,7 +58,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     final billingPeriodId =
         periodProv.selectedPeriodId ??
-        periodProv.getCurrentBillingPeriodId(settingsProv.settings);
+        BillingPeriodUtils.generateId(
+          DateTime.now(),
+          settingsProv.settings.startDay,
+        );
 
     await movementProv.loadDataByBillingPeriod(billingPeriodId);
   }
@@ -151,7 +158,10 @@ class _CurrentPeriodLabel extends StatelessWidget {
 
     final activeId =
         periodProv.selectedPeriodId ??
-        periodProv.getCurrentBillingPeriodId(settingsProv.settings);
+        BillingPeriodUtils.generateId(
+          DateTime.now(),
+          settingsProv.settings.startDay,
+        );
 
     final range = periodProv.getRangeFromId(
       activeId,

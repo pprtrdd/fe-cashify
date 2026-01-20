@@ -1,4 +1,4 @@
-import 'package:cashify/core/utils/billing_utils.dart';
+import 'package:cashify/core/utils/billing_period_utils.dart';
 import 'package:cashify/features/transaction/domain/entities/category_entity.dart';
 import 'package:cashify/features/transaction/domain/entities/movement_entity.dart';
 import 'package:cashify/features/transaction/domain/entities/payment_method_entity.dart';
@@ -173,7 +173,10 @@ class MovementProvider extends ChangeNotifier {
             2,
           );
 
-          final nextPeriodId = BillingUtils.generateId(nextDate, startDay);
+          final nextPeriodId = BillingPeriodUtils.generateId(
+            nextDate,
+            startDay,
+          );
 
           movementsToSave.add(
             movement.copyWith(

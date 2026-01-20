@@ -1,4 +1,4 @@
-class BillingUtils {
+class BillingPeriodUtils {
   static String generateId(DateTime date, int startDay) {
     if (date.day >= startDay && startDay > 1) {
       final nextMonth = DateTime(date.year, date.month + 1);

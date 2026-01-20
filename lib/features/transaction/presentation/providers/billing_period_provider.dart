@@ -1,4 +1,3 @@
-import 'package:cashify/features/configuration/domain/entities/user_settings_entity.dart';
 import 'package:cashify/features/transaction/domain/usecases/billing_period_usecases.dart';
 import 'package:flutter/material.dart';
 
@@ -15,15 +14,6 @@ class BillingPeriodProvider extends ChangeNotifier {
   String? get selectedPeriodId => _selectedPeriodId;
   bool get isLoading => _isLoading;
 
-  String getCurrentBillingPeriodId(UserSettingsEntity settings) {
-    final now = DateTime.now();
-    if (now.day >= settings.startDay && settings.startDay > 1) {
-      final nextMonthDate = DateTime(now.year, now.month + 1);
-      return _getBillingPeriodIdFromMonthYear(nextMonthDate);
-    }
-    return _getBillingPeriodIdFromMonthYear(now);
-  }
-
   DateTimeRange getRangeFromId(String periodId, int startDay) {
     final parts = periodId.split('_');
     final year = int.parse(parts[0]);
@@ -33,10 +23,6 @@ class BillingPeriodProvider extends ChangeNotifier {
     final start = DateTime(year, month - 1, startDay);
 
     return DateTimeRange(start: start, end: end);
-  }
-
-  String _getBillingPeriodIdFromMonthYear(DateTime date) {
-    return "${date.year}_${date.month}";
   }
 
   String formatId(String id) {
@@ -82,13 +68,5 @@ class BillingPeriodProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
-  }
-
-  String getIdFromDate(DateTime date, int startDay) {
-    if (date.day >= startDay && startDay > 1) {
-      final nextMonthDate = DateTime(date.year, date.month + 1);
-      return _getBillingPeriodIdFromMonthYear(nextMonthDate);
-    }
-    return _getBillingPeriodIdFromMonthYear(date);
   }
 }

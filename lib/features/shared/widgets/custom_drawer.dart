@@ -1,5 +1,6 @@
 import 'package:cashify/core/auth/auth_service.dart';
 import 'package:cashify/core/theme/app_colors.dart';
+import 'package:cashify/core/utils/billing_period_utils.dart';
 import 'package:cashify/features/configuration/presentation/pages/settings_screen.dart';
 import 'package:cashify/features/configuration/presentation/providers/settings_provider.dart';
 import 'package:cashify/features/transaction/presentation/pages/movement_form_screen.dart';
@@ -89,8 +90,9 @@ class _UserHeader extends StatelessWidget {
     final periodProv = context.watch<BillingPeriodProvider>();
     final settingsProv = context.watch<SettingsProvider>();
 
-    final String realCurrentId = periodProv.getCurrentBillingPeriodId(
-      settingsProv.settings,
+    final String realCurrentId = BillingPeriodUtils.generateId(
+      DateTime.now(),
+      settingsProv.settings.startDay,
     );
     final realRange = periodProv.getRangeFromId(
       realCurrentId,
@@ -107,12 +109,7 @@ class _UserHeader extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.primary,
         gradient: LinearGradient(
-          colors: [
-            AppColors.primary,
-            AppColors.primary.withValues(
-              alpha: 0.8,
-            ),
-          ],
+          colors: [AppColors.primary, AppColors.primary.withValues(alpha: 0.8)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -204,8 +201,9 @@ class _PeriodDropdown extends StatelessWidget {
     final periodProv = context.watch<BillingPeriodProvider>();
     final settingsProv = context.watch<SettingsProvider>();
 
-    final String realCurrentId = periodProv.getCurrentBillingPeriodId(
-      settingsProv.settings,
+    final String realCurrentId = BillingPeriodUtils.generateId(
+      DateTime.now(),
+      settingsProv.settings.startDay,
     );
     final activeViewId = periodProv.selectedPeriodId ?? realCurrentId;
 
