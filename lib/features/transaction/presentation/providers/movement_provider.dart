@@ -19,7 +19,6 @@ class MovementProvider extends ChangeNotifier {
   });
 
   bool _isLoading = false;
-  bool get isLoading => _isLoading;
 
   List<CategoryEntity> _categories = [];
   List<MovementEntity> _movements = [];
@@ -28,9 +27,6 @@ class MovementProvider extends ChangeNotifier {
   Set<String> _incomeCategoryIds = {};
 
   String? _lastLoadedBillingPeriodId;
-  List<CategoryEntity> get categories => _categories;
-  List<MovementEntity> get movements => _movements;
-  List<PaymentMethodEntity> get paymentMethods => _paymentMethods;
 
   double _realTotal = 0;
   double _plannedTotal = 0;
@@ -41,17 +37,64 @@ class MovementProvider extends ChangeNotifier {
   Map<String, int> _plannedGrouped = {};
   Map<String, int> _extraGrouped = {};
 
+  String _searchQuery = "";
+  int _currentPage = 1;
+  int _pageSize = 20;
+
+  String? _filterCategoryId;
+  String? _filterPaymentMethodId;
+
+  bool get isLoading => _isLoading;
+
+  List<CategoryEntity> get categories => _categories;
+  List<MovementEntity> get movements => _movements;
+  List<PaymentMethodEntity> get paymentMethods => _paymentMethods;
+
   double get realTotal => _realTotal;
   double get totalBalance => _realTotal;
-  double get totalIncomes => _totalIncomes;
-  double get totalExpenses => _totalExpenses;
   double get plannedTotal => _plannedTotal;
   double get totalExtra => _totalExtra;
+  double get totalIncomes => _totalIncomes;
+  double get totalExpenses => _totalExpenses;
+
   Map<String, int> get plannedGrouped => _plannedGrouped;
   Map<String, int> get extraGrouped => _extraGrouped;
 
+  String get searchQuery => _searchQuery;
+  int get movementsPerPage => _pageSize;
+
   bool get hasExtraCategories => _categories.any((c) => c.isExtra);
   Set<String> get incomeCategoryIds => _incomeCategoryIds;
+
+  List<MovementEntity> get filteredMovements {
+    List<MovementEntity> list = _movements.where((m) {
+      final matchesSearch =
+          m.description.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          m.source.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          (m.notes?.toLowerCase() ?? "").contains(_searchQuery.toLowerCase());
+
+      final matchesCategory =
+          _filterCategoryId == null || m.categoryId == _filterCategoryId;
+      final matchesPayment =
+          _filterPaymentMethodId == null ||
+          m.paymentMethodId == _filterPaymentMethodId;
+
+      return matchesSearch && matchesCategory && matchesPayment;
+    }).toList();
+
+    list.sort((a, b) => b.id.compareTo(a.id));
+
+    return list;
+  }
+
+  List<MovementEntity> get pagedFilteredMovements {
+    final fullList = filteredMovements;
+    final end = _currentPage * _pageSize;
+
+    return fullList
+        .take(end > fullList.length ? fullList.length : end)
+        .toList();
+  }
 
   void _resetTotals() {
     _realTotal = 0;
@@ -338,5 +381,28 @@ class MovementProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  void setSearchQuery(String query) {
+    _searchQuery = query;
+    notifyListeners();
+  }
+
+  void setFilters({String? categoryId, String? paymentMethodId}) {
+    _filterCategoryId = categoryId;
+    _filterPaymentMethodId = paymentMethodId;
+    notifyListeners();
+  }
+
+  void clearFilters() {
+    _searchQuery = "";
+    _filterCategoryId = null;
+    _filterPaymentMethodId = null;
+    notifyListeners();
+  }
+
+  void loadNextPage() {
+    _currentPage++;
+    notifyListeners();
   }
 }
