@@ -4,6 +4,7 @@ import 'package:cashify/core/utils/billing_period_utils.dart';
 import 'package:cashify/features/configuration/presentation/pages/settings_screen.dart';
 import 'package:cashify/features/configuration/presentation/providers/settings_provider.dart';
 import 'package:cashify/features/transaction/presentation/pages/movement_form_screen.dart';
+import 'package:cashify/features/transaction/presentation/pages/movements_screen.dart';
 import 'package:cashify/features/transaction/presentation/pages/pending_movements_screen.dart';
 import 'package:cashify/features/transaction/presentation/providers/billing_period_provider.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
@@ -26,23 +27,7 @@ class CustomDrawer extends StatelessWidget {
           Expanded(
             child: ListView(
               padding: EdgeInsets.zero,
-              children: [
-                _DrawerItem(
-                  icon: Icons.add_circle_outline,
-                  label: "Nuevo Movimiento",
-                  iconColor: AppColors.primary,
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const MovementFormScreen(),
-                      ),
-                    );
-                  },
-                ),
-                const _PendingMovementsItem(),
-              ],
+              children: [const _MovementsItem(), const _PendingMovementsItem()],
             ),
           ),
           const Divider(color: AppColors.divider),
@@ -267,6 +252,30 @@ class _PeriodDropdown extends StatelessWidget {
           }
         },
       ),
+    );
+  }
+}
+
+class _MovementsItem extends StatelessWidget {
+  const _MovementsItem();
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<MovementProvider>(
+      builder: (context, provider, child) {
+        return _DrawerItem(
+          icon: Icons.history,
+          label: "Movimientos",
+          iconColor: AppColors.success,
+          onTap: () {
+            Navigator.pop(context);
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const MovementHistoryScreen()),
+            );
+          },
+        );
+      },
     );
   }
 }
