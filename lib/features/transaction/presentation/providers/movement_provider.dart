@@ -6,6 +6,7 @@ import 'package:cashify/features/transaction/domain/usecases/category_usecases.d
 import 'package:cashify/features/transaction/domain/usecases/movement_usecases.dart';
 import 'package:cashify/features/transaction/domain/usecases/payment_method_usecases.dart';
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 
 class MovementProvider extends ChangeNotifier {
   final MovementUseCase movementUseCase;
@@ -67,7 +68,7 @@ class MovementProvider extends ChangeNotifier {
   Set<String> get incomeCategoryIds => _incomeCategoryIds;
 
   List<MovementEntity> get filteredMovements {
-    List<MovementEntity> list = _movements.where((m) {
+    return _movements.where((m) {
       final matchesSearch =
           m.description.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           m.source.toLowerCase().contains(_searchQuery.toLowerCase()) ||
@@ -81,10 +82,6 @@ class MovementProvider extends ChangeNotifier {
 
       return matchesSearch && matchesCategory && matchesPayment;
     }).toList();
-
-    list.sort((a, b) => b.id.compareTo(a.id));
-
-    return list;
   }
 
   List<MovementEntity> get pagedFilteredMovements {
@@ -227,14 +224,16 @@ class MovementProvider extends ChangeNotifier {
       _isLoading = true;
       notifyListeners();
 
-      /* TODO: Move groupId setter to other layer */
-      final String groupId = DateTime.now().millisecondsSinceEpoch.toString();
-      List<MovementEntity> movementsToSave = [
-        movement.copyWith(groupId: groupId),
-      ];
+      final String groupId = const Uuid().v4();
+      final baseMovement = movement.copyWith(groupId: groupId);
+      List<MovementEntity> movementsToSave = [baseMovement];
 
-      if (movement.totalInstallments > 1 && movement.currentInstallment == 1) {
-        for (int i = 1; i < movement.totalInstallments; i++) {
+      if (movement.totalInstallments > 1 &&
+          movement.currentInstallment < movement.totalInstallments) {
+        final int totalGenerar =
+            movement.totalInstallments - movement.currentInstallment;
+
+        for (int i = 1; i <= totalGenerar; i++) {
           final nextDate = DateTime(
             movement.billingPeriodYear,
             movement.billingPeriodMonth + i,
@@ -247,10 +246,9 @@ class MovementProvider extends ChangeNotifier {
           );
 
           movementsToSave.add(
-            movement.copyWith(
+            baseMovement.copyWith(
               id: '',
-              groupId: groupId,
-              currentInstallment: i + 1,
+              currentInstallment: movement.currentInstallment + i,
               billingPeriodYear: nextDate.year,
               billingPeriodMonth: nextDate.month,
               billingPeriodId: nextPeriodId,
@@ -429,11 +427,9 @@ class MovementProvider extends ChangeNotifier {
   }
 
   MovementEntity prepareCopy(MovementEntity original) {
-    /* TODO: Add createdAt field as empty string */
     return original.copyWith(id: '', groupId: '');
   }
 
-  // Agregar a MovementProvider
   String getPaymentMethodName(String id) {
     return _paymentMethods
         .firstWhere(

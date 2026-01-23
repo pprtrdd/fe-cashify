@@ -23,6 +23,7 @@ class MovementFormScreen extends StatefulWidget {
 
 class _MovementFormScreenState extends State<MovementFormScreen> {
   final _formKey = GlobalKey<FormState>();
+  DateTime _createdAt = DateTime.now();
   DateTime _selectedDate = DateTime.now();
   String? _selectedCategory;
   String? _selectedPaymentMethod;
@@ -68,6 +69,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
       _billingPeriodController.text = widget.movement!.billingPeriodId;
       _notesController.text = (widget.movement!.notes ?? '');
       _isCompleted = widget.movement!.isCompleted;
+      _createdAt = widget.movement!.createdAt;
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -391,16 +393,18 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
       categoryId: _selectedCategory!,
       description: _descController.text,
       source: _sourceController.text,
-      quantity: int.tryParse(_qtyController.text) ?? 1,
-      amount: int.tryParse(_amountController.text) ?? 0,
-      currentInstallment: int.tryParse(_currentInstallmentController.text) ?? 1,
-      totalInstallments: int.tryParse(_totalInstallmentsController.text) ?? 1,
+      quantity: int.parse(_qtyController.text),
+      amount: int.parse(_amountController.text),
+      currentInstallment: int.parse(_currentInstallmentController.text),
+      totalInstallments: int.parse(_totalInstallmentsController.text),
       paymentMethodId: _selectedPaymentMethod!,
       billingPeriodYear: _selectedDate.year,
       billingPeriodMonth: _selectedDate.month,
       billingPeriodId: calculatedId,
       notes: _notesController.text.isNotEmpty ? _notesController.text : null,
       isCompleted: _isCompleted,
+      createdAt: isEditing ? _createdAt : DateTime.now(),
+      updatedAt: DateTime.now(),
     );
   }
 }

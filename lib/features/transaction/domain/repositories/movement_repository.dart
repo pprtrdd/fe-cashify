@@ -143,7 +143,9 @@ class MovementRepository {
     String billingPeriodId,
   ) async {
     try {
-      final snapshot = await _movementsRef(billingPeriodId).get();
+      final snapshot = await _movementsRef(
+        billingPeriodId,
+      ).orderBy('createdAt', descending: true).get();
 
       return snapshot.docs
           .map((doc) {
