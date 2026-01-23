@@ -1,6 +1,7 @@
 import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/core/utils/formatters.dart';
 import 'package:cashify/features/transaction/domain/entities/movement_entity.dart';
+import 'package:cashify/features/transaction/presentation/components/movement_dialogs.dart';
 import 'package:cashify/features/transaction/presentation/pages/movement_form_screen.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
 import 'package:flutter/material.dart';
@@ -238,99 +239,10 @@ class CompactMovementRow extends StatelessWidget {
   }
 
   void _onDelete(BuildContext context) {
-    _showDeleteConfirmation(context, movement);
-  }
-
-  /* TODO: refactor this fn from here and pending_movements_screen */
-  void _showDeleteConfirmation(BuildContext context, MovementEntity movement) {
-    final hasMoreInstallments = movement.totalInstallments > 1;
-
-    showDialog(
+    MovementDialogs.showDeleteConfirmation(
       context: context,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        backgroundColor: AppColors.surface,
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CircleAvatar(
-                radius: 28,
-                backgroundColor: AppColors.expense.withValues(alpha: 0.1),
-                child: Icon(
-                  hasMoreInstallments ? Icons.layers_clear : Icons.delete_sweep,
-                  color: AppColors.expense,
-                  size: 32,
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                hasMoreInstallments ? "Eliminar Cuotas" : "¿Eliminar registro?",
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                hasMoreInstallments
-                    ? "Este movimiento tiene cuotas. ¿Deseas eliminar solo esta o todas las restantes?"
-                    : "Estás a punto de borrar '${movement.description}'.",
-                textAlign: TextAlign.center,
-                style: TextStyle(color: AppColors.textLight, height: 1.4),
-              ),
-              const SizedBox(height: 32),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.expense,
-                      foregroundColor: AppColors.textOnPrimary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    onPressed: () async {
-                      Navigator.pop(context);
-                      await provider.deleteMovement(movement);
-                    },
-                    child: Text(
-                      hasMoreInstallments ? "Solo esta cuota" : "Eliminar",
-                    ),
-                  ),
-                  if (hasMoreInstallments) ...[
-                    const SizedBox(height: 8),
-                    OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.expense,
-                        side: const BorderSide(color: AppColors.expense),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      onPressed: () async {
-                        Navigator.pop(context);
-                        await provider.deleteMovementGroup(movement);
-                      },
-                      child: const Text("Todas las cuotas del grupo"),
-                    ),
-                  ],
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: Text(
-                      "Cancelar",
-                      style: TextStyle(color: AppColors.textFaded),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
+      movement: movement,
+      provider: provider,
     );
   }
 }
