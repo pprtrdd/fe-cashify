@@ -13,7 +13,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class MovementFormScreen extends StatefulWidget {
-  const MovementFormScreen({super.key});
+  final MovementEntity? movement;
+
+  const MovementFormScreen({super.key, this.movement});
 
   @override
   State<MovementFormScreen> createState() => _MovementFormScreenState();
@@ -25,7 +27,12 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
   String? _selectedCategory;
   String? _selectedPaymentMethod;
   bool _isCompleted = true;
+  bool isEditing = false;
+  bool isCopying = false;
 
+  final _idController = TextEditingController();
+  final _groupIdController = TextEditingController();
+  final _userIdController = TextEditingController();
   final _descController = TextEditingController();
   final _sourceController = TextEditingController();
   final _qtyController = TextEditingController();
@@ -39,6 +46,30 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
   void initState() {
     super.initState();
     _initializeDefaults();
+
+    if (widget.movement != null) {
+      isEditing = widget.movement!.id.isNotEmpty;
+      isCopying = widget.movement!.id.isEmpty;
+
+      _idController.text = isEditing ? widget.movement!.id : '';
+      _groupIdController.text = isEditing ? widget.movement!.groupId : '';
+      _userIdController.text = isEditing ? widget.movement!.userId : '';
+      _selectedCategory = widget.movement!.categoryId;
+      _descController.text = widget.movement!.description;
+      _sourceController.text = widget.movement!.source;
+      _qtyController.text = widget.movement!.quantity.toString();
+      _amountController.text = widget.movement!.amount.toString();
+      _currentInstallmentController.text = widget.movement!.currentInstallment
+          .toString();
+      _totalInstallmentsController.text = widget.movement!.totalInstallments
+          .toString();
+      _selectedPaymentMethod = widget.movement!.paymentMethodId;
+      /* TODO: Handle billing period value on screen */
+      _billingPeriodController.text = widget.movement!.billingPeriodId;
+      /* TODO: Handle null value */
+      _notesController.text = (widget.movement!.notes ?? '');
+      _isCompleted = widget.movement!.isCompleted;
+    }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final settingsProv = context.read<SettingsProvider>();
@@ -302,7 +333,6 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
       final settingsProv = context.read<SettingsProvider>();
       final periodProv = context.read<BillingPeriodProvider>();
       final movementProv = context.read<MovementProvider>();
-
       final movement = _createMovementEntity(periodProv, settingsProv);
 
       try {
@@ -313,24 +343,31 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
               settingsProv.settings.startDay,
             );
 
-        await movementProv.createMovement(
-          movement,
-          currentViewId,
-          settingsProv.settings.startDay,
-          () async {
-            try {
-              await periodProv.loadPeriods();
-            } catch (e) {
-              if (!context.mounted) return;
-              context.showErrorSnackBar("Error al cargar periodos: $e");
-            }
-          },
-        );
+        if (isEditing) {
+          await movementProv.updateMovement(movement);
+          if (context.mounted) {
+            context.showSuccessSnackBar("Movimiento actualizado");
+          }
+        } else {
+          await movementProv.createMovement(
+            movement,
+            currentViewId,
+            settingsProv.settings.startDay,
+            () async {
+              try {
+                await periodProv.loadPeriods();
+              } catch (e) {
+                if (!context.mounted) return;
+                context.showErrorSnackBar("Error al cargar periodos: $e");
+              }
+            },
+          );
+          if (context.mounted) {
+            context.showSuccessSnackBar("Movimiento guardado correctamente");
+          }
+        }
 
         if (!context.mounted) return;
-
-        context.showSuccessSnackBar("Movimiento guardado correctamente");
-
         Navigator.pop(context);
       } catch (e) {
         if (!context.mounted) return;
@@ -349,9 +386,9 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
     );
 
     return MovementEntity(
-      id: '',
-      userId: '',
-      groupId: '',
+      id: _idController.text,
+      userId: _userIdController.text,
+      groupId: _groupIdController.text,
       categoryId: _selectedCategory!,
       description: _descController.text,
       source: _sourceController.text,

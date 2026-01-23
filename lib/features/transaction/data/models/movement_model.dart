@@ -59,6 +59,7 @@ class MovementModel extends MovementEntity {
       'billingPeriodId': billingPeriodId,
       'notes': notes,
       'isCompleted': isCompleted,
+      /* TODO: Create updatedAt field */
       'createdAt': FieldValue.serverTimestamp(),
     };
   }

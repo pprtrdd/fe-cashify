@@ -1,8 +1,10 @@
 import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/core/utils/formatters.dart';
 import 'package:cashify/features/transaction/domain/entities/movement_entity.dart';
+import 'package:cashify/features/transaction/presentation/pages/movement_form_screen.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class CompactMovementRow extends StatelessWidget {
   final MovementEntity movement;
@@ -24,12 +26,7 @@ class CompactMovementRow extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-      padding: const EdgeInsets.fromLTRB(
-        12,
-        6,
-        4,
-        6,
-      ),
+      padding: const EdgeInsets.fromLTRB(12, 6, 4, 6),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(12),
@@ -173,13 +170,167 @@ class CompactMovementRow extends StatelessWidget {
   Widget _buildActionsMenu(BuildContext context) {
     return PopupMenuButton<String>(
       icon: Icon(Icons.more_vert, size: 18, color: AppColors.textFaded),
-      padding: EdgeInsets.zero,
-      constraints: const BoxConstraints(minWidth: 150),
+      onSelected: (value) async {
+        switch (value) {
+          case 'edit':
+            _onEdit(context);
+            break;
+          case 'copy':
+            _onCopy(context);
+            break;
+          case 'delete':
+            _onDelete(context);
+            break;
+        }
+      },
       itemBuilder: (context) => [
-        const PopupMenuItem(value: 'edit', child: Text('Editar')),
-        const PopupMenuItem(value: 'copy', child: Text('Copiar')),
-        const PopupMenuItem(value: 'delete', child: Text('Eliminar')),
+        const PopupMenuItem(
+          value: 'edit',
+          child: ListTile(
+            leading: Icon(Icons.edit_outlined, size: 20),
+            title: Text('Editar'),
+            dense: true,
+          ),
+        ),
+        const PopupMenuItem(
+          value: 'copy',
+          child: ListTile(
+            leading: Icon(Icons.copy_outlined, size: 20),
+            title: Text('Copiar'),
+            dense: true,
+          ),
+        ),
+        const PopupMenuItem(
+          value: 'delete',
+          child: ListTile(
+            leading: Icon(
+              Icons.delete_outline,
+              color: AppColors.expense,
+              size: 20,
+            ),
+            title: Text('Eliminar'),
+            dense: true,
+          ),
+        ),
       ],
+    );
+  }
+
+  void _onEdit(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MovementFormScreen(movement: movement),
+      ),
+    );
+  }
+
+  void _onCopy(BuildContext context) {
+    final provider = context.read<MovementProvider>();
+    final newMovement = provider.prepareCopy(movement);
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MovementFormScreen(movement: newMovement),
+      ),
+    );
+  }
+
+  void _onDelete(BuildContext context) {
+    _showDeleteConfirmation(context, movement);
+  }
+
+  /* TODO: refactor this fn from here and pending_movements_screen */
+  void _showDeleteConfirmation(BuildContext context, MovementEntity movement) {
+    final hasMoreInstallments = movement.totalInstallments > 1;
+
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        backgroundColor: AppColors.surface,
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircleAvatar(
+                radius: 28,
+                backgroundColor: AppColors.expense.withValues(alpha: 0.1),
+                child: Icon(
+                  hasMoreInstallments ? Icons.layers_clear : Icons.delete_sweep,
+                  color: AppColors.expense,
+                  size: 32,
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                hasMoreInstallments ? "Eliminar Cuotas" : "¿Eliminar registro?",
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                hasMoreInstallments
+                    ? "Este movimiento tiene cuotas. ¿Deseas eliminar solo esta o todas las restantes?"
+                    : "Estás a punto de borrar '${movement.description}'.",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: AppColors.textLight, height: 1.4),
+              ),
+              const SizedBox(height: 32),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.expense,
+                      foregroundColor: AppColors.textOnPrimary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: () async {
+                      Navigator.pop(context);
+                      await provider.deleteMovement(movement);
+                    },
+                    child: Text(
+                      hasMoreInstallments ? "Solo esta cuota" : "Eliminar",
+                    ),
+                  ),
+                  if (hasMoreInstallments) ...[
+                    const SizedBox(height: 8),
+                    OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.expense,
+                        side: const BorderSide(color: AppColors.expense),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: () async {
+                        Navigator.pop(context);
+                        await provider.deleteMovementGroup(movement);
+                      },
+                      child: const Text("Todas las cuotas del grupo"),
+                    ),
+                  ],
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(
+                      "Cancelar",
+                      style: TextStyle(color: AppColors.textFaded),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

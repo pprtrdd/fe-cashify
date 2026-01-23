@@ -39,7 +39,7 @@ class MovementProvider extends ChangeNotifier {
 
   String _searchQuery = "";
   int _currentPage = 1;
-  int _pageSize = 20;
+  final int _pageSize = 20;
 
   String? _filterCategoryId;
   String? _filterPaymentMethodId;
@@ -203,6 +203,7 @@ class MovementProvider extends ChangeNotifier {
       _isLoading = true;
       notifyListeners();
 
+      /* TODO: Move groupId setter to other layer */
       final String groupId = DateTime.now().millisecondsSinceEpoch.toString();
       List<MovementEntity> movementsToSave = [
         movement.copyWith(groupId: groupId),
@@ -402,7 +403,14 @@ class MovementProvider extends ChangeNotifier {
   }
 
   void loadNextPage() {
-    _currentPage++;
-    notifyListeners();
+    if (_currentPage * _pageSize < filteredMovements.length) {
+      _currentPage++;
+      notifyListeners();
+    }
+  }
+
+  MovementEntity prepareCopy(MovementEntity original) {
+    /* TODO: Add createdAt field as empty string */
+    return original.copyWith(id: '', groupId: '');
   }
 }
