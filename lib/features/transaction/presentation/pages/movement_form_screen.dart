@@ -66,7 +66,6 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
       _selectedPaymentMethod = widget.movement!.paymentMethodId;
       /* TODO: Handle billing period value on screen */
       _billingPeriodController.text = widget.movement!.billingPeriodId;
-      /* TODO: Handle null value */
       _notesController.text = (widget.movement!.notes ?? '');
       _isCompleted = widget.movement!.isCompleted;
     }

@@ -37,7 +37,7 @@ class MovementModel extends MovementEntity {
       billingPeriodMonth: (json['billingPeriodMonth'] as num).toInt(),
       billingPeriodYear: (json['billingPeriodYear'] as num).toInt(),
       billingPeriodId: json['billingPeriodId'],
-      notes: json['notes'].toString(),
+      notes: json['notes']?.toString(),
       isCompleted: json['isCompleted'],
     );
   }

@@ -96,6 +96,30 @@ class MovementProvider extends ChangeNotifier {
         .toList();
   }
 
+  // --- AGREGAR ESTOS GETTERS ---
+  String? get filterCategoryId => _filterCategoryId;
+  String? get filterPaymentMethodId => _filterPaymentMethodId;
+
+  // --- AGREGAR ESTOS SETTERS (Para que funcionen los chips individuales) ---
+  void setCategoryId(String? id) {
+    _filterCategoryId = id;
+    _currentPage = 1; // Reiniciamos el paginado al filtrar
+    notifyListeners();
+  }
+
+  void setPaymentMethodId(String? id) {
+    _filterPaymentMethodId = id;
+    _currentPage = 1; // Reiniciamos el paginado al filtrar
+    notifyListeners();
+  }
+
+  // Modifica también tu setSearchQuery para que reinicie la página
+  void setSearchQuery(String query) {
+    _searchQuery = query;
+    _currentPage = 1; // Reiniciamos el paginado al buscar
+    notifyListeners();
+  }
+
   void _resetTotals() {
     _realTotal = 0;
     _plannedTotal = 0;
@@ -384,11 +408,6 @@ class MovementProvider extends ChangeNotifier {
     }
   }
 
-  void setSearchQuery(String query) {
-    _searchQuery = query;
-    notifyListeners();
-  }
-
   void setFilters({String? categoryId, String? paymentMethodId}) {
     _filterCategoryId = categoryId;
     _filterPaymentMethodId = paymentMethodId;
@@ -412,5 +431,15 @@ class MovementProvider extends ChangeNotifier {
   MovementEntity prepareCopy(MovementEntity original) {
     /* TODO: Add createdAt field as empty string */
     return original.copyWith(id: '', groupId: '');
+  }
+
+  // Agregar a MovementProvider
+  String getPaymentMethodName(String id) {
+    return _paymentMethods
+        .firstWhere(
+          (pm) => pm.id == id,
+          orElse: () => PaymentMethodEntity(id: '', name: 'Desconocido'),
+        )
+        .name;
   }
 }
