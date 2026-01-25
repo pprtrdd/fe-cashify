@@ -1,7 +1,7 @@
 name: cashify
-description: "A new Flutter project."
+description: "Para registrar tus movimientos financieros en pocos pasos."
 publish_to: 'none'
-version: 0.1.0
+version: 1.0.0
 
 environment:
   sdk: ^3.10.4
