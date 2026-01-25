@@ -1,5 +1,5 @@
-import 'package:cashify/features/configuration/data/models/user_settings_model.dart';
-import 'package:cashify/features/configuration/domain/entities/user_settings_entity.dart';
+import 'package:cashify/features/settings/data/models/user_settings_model.dart';
+import 'package:cashify/features/settings/domain/entities/user_settings_entity.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 

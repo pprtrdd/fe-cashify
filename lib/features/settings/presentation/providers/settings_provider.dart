@@ -1,5 +1,5 @@
-import 'package:cashify/features/configuration/domain/entities/user_settings_entity.dart';
-import 'package:cashify/features/configuration/domain/usecases/settings_usecases.dart';
+import 'package:cashify/features/settings/domain/entities/user_settings_entity.dart';
+import 'package:cashify/features/settings/domain/usecases/settings_usecases.dart';
 import 'package:flutter/foundation.dart';
 
 class SettingsProvider extends ChangeNotifier {

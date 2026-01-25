@@ -1,5 +1,5 @@
-import 'package:cashify/features/configuration/domain/entities/user_settings_entity.dart';
-import 'package:cashify/features/configuration/domain/repositories/settings_repository.dart';
+import 'package:cashify/features/settings/domain/entities/user_settings_entity.dart';
+import 'package:cashify/features/settings/domain/repositories/settings_repository.dart';
 
 class SettingsUsecases {
   final SettingsRepository repository;

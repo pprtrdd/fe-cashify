@@ -1,6 +1,6 @@
 import 'package:cashify/core/auth/auth_service.dart';
 import 'package:cashify/core/theme/app_colors.dart';
-import 'package:cashify/features/shared/helpers/ui_helpers.dart';
+import 'package:cashify/features/shared/helpers/ui_helper.dart';
 import 'package:flutter/material.dart';
 
 class LoginScreen extends StatefulWidget {

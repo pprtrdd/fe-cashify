@@ -1,6 +1,6 @@
-import 'package:cashify/features/configuration/domain/repositories/settings_repository.dart';
-import 'package:cashify/features/configuration/domain/usecases/settings_usecases.dart';
-import 'package:cashify/features/configuration/presentation/providers/settings_provider.dart';
+import 'package:cashify/features/settings/domain/repositories/settings_repository.dart';
+import 'package:cashify/features/settings/domain/usecases/settings_usecases.dart';
+import 'package:cashify/features/settings/presentation/providers/settings_provider.dart';
 import 'package:cashify/features/transaction/domain/repositories/billing_period_repository.dart';
 import 'package:cashify/features/transaction/domain/repositories/category_repository.dart';
 import 'package:cashify/features/transaction/domain/repositories/movement_repository.dart';
