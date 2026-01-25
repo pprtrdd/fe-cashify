@@ -28,7 +28,6 @@ class _MovementHistoryScreenState extends State<MovementHistoryScreen> {
         title: const Text("Historial"),
         centerTitle: true,
         actions: [
-          // Botón para limpiar todos los filtros rápidamente
           Consumer<MovementProvider>(
             builder: (context, provider, child) {
               final hasFilters =
@@ -50,7 +49,7 @@ class _MovementHistoryScreenState extends State<MovementHistoryScreen> {
       body: Column(
         children: [
           _buildSearchBar(context),
-          _buildFilterBar(context), // Nueva barra de chips para filtros
+          _buildFilterBar(context),
           const Divider(height: 1),
           Expanded(
             child: Consumer<MovementProvider>(

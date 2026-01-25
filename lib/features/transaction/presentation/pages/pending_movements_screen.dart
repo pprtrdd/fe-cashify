@@ -161,8 +161,7 @@ class _CategoryGroupCard extends StatelessWidget {
               onDelete: () => MovementDialogs.showDeleteConfirmation(
                 context: context,
                 movement: movement,
-                provider:
-                    provider, // El MovementProvider que ya tienes disponible
+                provider: provider,
               ),
               onComplete: () => MovementDialogs.showCompleteConfirmation(
                 context: context,

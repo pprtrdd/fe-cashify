@@ -93,27 +93,24 @@ class MovementProvider extends ChangeNotifier {
         .toList();
   }
 
-  // --- AGREGAR ESTOS GETTERS ---
   String? get filterCategoryId => _filterCategoryId;
   String? get filterPaymentMethodId => _filterPaymentMethodId;
 
-  // --- AGREGAR ESTOS SETTERS (Para que funcionen los chips individuales) ---
   void setCategoryId(String? id) {
     _filterCategoryId = id;
-    _currentPage = 1; // Reiniciamos el paginado al filtrar
+    _currentPage = 1;
     notifyListeners();
   }
 
   void setPaymentMethodId(String? id) {
     _filterPaymentMethodId = id;
-    _currentPage = 1; // Reiniciamos el paginado al filtrar
+    _currentPage = 1;
     notifyListeners();
   }
 
-  // Modifica también tu setSearchQuery para que reinicie la página
   void setSearchQuery(String query) {
     _searchQuery = query;
-    _currentPage = 1; // Reiniciamos el paginado al buscar
+    _currentPage = 1;
     notifyListeners();
   }
 
