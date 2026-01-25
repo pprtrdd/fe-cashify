@@ -1,5 +1,5 @@
 # Miscellaneous
-.env
+/env
 *.class
 *.log
 *.pyc
@@ -12,6 +12,7 @@
 .svn/
 .swiftpm/
 migrate_working_dir/
+.firebase
 
 # IntelliJ related
 *.iml
