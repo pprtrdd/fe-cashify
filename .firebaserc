@@ -1,0 +1,19 @@
+{
+  "projects": {
+    "development": "cashify-dev-6c385",
+    "production": "cashify-1d873"
+  },
+  "targets": {
+    "cashify-1d873": {
+      "hosting": {
+        "development": [
+          "cashify-dev-6c385"
+        ],
+        "production": [
+          "cashify-1d873"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

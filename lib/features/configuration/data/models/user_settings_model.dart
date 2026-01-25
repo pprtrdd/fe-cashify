@@ -1,5 +1,4 @@
 import 'package:cashify/features/configuration/domain/entities/user_settings_entity.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class UserSettingsModel extends UserSettingsEntity {
   const UserSettingsModel({
@@ -25,7 +24,7 @@ class UserSettingsModel extends UserSettingsEntity {
         'startDay': startDay,
         'endDay': endDay,
       },
-      'updatedAt': FieldValue.serverTimestamp(),
+      'updatedAt': DateTime.now(),
     };
   }
 

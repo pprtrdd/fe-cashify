@@ -93,6 +93,7 @@ function exportFullSpreadsheetToFirestore() {
             billingPeriodId: tPeriodId,
             notes: row[7] ? row[7].toString() : null,
             createdAt: new Date(),
+            updatedAt: new Date(),
             groupId: groupId,
             isCompleted: isOriginal ? (Number(row[2]) !== 0) : false,
           };

@@ -3,7 +3,6 @@ import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/features/configuration/presentation/providers/settings_provider.dart';
 import 'package:cashify/features/transaction/presentation/providers/billing_period_provider.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
-import 'package:cashify/firebase_options.dart';
 import 'package:cashify/injection_container.dart' as di;
 import 'package:cashify/injection_container.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -11,11 +10,15 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+Future<void> startApp({
+  required FirebaseOptions firebaseOptions,
+  required String envFile,
+}) async {
+  if (!dotenv.isInitialized) {
+    await dotenv.load(fileName: envFile);
+  }
 
-  await dotenv.load(fileName: ".env");
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await Firebase.initializeApp(options: firebaseOptions);
   await di.init();
 
   runApp(

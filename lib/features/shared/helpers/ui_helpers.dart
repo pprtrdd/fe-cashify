@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 extension UIHelpers on BuildContext {
   void showErrorSnackBar(String message) {
-    ScaffoldMessenger.of(this).clearSnackBars(); // Limpia snacks previos
+    ScaffoldMessenger.of(this).clearSnackBars();
     ScaffoldMessenger.of(this).showSnackBar(
       SnackBar(
         content: Row(
@@ -24,8 +24,8 @@ extension UIHelpers on BuildContext {
             ),
           ],
         ),
-        backgroundColor: AppColors.danger, // Tu nuevo color de alto contraste
-        behavior: SnackBarBehavior.floating, // Se ve más moderno
+        backgroundColor: AppColors.danger,
+        behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         duration: const Duration(seconds: 4),
       ),
@@ -49,7 +49,7 @@ extension UIHelpers on BuildContext {
             ),
           ],
         ),
-        backgroundColor: AppColors.income, // Tu color azul de alto contraste
+        backgroundColor: AppColors.income,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),

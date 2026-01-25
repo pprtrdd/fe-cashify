@@ -6,6 +6,7 @@ import 'package:cashify/features/transaction/domain/usecases/category_usecases.d
 import 'package:cashify/features/transaction/domain/usecases/movement_usecases.dart';
 import 'package:cashify/features/transaction/domain/usecases/payment_method_usecases.dart';
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 
 class MovementProvider extends ChangeNotifier {
   final MovementUseCase movementUseCase;
@@ -19,7 +20,6 @@ class MovementProvider extends ChangeNotifier {
   });
 
   bool _isLoading = false;
-  bool get isLoading => _isLoading;
 
   List<CategoryEntity> _categories = [];
   List<MovementEntity> _movements = [];
@@ -28,9 +28,6 @@ class MovementProvider extends ChangeNotifier {
   Set<String> _incomeCategoryIds = {};
 
   String? _lastLoadedBillingPeriodId;
-  List<CategoryEntity> get categories => _categories;
-  List<MovementEntity> get movements => _movements;
-  List<PaymentMethodEntity> get paymentMethods => _paymentMethods;
 
   double _realTotal = 0;
   double _plannedTotal = 0;
@@ -41,17 +38,81 @@ class MovementProvider extends ChangeNotifier {
   Map<String, int> _plannedGrouped = {};
   Map<String, int> _extraGrouped = {};
 
+  String _searchQuery = "";
+  int _currentPage = 1;
+  final int _pageSize = 20;
+
+  String? _filterCategoryId;
+  String? _filterPaymentMethodId;
+
+  bool get isLoading => _isLoading;
+
+  List<CategoryEntity> get categories => _categories;
+  List<MovementEntity> get movements => _movements;
+  List<PaymentMethodEntity> get paymentMethods => _paymentMethods;
+
   double get realTotal => _realTotal;
   double get totalBalance => _realTotal;
-  double get totalIncomes => _totalIncomes;
-  double get totalExpenses => _totalExpenses;
   double get plannedTotal => _plannedTotal;
   double get totalExtra => _totalExtra;
+  double get totalIncomes => _totalIncomes;
+  double get totalExpenses => _totalExpenses;
+
   Map<String, int> get plannedGrouped => _plannedGrouped;
   Map<String, int> get extraGrouped => _extraGrouped;
 
+  String get searchQuery => _searchQuery;
+  int get movementsPerPage => _pageSize;
+
   bool get hasExtraCategories => _categories.any((c) => c.isExtra);
   Set<String> get incomeCategoryIds => _incomeCategoryIds;
+
+  List<MovementEntity> get filteredMovements {
+    return _movements.where((m) {
+      final matchesSearch =
+          m.description.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          m.source.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          (m.notes?.toLowerCase() ?? "").contains(_searchQuery.toLowerCase());
+
+      final matchesCategory =
+          _filterCategoryId == null || m.categoryId == _filterCategoryId;
+      final matchesPayment =
+          _filterPaymentMethodId == null ||
+          m.paymentMethodId == _filterPaymentMethodId;
+
+      return matchesSearch && matchesCategory && matchesPayment;
+    }).toList();
+  }
+
+  List<MovementEntity> get pagedFilteredMovements {
+    final fullList = filteredMovements;
+    final end = _currentPage * _pageSize;
+
+    return fullList
+        .take(end > fullList.length ? fullList.length : end)
+        .toList();
+  }
+
+  String? get filterCategoryId => _filterCategoryId;
+  String? get filterPaymentMethodId => _filterPaymentMethodId;
+
+  void setCategoryId(String? id) {
+    _filterCategoryId = id;
+    _currentPage = 1;
+    notifyListeners();
+  }
+
+  void setPaymentMethodId(String? id) {
+    _filterPaymentMethodId = id;
+    _currentPage = 1;
+    notifyListeners();
+  }
+
+  void setSearchQuery(String query) {
+    _searchQuery = query;
+    _currentPage = 1;
+    notifyListeners();
+  }
 
   void _resetTotals() {
     _realTotal = 0;
@@ -160,13 +221,16 @@ class MovementProvider extends ChangeNotifier {
       _isLoading = true;
       notifyListeners();
 
-      final String groupId = DateTime.now().millisecondsSinceEpoch.toString();
-      List<MovementEntity> movementsToSave = [
-        movement.copyWith(groupId: groupId),
-      ];
+      final String groupId = const Uuid().v4();
+      final baseMovement = movement.copyWith(groupId: groupId);
+      List<MovementEntity> movementsToSave = [baseMovement];
 
-      if (movement.totalInstallments > 1 && movement.currentInstallment == 1) {
-        for (int i = 1; i < movement.totalInstallments; i++) {
+      if (movement.totalInstallments > 1 &&
+          movement.currentInstallment < movement.totalInstallments) {
+        final int totalGenerar =
+            movement.totalInstallments - movement.currentInstallment;
+
+        for (int i = 1; i <= totalGenerar; i++) {
           final nextDate = DateTime(
             movement.billingPeriodYear,
             movement.billingPeriodMonth + i,
@@ -179,10 +243,9 @@ class MovementProvider extends ChangeNotifier {
           );
 
           movementsToSave.add(
-            movement.copyWith(
+            baseMovement.copyWith(
               id: '',
-              groupId: groupId,
-              currentInstallment: i + 1,
+              currentInstallment: movement.currentInstallment + i,
               billingPeriodYear: nextDate.year,
               billingPeriodMonth: nextDate.month,
               billingPeriodId: nextPeriodId,
@@ -338,5 +401,38 @@ class MovementProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  void setFilters({String? categoryId, String? paymentMethodId}) {
+    _filterCategoryId = categoryId;
+    _filterPaymentMethodId = paymentMethodId;
+    notifyListeners();
+  }
+
+  void clearFilters() {
+    _searchQuery = "";
+    _filterCategoryId = null;
+    _filterPaymentMethodId = null;
+    notifyListeners();
+  }
+
+  void loadNextPage() {
+    if (_currentPage * _pageSize < filteredMovements.length) {
+      _currentPage++;
+      notifyListeners();
+    }
+  }
+
+  MovementEntity prepareCopy(MovementEntity original) {
+    return original.copyWith(id: '', groupId: '');
+  }
+
+  String getPaymentMethodName(String id) {
+    return _paymentMethods
+        .firstWhere(
+          (pm) => pm.id == id,
+          orElse: () => PaymentMethodEntity(id: '', name: 'Desconocido'),
+        )
+        .name;
   }
 }

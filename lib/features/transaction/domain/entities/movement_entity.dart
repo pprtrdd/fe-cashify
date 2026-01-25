@@ -17,6 +17,8 @@ class MovementEntity extends Equatable {
   final String billingPeriodId;
   final String? notes;
   final bool isCompleted;
+  final DateTime createdAt;
+  final DateTime updatedAt;
 
   const MovementEntity({
     required this.id,
@@ -35,6 +37,8 @@ class MovementEntity extends Equatable {
     required this.billingPeriodId,
     this.notes,
     required this.isCompleted,
+    required this.createdAt,
+    required this.updatedAt,
   });
 
   int get totalAmount => quantity * amount;
@@ -55,6 +59,8 @@ class MovementEntity extends Equatable {
     billingPeriodMonth,
     notes,
     isCompleted,
+    createdAt,
+    updatedAt,
   ];
 
   MovementEntity copyWith({
@@ -91,6 +97,8 @@ class MovementEntity extends Equatable {
       billingPeriodId: billingPeriodId ?? this.billingPeriodId,
       notes: notes ?? this.notes,
       isCompleted: isCompleted ?? this.isCompleted,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
     );
   }
 }
