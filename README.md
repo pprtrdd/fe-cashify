@@ -1,3 +1,3 @@
-# cashify
+# Cashify
 
-A new Flutter project.
+Para registrar tus movimientos financieros en pocos pasos.
