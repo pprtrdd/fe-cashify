@@ -12,6 +12,9 @@ class UserSettingsEntity extends Equatable {
     required this.endDay,
   });
 
+  @override
+  List<Object?> get props => [billingPeriodType, startDay, endDay];
+
   DateTimeRange getDateTimeRangeFromBillingPeriod(String billingPeriodId) {
     final parts = billingPeriodId.split('_');
     final year = int.parse(parts[0]);
@@ -28,9 +31,6 @@ class UserSettingsEntity extends Equatable {
       return DateTimeRange(start: startDate, end: endDate);
     }
   }
-
-  @override
-  List<Object?> get props => [billingPeriodType, startDay, endDay];
 
   factory UserSettingsEntity.empty() {
     return const UserSettingsEntity(

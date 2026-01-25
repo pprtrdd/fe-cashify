@@ -1,13 +1,33 @@
-import 'package:cashify/core/config/constants/config_constants.dart';
-import 'package:cashify/core/config/services/config_service.dart';
+import 'package:cashify/core/app_info/presentation/providers/app_info_provider.dart';
+import 'package:cashify/core/app_info/services/app_info_service.dart';
 import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/features/settings/presentation/pages/billing_period_setting_screen.dart';
 import 'package:cashify/features/shared/helpers/launcher_helper.dart';
 import 'package:cashify/features/shared/widgets/section_header.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-class SettingsPage extends StatelessWidget {
+class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
+
+  @override
+  State<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
+  @override
+  void initState() {
+    super.initState();
+
+    Future.microtask(() {
+      if (mounted) {
+        final prov = context.read<AppInfoProvider>();
+        if (prov.appInfo.author.isEmpty) {
+          prov.loadAppInfo();
+        }
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,84 +62,100 @@ class SettingsPage extends StatelessWidget {
             icon: Icons.help_outline_rounded,
             title: "Acerca de",
             subtitle: "Versión, autor y detalles legales",
-            onTap: () => _mostrarAcercaDe(context),
+            onTap: () => _showAppInfo(context),
           ),
         ],
       ),
     );
   }
 
-  void _mostrarAcercaDe(BuildContext context) async {
-    final info = await AppConfigService.getAppVersion();
+  void _showAppInfo(BuildContext context) async {
+    final appInfoProv = context.read<AppInfoProvider>();
+
+    if (appInfoProv.appInfo.author.isEmpty) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(child: CircularProgressIndicator()),
+      );
+
+      await appInfoProv.loadAppInfo();
+
+      if (!context.mounted) return;
+
+      Navigator.pop(context);
+    }
+
+    final info = await AppInfoService.getAppVersion();
+    final data = appInfoProv.appInfo;
 
     if (!context.mounted) return;
 
     showAboutDialog(
       context: context,
-      applicationName: ConfigConstants.appName,
+      applicationName: data.appName,
       applicationVersion: '${info['version']}+${info['buildNumber']}',
       applicationIcon: const Icon(
         Icons.account_balance_wallet,
         size: 40,
         color: AppColors.primary,
       ),
-      applicationLegalese: ConfigConstants.copyright,
+      applicationLegalese: '© ${data.lastYearDeploy} ${data.author}',
       children: [
         const SizedBox(height: 15),
-        Text(ConfigConstants.description),
+        Text(data.description),
         const SizedBox(height: 20),
         const Divider(),
         const SizedBox(height: 10),
-        Material(
-          color: AppColors.transparent,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(12),
-            hoverColor: const Color(
-              0xFF24292E,
-            ).withValues(alpha: 0.1),
-            onTap: () =>
-                LauncherHelper.openUrl(ConfigConstants.githubProfile),
-            child: const ListTile(
-              leading: Icon(Icons.code, color: Color(0xFF24292E)),
-              title: Text(
-                'GitHub',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-              ),
-              subtitle: Text('Ver código fuente'),
-              trailing: Icon(Icons.open_in_new, size: 16),
-            ),
-          ),
+        _buildSocialLink(
+          icon: Icons.code,
+          title: 'GitHub',
+          subtitle: 'Source code',
+          color: AppColors.github,
+          url: data.githubProfile,
         ),
         const SizedBox(height: 8),
-        Material(
-          color: AppColors.transparent,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(12),
-            hoverColor: const Color(
-              0xFF0077B5,
-            ).withValues(alpha: 0.1),
-            onTap: () =>
-                LauncherHelper.openUrl(ConfigConstants.linkedinProfile),
-            child: const ListTile(
-              leading: Icon(Icons.link, color: Color(0xFF0077B5)),
-              title: Text(
-                'LinkedIn',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-              ),
-              subtitle: Text('Conectar con el autor'),
-              trailing: Icon(Icons.open_in_new, size: 16),
-            ),
-          ),
+        _buildSocialLink(
+          icon: Icons.link,
+          title: 'LinkedIn',
+          subtitle: 'Connect with me',
+          color: AppColors.linkedin,
+          url: data.linkedinProfile,
         ),
-
         const SizedBox(height: 20),
         const Center(
           child: Text(
-            'Hecho con Flutter Web',
+            'Made with Flutter Web',
             style: TextStyle(fontSize: 11, color: AppColors.textLight),
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildSocialLink({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color color,
+    required String url,
+  }) {
+    return Material(
+      color: AppColors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        hoverColor: color.withValues(alpha: 0.1),
+        onTap: () => LauncherHelper.openUrl(url),
+        child: ListTile(
+          leading: Icon(icon, color: color),
+          title: Text(
+            title,
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+          ),
+          subtitle: Text(subtitle, style: const TextStyle(fontSize: 12)),
+          trailing: const Icon(Icons.open_in_new, size: 16),
+        ),
+      ),
     );
   }
 }

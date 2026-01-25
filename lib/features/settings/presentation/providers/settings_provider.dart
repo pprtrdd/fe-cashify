@@ -17,6 +17,7 @@ class SettingsProvider extends ChangeNotifier {
 
     _isLoading = true;
     notifyListeners();
+
     try {
       _settings = await settingsUsecases.get();
     } catch (e) {
@@ -31,6 +32,7 @@ class SettingsProvider extends ChangeNotifier {
     if (_settings == newSettings) return;
 
     await settingsUsecases.save(newSettings);
+
     _settings = newSettings;
     notifyListeners();
   }

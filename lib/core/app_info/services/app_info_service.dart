@@ -1,6 +1,6 @@
 import 'package:package_info_plus/package_info_plus.dart';
 
-class AppConfigService {
+class AppInfoService {
   static Future<Map<String, String>> getAppVersion() async {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
 
