@@ -1,4 +1,4 @@
-import 'package:cashify/core/app_info/presentation/providers/app_info_provider.dart';
+import 'package:cashify/core/app_config/presentation/providers/app_info_provider.dart';
 import 'package:cashify/core/auth/auth_wrapper.dart';
 import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/features/settings/presentation/providers/settings_provider.dart';
@@ -33,7 +33,7 @@ Future<void> startApp({
           create: (_) => sl<BillingPeriodProvider>()..loadPeriods(),
         ),
         ChangeNotifierProvider(
-          create: (_) => sl<AppInfoProvider>()..loadAppInfo(),
+          create: (_) => sl<AppConfigProvider>()..loadAppConfig(),
         ),
       ],
       child: const MainApp(),

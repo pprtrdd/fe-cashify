@@ -1,7 +1,7 @@
-import 'package:cashify/core/app_info/domain/entities/app_info_entity.dart';
+import 'package:cashify/core/app_config/domain/entities/app_config_entity.dart';
 
-class AppInfoModel extends AppInfoEntity {
-  const AppInfoModel({
+class AppConfigModel extends AppConfigEntity {
+  const AppConfigModel({
     required super.appName,
     required super.author,
     required super.description,
@@ -11,8 +11,8 @@ class AppInfoModel extends AppInfoEntity {
     required super.lastYearDeploy,
   });
 
-  factory AppInfoModel.fromFirestore(Map<String, dynamic> json) {
-    return AppInfoModel(
+  factory AppConfigModel.fromFirestore(Map<String, dynamic> json) {
+    return AppConfigModel(
       appName: json['appName'].toString(),
       author: json['author'].toString(),
       description: json['description'].toString(),

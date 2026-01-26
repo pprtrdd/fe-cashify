@@ -1,6 +1,6 @@
-import 'package:cashify/core/app_info/domain/repositories/app_info_repository.dart';
-import 'package:cashify/core/app_info/domain/usecases/app_info_usecases.dart';
-import 'package:cashify/core/app_info/presentation/providers/app_info_provider.dart';
+import 'package:cashify/core/app_config/domain/repositories/app_config_repository.dart';
+import 'package:cashify/core/app_config/domain/usecases/app_config_usecases.dart';
+import 'package:cashify/core/app_config/presentation/providers/app_info_provider.dart';
 import 'package:cashify/features/settings/domain/repositories/settings_repository.dart';
 import 'package:cashify/features/settings/domain/usecases/settings_usecases.dart';
 import 'package:cashify/features/settings/presentation/providers/settings_provider.dart';
@@ -34,7 +34,7 @@ Future<void> init() async {
   );
   sl.registerFactory(() => BillingPeriodProvider(usecases: sl()));
   sl.registerFactory(() => SettingsProvider(settingsUsecases: sl()));
-  sl.registerFactory(() => AppInfoProvider(appInfoUsecases: sl()));
+  sl.registerFactory(() => AppConfigProvider(appConfigUsecases: sl()));
 
   /* --------------------------------------------------------------------------- */
   /* USE CASES (Lazy Singletons)                                                 */
@@ -44,7 +44,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => PaymentMethodUsecases(repository: sl()));
   sl.registerLazySingleton(() => SettingsUsecases(repository: sl()));
   sl.registerLazySingleton(() => BillingPeriodUsecases(repository: sl()));
-  sl.registerLazySingleton(() => AppInfoUsecases(repository: sl()));
+  sl.registerLazySingleton(() => AppConfigUsecases(repository: sl()));
 
   /* --------------------------------------------------------------------------- */
   /* REPOSITORIES (Lazy Singletons)                                              */
@@ -64,7 +64,7 @@ Future<void> init() async {
   sl.registerLazySingleton(
     () => BillingPeriodRepository(sl<FirebaseFirestore>(), sl<FirebaseAuth>()),
   );
-  sl.registerLazySingleton(() => AppInfoRepository(sl<FirebaseFirestore>()));
+  sl.registerLazySingleton(() => AppConfigRepository(sl<FirebaseFirestore>()));
 
   /* --------------------------------------------------------------------------- */
   /* EXTERNAL (Firebase)                                                         */
