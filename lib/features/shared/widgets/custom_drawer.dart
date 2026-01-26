@@ -1,8 +1,8 @@
 import 'package:cashify/core/auth/auth_service.dart';
 import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/core/utils/billing_period_utils.dart';
-import 'package:cashify/features/configuration/presentation/pages/settings_screen.dart';
-import 'package:cashify/features/configuration/presentation/providers/settings_provider.dart';
+import 'package:cashify/features/settings/presentation/pages/settings_screen.dart';
+import 'package:cashify/features/settings/presentation/providers/settings_provider.dart';
 import 'package:cashify/features/transaction/presentation/pages/movements_screen.dart';
 import 'package:cashify/features/transaction/presentation/pages/pending_movements_screen.dart';
 import 'package:cashify/features/transaction/presentation/providers/billing_period_provider.dart';

@@ -1,6 +1,7 @@
+import 'package:cashify/core/app_info/presentation/providers/app_info_provider.dart';
 import 'package:cashify/core/auth/auth_wrapper.dart';
 import 'package:cashify/core/theme/app_colors.dart';
-import 'package:cashify/features/configuration/presentation/providers/settings_provider.dart';
+import 'package:cashify/features/settings/presentation/providers/settings_provider.dart';
 import 'package:cashify/features/transaction/presentation/providers/billing_period_provider.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
 import 'package:cashify/injection_container.dart' as di;
@@ -30,6 +31,9 @@ Future<void> startApp({
         ),
         ChangeNotifierProvider(
           create: (_) => sl<BillingPeriodProvider>()..loadPeriods(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => sl<AppInfoProvider>()..loadAppInfo(),
         ),
       ],
       child: const MainApp(),

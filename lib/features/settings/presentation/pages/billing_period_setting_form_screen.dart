@@ -1,49 +1,27 @@
 import 'package:cashify/core/theme/app_colors.dart';
-import 'package:cashify/features/configuration/domain/entities/user_settings_entity.dart';
-import 'package:cashify/features/configuration/presentation/providers/settings_provider.dart';
-import 'package:cashify/features/shared/helpers/ui_helpers.dart';
+import 'package:cashify/features/settings/domain/entities/user_settings_entity.dart';
+import 'package:cashify/features/settings/presentation/providers/settings_provider.dart';
+import 'package:cashify/features/shared/helpers/ui_helper.dart';
+import 'package:cashify/features/shared/widgets/section_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
-class SettingsPage extends StatelessWidget {
-  const SettingsPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text("Configuración"),
-        centerTitle: true,
-        elevation: 0,
-      ),
-      body: Consumer<SettingsProvider>(
-        builder: (context, provider, child) {
-          if (provider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          return _SettingsForm(settings: provider.settings);
-        },
-      ),
-    );
-  }
-}
-
-class _SettingsForm extends StatefulWidget {
+class BillingPeriodSettingForm extends StatefulWidget {
   final UserSettingsEntity settings;
 
-  const _SettingsForm({required this.settings});
+  const BillingPeriodSettingForm({super.key, required this.settings});
 
   @override
-  State<_SettingsForm> createState() => _SettingsFormState();
+  State<BillingPeriodSettingForm> createState() =>
+      BillingPeriodSettingFormState();
 }
 
-class _SettingsFormState extends State<_SettingsForm> {
+class BillingPeriodSettingFormState extends State<BillingPeriodSettingForm> {
   late String _billingPeriodType;
   late TextEditingController _startDayController;
   late TextEditingController _endDayController;
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -71,14 +49,14 @@ class _SettingsFormState extends State<_SettingsForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const _SectionHeader(
+          const SectionHeader(
             title: "FINANZAS Y FACTURACIÓN",
             icon: Icons.account_balance_wallet_outlined,
           ),
           const SizedBox(height: 12),
           _buildMainCard(),
           const SizedBox(height: 32),
-          _SaveButton(onPressed: _handleSave),
+          _SaveButton(onPressed: _handleSave, isSaving: _isSaving),
         ],
       ),
     );
@@ -240,6 +218,8 @@ class _SettingsFormState extends State<_SettingsForm> {
       }
     }
 
+    setState(() => _isSaving = true);
+
     final newSettings = UserSettingsEntity(
       billingPeriodType: _billingPeriodType,
       startDay: _billingPeriodType == 'month_to_month' ? 1 : start,
@@ -253,6 +233,10 @@ class _SettingsFormState extends State<_SettingsForm> {
     } catch (e) {
       if (!mounted) return;
       context.showErrorSnackBar("Error al guardar: $e");
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
     }
   }
 
@@ -304,32 +288,6 @@ class _SettingsFormState extends State<_SettingsForm> {
   }
 }
 
-class _SectionHeader extends StatelessWidget {
-  final String title;
-  final IconData icon;
-
-  const _SectionHeader({required this.title, required this.icon});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(icon, size: 18, color: AppColors.primary),
-        const SizedBox(width: 8),
-        Text(
-          title,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 13,
-            letterSpacing: 0.5,
-            color: AppColors.textLight,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
 class _PreviewBox extends StatelessWidget {
   final String text;
   final Color color;
@@ -368,27 +326,32 @@ class _PreviewBox extends StatelessWidget {
 
 class _SaveButton extends StatelessWidget {
   final VoidCallback onPressed;
+  final bool isSaving;
 
-  const _SaveButton({required this.onPressed});
+  const _SaveButton({required this.onPressed, this.isSaving = false});
 
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
-      onPressed: onPressed,
+      onPressed: isSaving ? null : onPressed,
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.primary,
         padding: const EdgeInsets.symmetric(vertical: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        elevation: 0,
       ),
-      child: const Text(
-        "GUARDAR CAMBIOS",
-        style: TextStyle(
-          color: AppColors.textOnPrimary,
-          fontWeight: FontWeight.bold,
-          letterSpacing: 1,
-        ),
-      ),
+      child: isSaving
+          ? const SizedBox(
+              height: 20,
+              width: 20,
+              child: CircularProgressIndicator(
+                color: AppColors.fieldFill,
+                strokeWidth: 2,
+              ),
+            )
+          : const Text(
+              "GUARDAR CAMBIOS",
+              style: TextStyle(color: AppColors.fieldFill),
+            ),
     );
   }
 }

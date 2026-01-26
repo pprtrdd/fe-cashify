@@ -1,4 +1,4 @@
-import 'package:cashify/features/configuration/domain/entities/user_settings_entity.dart';
+import 'package:cashify/features/settings/domain/entities/user_settings_entity.dart';
 
 class UserSettingsModel extends UserSettingsEntity {
   const UserSettingsModel({
