@@ -1,6 +1,7 @@
 import 'package:cashify/core/app_config/domain/repositories/app_config_repository.dart';
 import 'package:cashify/core/app_config/domain/usecases/app_config_usecases.dart';
 import 'package:cashify/core/app_config/presentation/providers/app_info_provider.dart';
+import 'package:cashify/core/auth/auth_service.dart';
 import 'package:cashify/features/settings/domain/repositories/settings_repository.dart';
 import 'package:cashify/features/settings/domain/usecases/settings_usecases.dart';
 import 'package:cashify/features/settings/presentation/providers/settings_provider.dart';
@@ -14,6 +15,9 @@ import 'package:cashify/features/transaction/domain/usecases/movement_usecases.d
 import 'package:cashify/features/transaction/domain/usecases/payment_method_usecases.dart';
 import 'package:cashify/features/transaction/presentation/providers/billing_period_provider.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
+import 'package:cashify/features/user_config/domain/repositories/user_config_repository.dart';
+import 'package:cashify/features/user_config/domain/usecases/user_config_usecases.dart';
+import 'package:cashify/features/user_config/presentation/providers/user_config_provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get_it/get_it.dart';
@@ -35,6 +39,9 @@ Future<void> init() async {
   sl.registerFactory(() => BillingPeriodProvider(usecases: sl()));
   sl.registerFactory(() => SettingsProvider(settingsUsecases: sl()));
   sl.registerFactory(() => AppConfigProvider(appConfigUsecases: sl()));
+  sl.registerFactory(
+    () => UserConfigProvider(userConfigUsecases: sl(), authService: sl()),
+  );
 
   /* --------------------------------------------------------------------------- */
   /* USE CASES (Lazy Singletons)                                                 */
@@ -45,6 +52,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => SettingsUsecases(repository: sl()));
   sl.registerLazySingleton(() => BillingPeriodUsecases(repository: sl()));
   sl.registerLazySingleton(() => AppConfigUsecases(repository: sl()));
+  sl.registerLazySingleton(() => UserConfigUsecases(repository: sl()));
 
   /* --------------------------------------------------------------------------- */
   /* REPOSITORIES (Lazy Singletons)                                              */
@@ -65,6 +73,14 @@ Future<void> init() async {
     () => BillingPeriodRepository(sl<FirebaseFirestore>(), sl<FirebaseAuth>()),
   );
   sl.registerLazySingleton(() => AppConfigRepository(sl<FirebaseFirestore>()));
+  sl.registerLazySingleton(
+    () => UserConfigRepository(sl<FirebaseFirestore>(), sl<FirebaseAuth>()),
+  );
+
+  /* --------------------------------------------------------------------------- */
+  /* SERVICES (Lazy Singletons)                                                  */
+  /* --------------------------------------------------------------------------- */
+  sl.registerLazySingleton(() => AuthService());
 
   /* --------------------------------------------------------------------------- */
   /* EXTERNAL (Firebase)                                                         */

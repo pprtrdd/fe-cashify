@@ -4,6 +4,7 @@ import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/features/settings/presentation/providers/settings_provider.dart';
 import 'package:cashify/features/transaction/presentation/providers/billing_period_provider.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
+import 'package:cashify/features/user_config/presentation/providers/user_config_provider.dart';
 import 'package:cashify/injection_container.dart' as di;
 import 'package:cashify/injection_container.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -34,6 +35,9 @@ Future<void> startApp({
         ),
         ChangeNotifierProvider(
           create: (_) => sl<AppConfigProvider>()..loadAppConfig(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => sl<UserConfigProvider>(),
         ),
       ],
       child: const MainApp(),
