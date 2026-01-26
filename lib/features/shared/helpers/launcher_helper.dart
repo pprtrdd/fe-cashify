@@ -2,9 +2,16 @@ import 'package:url_launcher/url_launcher.dart';
 
 class LauncherHelper {
   static Future<void> openUrl(String url) async {
-    final Uri uri = Uri.parse(url);
-    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      throw Exception('No se pudo abrir el enlace: $url');
+    if (url.isEmpty) return;
+
+    final uri = Uri.parse(url.startsWith('http') ? url : 'https://$url');
+
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      rethrow;
     }
   }
 }
