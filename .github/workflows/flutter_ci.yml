@@ -18,6 +18,12 @@ jobs:
           channel: 'stable'
           cache: true
 
+      - name: Create dummy env files
+        run: |
+          mkdir -p env
+          touch env/dev.env
+          touch env/prod.env
+
       - name: Get Dependencies
         run: flutter pub get
 
