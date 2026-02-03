@@ -16,12 +16,22 @@ import 'package:provider/provider.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // VERIFICACIÓN DE EMERGENCIA
+  // Estos valores son los que inyecta el flag --dart-define-from-file
+  print("--- Verificación de Entorno (Build-time) ---");
+  print(
+    "ID del Proyecto: ${const String.fromEnvironment('FIREBASE_PROJECT_ID')}",
+  );
+  print(
+    "API Key cargada: ${const String.fromEnvironment('FIREBASE_API_KEY').isNotEmpty ? 'SÍ' : 'NO'}",
+  );
+  print("-------------------------------------------");
+
   try {
-    // Cargamos desde la raíz directamente
     await dotenv.load(fileName: ".env");
-    print("Project ID: ${dotenv.env['FIREBASE_PROJECT_ID']}");
+    print("Archivo .env físico cargado: ${dotenv.env.isNotEmpty}");
   } catch (e) {
-    print("Error crítico: $e");
+    print("Nota: Archivo .env físico no disponible (Normal en Web)");
   }
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);

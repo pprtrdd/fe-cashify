@@ -3,7 +3,6 @@
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 /// Default [FirebaseOptions] for use with your Firebase apps.
 ///
@@ -54,14 +53,17 @@ class DefaultFirebaseOptions {
   }
 
   static FirebaseOptions get web => FirebaseOptions(
-    apiKey: dotenv.get('FIREBASE_API_KEY', fallback: ''),
-    appId: dotenv.get('FIREBASE_APP_ID', fallback: ''),
-    messagingSenderId: dotenv.get('FIREBASE_MESSAGING_SENDER_ID', fallback: ''),
-    projectId: dotenv.get('FIREBASE_PROJECT_ID', fallback: ''),
+    apiKey: const String.fromEnvironment('FIREBASE_API_KEY'),
+    appId: const String.fromEnvironment('FIREBASE_APP_ID'),
+    messagingSenderId: const String.fromEnvironment(
+      'FIREBASE_MESSAGING_SENDER_ID',
+    ),
+    projectId: const String.fromEnvironment('FIREBASE_PROJECT_ID'),
     authDomain:
-        '${dotenv.get('FIREBASE_PROJECT_ID', fallback: '')}.firebaseapp.com',
+        '${const String.fromEnvironment('FIREBASE_PROJECT_ID')}.firebaseapp.com',
     storageBucket:
-        '${dotenv.get('FIREBASE_PROJECT_ID', fallback: '')}.firebasestorage.app',
-    measurementId: dotenv.get('FIREBASE_MEASUREMENT_ID', fallback: ''),
+        '${const String.fromEnvironment('FIREBASE_PROJECT_ID')}.firebasestorage.app',
+    // Opcional: añade measurementId si lo usas
+    measurementId: const String.fromEnvironment('FIREBASE_MEASUREMENT_ID'),
   );
 }

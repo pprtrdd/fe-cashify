@@ -2,10 +2,14 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Cashify (App)",
+      "name": "Cashify (Local)",
       "request": "launch",
       "type": "dart",
-      "program": "lib/main.dart"
+      "program": "lib/main.dart",
+      "toolArgs": [
+        "--dart-define-from-file",
+        ".env" 
+      ]
     }
   ]
 }
