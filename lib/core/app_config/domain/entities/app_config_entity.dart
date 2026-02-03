@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-class AppInfoEntity extends Equatable {
+class AppConfigEntity extends Equatable {
   final String appName;
   final String author;
   final String description;
@@ -9,7 +9,7 @@ class AppInfoEntity extends Equatable {
   final String supportEmail;
   final String lastYearDeploy;
 
-  const AppInfoEntity({
+  const AppConfigEntity({
     required this.appName,
     required this.author,
     required this.description,
@@ -30,8 +30,8 @@ class AppInfoEntity extends Equatable {
     lastYearDeploy,
   ];
 
-  static AppInfoEntity empty() {
-    return const AppInfoEntity(
+  static AppConfigEntity empty() {
+    return const AppConfigEntity(
       appName: '',
       author: '',
       description: '',

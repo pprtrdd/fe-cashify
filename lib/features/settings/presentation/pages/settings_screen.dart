@@ -1,5 +1,5 @@
-import 'package:cashify/core/app_info/presentation/providers/app_info_provider.dart';
-import 'package:cashify/core/app_info/services/app_info_service.dart';
+import 'package:cashify/core/app_config/presentation/providers/app_info_provider.dart';
+import 'package:cashify/core/app_config/services/app_info_service.dart';
 import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/features/settings/presentation/pages/billing_period_setting_screen.dart';
 import 'package:cashify/features/shared/helpers/launcher_helper.dart';
@@ -21,9 +21,9 @@ class _SettingsPageState extends State<SettingsPage> {
 
     Future.microtask(() {
       if (mounted) {
-        final prov = context.read<AppInfoProvider>();
-        if (prov.appInfo.author.isEmpty) {
-          prov.loadAppInfo();
+        final prov = context.read<AppConfigProvider>();
+        if (prov.appConfig.author.isEmpty) {
+          prov.loadAppConfig();
         }
       }
     });
@@ -62,32 +62,32 @@ class _SettingsPageState extends State<SettingsPage> {
             icon: Icons.help_outline_rounded,
             title: "Acerca de",
             subtitle: "Versión, autor y detalles legales",
-            onTap: () => _showAppInfo(context),
+            onTap: () => _showAppConfig(context),
           ),
         ],
       ),
     );
   }
 
-  void _showAppInfo(BuildContext context) async {
-    final appInfoProv = context.read<AppInfoProvider>();
+  void _showAppConfig(BuildContext context) async {
+    final appConfigProv = context.read<AppConfigProvider>();
 
-    if (appInfoProv.appInfo.author.isEmpty) {
+    if (appConfigProv.appConfig.author.isEmpty) {
       showDialog(
         context: context,
         barrierDismissible: false,
         builder: (context) => const Center(child: CircularProgressIndicator()),
       );
 
-      await appInfoProv.loadAppInfo();
+      await appConfigProv.loadAppConfig();
 
       if (!context.mounted) return;
 
       Navigator.pop(context);
     }
 
-    final info = await AppInfoService.getAppVersion();
-    final data = appInfoProv.appInfo;
+    final info = await AppConfigService.getAppVersion();
+    final data = appConfigProv.appConfig;
 
     if (!context.mounted) return;
 

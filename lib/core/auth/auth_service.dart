@@ -5,7 +5,7 @@ class AuthService {
 
   Stream<User?> get userStatus => _auth.authStateChanges();
 
-  Future<UserCredential?> signInWithGoogle() async {
+  Future<UserCredential> signInWithGoogle() async {
     try {
       GoogleAuthProvider googleProvider = GoogleAuthProvider();
 
