@@ -7,8 +7,6 @@ class AppConfigUsecases {
   AppConfigUsecases({required this.repository});
 
   Future<AppConfigEntity> get() {
-    final data = repository.getAppConfig();
-
-    return data;
+    return repository.getAppConfig();
   }
 }

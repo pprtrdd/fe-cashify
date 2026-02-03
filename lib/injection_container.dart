@@ -1,6 +1,6 @@
 import 'package:cashify/core/app_config/domain/repositories/app_config_repository.dart';
 import 'package:cashify/core/app_config/domain/usecases/app_config_usecases.dart';
-import 'package:cashify/core/app_config/presentation/providers/app_info_provider.dart';
+import 'package:cashify/core/app_config/presentation/providers/app_config_provider.dart';
 import 'package:cashify/core/auth/auth_service.dart';
 import 'package:cashify/features/settings/domain/repositories/settings_repository.dart';
 import 'package:cashify/features/settings/domain/usecases/settings_usecases.dart';

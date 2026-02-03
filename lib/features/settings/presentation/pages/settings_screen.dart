@@ -1,5 +1,5 @@
-import 'package:cashify/core/app_config/presentation/providers/app_info_provider.dart';
-import 'package:cashify/core/app_config/services/app_info_service.dart';
+import 'package:cashify/core/app_config/presentation/providers/app_config_provider.dart';
+import 'package:cashify/core/app_config/services/app_config_service.dart';
 import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/features/settings/presentation/pages/billing_period_setting_screen.dart';
 import 'package:cashify/features/shared/helpers/launcher_helper.dart';
@@ -7,14 +7,14 @@ import 'package:cashify/features/shared/widgets/section_header.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class SettingsPage extends StatefulWidget {
-  const SettingsPage({super.key});
+class SettingsScreen extends StatefulWidget {
+  const SettingsScreen({super.key});
 
   @override
-  State<SettingsPage> createState() => _SettingsPageState();
+  State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsPageState extends State<SettingsPage> {
+class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void initState() {
     super.initState();

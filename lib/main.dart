@@ -1,4 +1,4 @@
-import 'package:cashify/core/app_config/presentation/providers/app_info_provider.dart';
+import 'package:cashify/core/app_config/presentation/providers/app_config_provider.dart';
 import 'package:cashify/core/auth/auth_wrapper.dart';
 import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/features/settings/presentation/providers/settings_provider.dart';
