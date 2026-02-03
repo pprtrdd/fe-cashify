@@ -2,18 +2,10 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Cashify (Development)",
+      "name": "Cashify (App)",
       "request": "launch",
       "type": "dart",
-      "program": "lib/main_dev.dart",
-      "args": ["--target", "lib/main_dev.dart"]
-    },
-    {
-      "name": "Cashify (Production)",
-      "request": "launch",
-      "type": "dart",
-      "program": "lib/main_prod.dart",
-      "args": ["--target", "lib/main_prod.dart"]
+      "program": "lib/main.dart"
     }
   ]
 }

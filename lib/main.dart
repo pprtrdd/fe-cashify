@@ -5,6 +5,7 @@ import 'package:cashify/features/settings/presentation/providers/settings_provid
 import 'package:cashify/features/transaction/presentation/providers/billing_period_provider.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
 import 'package:cashify/features/user_config/presentation/providers/user_config_provider.dart';
+import 'package:cashify/firebase_options.dart';
 import 'package:cashify/injection_container.dart' as di;
 import 'package:cashify/injection_container.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -12,15 +13,11 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-Future<void> startApp({
-  required FirebaseOptions firebaseOptions,
-  required String envFile,
-}) async {
-  if (!dotenv.isInitialized) {
-    await dotenv.load(fileName: envFile);
-  }
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp(options: firebaseOptions);
+  await dotenv.load(fileName: "env/.env");
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await di.init();
 
   runApp(
@@ -36,9 +33,7 @@ Future<void> startApp({
         ChangeNotifierProvider(
           create: (_) => sl<AppConfigProvider>()..loadAppConfig(),
         ),
-        ChangeNotifierProvider(
-          create: (_) => sl<UserConfigProvider>(),
-        ),
+        ChangeNotifierProvider(create: (_) => sl<UserConfigProvider>()),
       ],
       child: const MainApp(),
     ),
