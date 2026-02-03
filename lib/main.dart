@@ -16,7 +16,14 @@ import 'package:provider/provider.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await dotenv.load(fileName: "env/.env");
+  try {
+    await dotenv.load(fileName: "env/.env");
+    print("DOTENV keys: ${dotenv.env.keys}");
+    print("Project ID: ${dotenv.env['FIREBASE_PROJECT_ID']}");
+  } catch (e) {
+    print("Error cargando .env: $e");
+  }
+
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await di.init();
 
