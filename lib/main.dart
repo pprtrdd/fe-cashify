@@ -9,30 +9,11 @@ import 'package:cashify/firebase_options.dart';
 import 'package:cashify/injection_container.dart' as di;
 import 'package:cashify/injection_container.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // VERIFICACIÓN DE EMERGENCIA
-  // Estos valores son los que inyecta el flag --dart-define-from-file
-  print("--- Verificación de Entorno (Build-time) ---");
-  print(
-    "ID del Proyecto: ${const String.fromEnvironment('FIREBASE_PROJECT_ID')}",
-  );
-  print(
-    "API Key cargada: ${const String.fromEnvironment('FIREBASE_API_KEY').isNotEmpty ? 'SÍ' : 'NO'}",
-  );
-  print("-------------------------------------------");
-
-  try {
-    await dotenv.load(fileName: ".env");
-    print("Archivo .env físico cargado: ${dotenv.env.isNotEmpty}");
-  } catch (e) {
-    print("Nota: Archivo .env físico no disponible (Normal en Web)");
-  }
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await di.init();

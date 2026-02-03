@@ -21,24 +21,24 @@ jobs:
       - name: Restore Env Files from Secrets
         run: |
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            cat <<EOF > .env
+            cat <<EOF > env/.env
           ${{ secrets.ENV_FILE_PROD }}
           EOF
           else
-            cat <<EOF > .env
+            cat <<EOF > env/.env
           ${{ secrets.ENV_FILE_DEV }}
           EOF
           fi
           
           echo "Archivo .env creado exitosamente."
-          ls -lh .env
-          wc -l .env
+          ls -lh env/.env
+          wc -l env/.env
 
       - name: Install Dependencies
         run: flutter pub get
 
       - name: Build Web
-        run: flutter build web --release --dart-define-from-file=.env
+        run: flutter build web --release --dart-define-from-file=env/.env
 
       - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
