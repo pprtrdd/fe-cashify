@@ -20,13 +20,19 @@ jobs:
 
       - name: Restore Env Files from Secrets
         run: |
-          touch prod.env
-          touch dev.env
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            echo "${{ secrets.ENV_FILE_PROD }}" > .env
+            cat <<EOF > .env
+          ${{ secrets.ENV_FILE_PROD }}
+          EOF
           else
-            echo "${{ secrets.ENV_FILE_DEV }}" > .env
+            cat <<EOF > .env
+          ${{ secrets.ENV_FILE_DEV }}
+          EOF
           fi
+          
+          echo "Archivo .env creado exitosamente."
+          ls -lh .env
+          wc -l .env
 
       - name: Install Dependencies
         run: flutter pub get
