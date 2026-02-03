@@ -17,11 +17,11 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   try {
-    await dotenv.load(fileName: "env/.env");
-    print("DOTENV keys: ${dotenv.env.keys}");
+    // Cargamos desde la raíz directamente
+    await dotenv.load(fileName: ".env");
     print("Project ID: ${dotenv.env['FIREBASE_PROJECT_ID']}");
   } catch (e) {
-    print("Error cargando .env: $e");
+    print("Error crítico: $e");
   }
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);

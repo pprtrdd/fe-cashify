@@ -20,21 +20,19 @@ jobs:
 
       - name: Restore Env Files from Secrets
         run: |
-          mkdir -p env
-          touch env/prod.env
-          touch env/dev.env
-          
+          touch prod.env
+          touch dev.env
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            echo "${{ secrets.ENV_FILE_PROD }}" > env/.env
+            echo "${{ secrets.ENV_FILE_PROD }}" > .env
           else
-            echo "${{ secrets.ENV_FILE_DEV }}" > env/.env
+            echo "${{ secrets.ENV_FILE_DEV }}" > .env
           fi
 
       - name: Install Dependencies
         run: flutter pub get
 
       - name: Build Web
-        run: flutter build web --release
+        run: flutter build web --release --dart-define-from-file=.env
 
       - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
