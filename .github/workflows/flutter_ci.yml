@@ -23,6 +23,11 @@ jobs:
           mkdir -p env
           touch env/dev.env
           touch env/prod.env
+      
+      - name: Create dummy env file
+        run: |
+          mkdir -p env
+          touch env/.env
 
       - name: Get Dependencies
         run: flutter pub get
