@@ -21,10 +21,13 @@ jobs:
       - name: Restore Env Files from Secrets
         run: |
           mkdir -p env
+          touch env/prod.env
+          touch env/dev.env
+          
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            echo "${{ secrets.ENV_FILE_PROD }}" > env/prod.env
+            echo "${{ secrets.ENV_FILE_PROD }}" > env/.env
           else
-            echo "${{ secrets.ENV_FILE_DEV }}" > env/dev.env
+            echo "${{ secrets.ENV_FILE_DEV }}" > env/.env
           fi
 
       - name: Install Dependencies
