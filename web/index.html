@@ -102,7 +102,6 @@
   <script src="flutter_bootstrap.js" async></script>
 
   <script>
-    // Función para quitar el splash con efecto fade
     function removeSplash() {
       const loader = document.querySelector('#loading-indicator');
       if (loader) {
@@ -113,7 +112,6 @@
       }
     }
 
-    // Monitoreamos cuando Flutter está listo
     window.addEventListener('load', function () {
       _flutter.loader.load({
         onEntrypointLoaded: async function (engineInitializer) {
