@@ -40,7 +40,7 @@ class MovementProvider extends ChangeNotifier {
 
   String _searchQuery = "";
   int _currentPage = 1;
-  final int _pageSize = 20;
+  final int _pageSize = 10;
 
   String? _filterCategoryId;
   String? _filterPaymentMethodId;

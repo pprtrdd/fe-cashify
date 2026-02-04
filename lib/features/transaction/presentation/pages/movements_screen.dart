@@ -50,7 +50,6 @@ class _MovementHistoryScreenState extends State<MovementHistoryScreen> {
         children: [
           _buildSearchBar(context),
           _buildFilterBar(context),
-          const Divider(height: 1),
           Expanded(
             child: Consumer<MovementProvider>(
               builder: (context, provider, child) {
@@ -65,15 +64,15 @@ class _MovementHistoryScreenState extends State<MovementHistoryScreen> {
                 }
 
                 return ListView.builder(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
+                  padding: const EdgeInsets.only(top: 8, bottom: 16),
                   itemCount: movements.length + (hasMore ? 1 : 0),
                   itemBuilder: (context, index) {
                     if (index == movements.length) {
                       return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 24,
+                          horizontal: 16,
+                        ),
                         child: Center(
                           child: TextButton.icon(
                             onPressed: () => provider.loadNextPage(),
@@ -97,6 +96,12 @@ class _MovementHistoryScreenState extends State<MovementHistoryScreen> {
                     return CompactMovementRow(
                       movement: movement,
                       provider: provider,
+                      showStatusIcon: true,
+                      actions: const [
+                        MovementAction.edit,
+                        MovementAction.copy,
+                        MovementAction.delete,
+                      ],
                     );
                   },
                 );
@@ -135,7 +140,7 @@ class _MovementHistoryScreenState extends State<MovementHistoryScreen> {
       builder: (context, provider, child) {
         return SingleChildScrollView(
           scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
           child: Row(
             children: [
               _FilterChip(

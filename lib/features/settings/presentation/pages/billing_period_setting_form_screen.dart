@@ -68,7 +68,13 @@ class BillingPeriodSettingFormState extends State<BillingPeriodSettingForm> {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -103,12 +109,12 @@ class BillingPeriodSettingFormState extends State<BillingPeriodSettingForm> {
             ),
             _buildPeriodPreview(),
             const SizedBox(height: 8),
-            Text(
+            const Text(
               "Ejemplo: Si tu tarjeta corta el 24, inicia el 24 y termina el 23.",
               style: TextStyle(fontSize: 11, color: AppColors.textFaded),
             ),
           ] else ...[
-            Text(
+            const Text(
               "Los movimientos se agruparán automáticamente por mes calendario (del 1 al 30/31).",
               style: TextStyle(fontSize: 13, color: AppColors.textLight),
             ),
@@ -144,6 +150,16 @@ class BillingPeriodSettingFormState extends State<BillingPeriodSettingForm> {
           decoration: BoxDecoration(
             color: isSelected ? AppColors.primary : AppColors.transparent,
             borderRadius: BorderRadius.circular(10),
+            // Sombra sutil solo si está seleccionado
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: AppColors.primary.withValues(alpha: 0.2),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
           ),
           child: Text(
             label,
@@ -185,17 +201,20 @@ class BillingPeriodSettingFormState extends State<BillingPeriodSettingForm> {
       ),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(fontSize: 12, color: AppColors.textLight),
+        labelStyle: const TextStyle(fontSize: 12, color: AppColors.textLight),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 12,
         ),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        filled: true,
+        fillColor: AppColors.background,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: AppColors.border.withValues(alpha: 0.5),
-          ),
+          borderSide: BorderSide.none,
         ),
       ),
     );
@@ -300,14 +319,14 @@ class _PreviewBox extends StatelessWidget {
       margin: const EdgeInsets.only(top: 16),
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
+        boxShadow: [BoxShadow(color: color.withValues(alpha: 0.15))],
       ),
       child: Row(
         children: [
           Icon(Icons.info_outline, size: 16, color: color),
-          const SizedBox(width: 8),
+          const SizedBox(width: 10),
           Expanded(
             child: Text(
               text,
@@ -336,8 +355,10 @@ class _SaveButton extends StatelessWidget {
       onPressed: isSaving ? null : onPressed,
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.fieldFill,
         padding: const EdgeInsets.symmetric(vertical: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        elevation: 2,
       ),
       child: isSaving
           ? const SizedBox(
@@ -350,7 +371,7 @@ class _SaveButton extends StatelessWidget {
             )
           : const Text(
               "GUARDAR CAMBIOS",
-              style: TextStyle(color: AppColors.fieldFill),
+              style: TextStyle(fontWeight: FontWeight.bold),
             ),
     );
   }

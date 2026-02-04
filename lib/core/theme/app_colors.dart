@@ -31,6 +31,7 @@ class AppColors {
   static const Color divider = Color(0xFFBDBDBD);
   static const Color border = Color(0xFF9E9E9E);
   static const Color fieldFill = Color(0xFFE3E6E8);
+  static const Color shadow = Color(0xFF000000);
 
   // --- MISC ---
   static const Color github = Color(0xFF24292E);

@@ -245,19 +245,9 @@ class _PeriodSelector extends StatelessWidget {
             ),
             filled: true,
             fillColor: AppColors.primary.withValues(alpha: 0.05),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: AppColors.primary,
-                width: 0.5,
-              ),
-            ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: AppColors.primary.withValues(alpha: 0.3),
-                width: 0.5,
-              ),
+              borderSide: BorderSide.none,
             ),
             prefixIcon: const Icon(
               Icons.remove_red_eye_outlined,
@@ -289,7 +279,7 @@ class _MovementsItem extends StatelessWidget {
       builder: (context, provider, child) {
         return _DrawerItem(
           icon: Icons.history,
-          label: "Movimientos",
+          label: "Historial",
           iconColor: AppColors.success,
           onTap: () {
             Navigator.pop(context);
@@ -314,11 +304,16 @@ class _PendingMovementsItem extends StatelessWidget {
         final pendingCount = provider.movements
             .where((m) => !m.isCompleted)
             .length;
+
+        // Solo aplicamos negrita si hay elementos pendientes
+        final bool hasPending = pendingCount > 0;
+
         return _DrawerItem(
           icon: Icons.pending_actions,
-          label: "Movimientos Pendientes",
+          label: "Pendientes",
+          isBold: hasPending, // Pasamos la condición
           iconColor: AppColors.warning,
-          trailing: pendingCount > 0
+          trailing: hasPending
               ? Badge(
                   backgroundColor: AppColors.notification,
                   label: Text(
@@ -347,6 +342,7 @@ class _DrawerItem extends StatelessWidget {
   final Color? iconColor;
   final Color? textColor;
   final Widget? trailing;
+  final bool? isBold; // Nueva propiedad opcional
 
   const _DrawerItem({
     required this.icon,
@@ -355,6 +351,7 @@ class _DrawerItem extends StatelessWidget {
     this.iconColor,
     this.textColor,
     this.trailing,
+    this.isBold, // Inicializada aquí
   });
 
   @override
@@ -366,12 +363,7 @@ class _DrawerItem extends StatelessWidget {
         style: TextStyle(
           color: textColor ?? AppColors.textPrimary,
           fontSize: 15,
-          fontWeight:
-              (textColor != null ||
-                  iconColor == AppColors.primary ||
-                  iconColor == AppColors.warning)
-              ? FontWeight.bold
-              : FontWeight.w500,
+          fontWeight: isBold == true ? FontWeight.bold : FontWeight.w500,
         ),
       ),
       trailing: trailing,
