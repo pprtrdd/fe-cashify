@@ -6,4 +6,13 @@ class BillingPeriodUtils {
     }
     return "${date.year}_${date.month}";
   }
+
+  static DateTime getDateFromId(String id) {
+    try {
+      final parts = id.split('_');
+      return DateTime(int.parse(parts[0]), int.parse(parts[1]));
+    } catch (e) {
+      return DateTime.now();
+    }
+  }
 }
