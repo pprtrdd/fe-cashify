@@ -319,7 +319,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
       ),
       builder: (context) => MonthYearPickerSheet(
         initialDate: _selectedDate,
-        onDateChanged: (DateTime newDate) {
+        onDateSelected: (DateTime newDate) {
           setState(() {
             _selectedDate = newDate;
             _updateBillingPeriodTextField(newDate);
