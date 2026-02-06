@@ -249,14 +249,39 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
   }
 
   Widget _buildPaymentMethodDropdown(MovementProvider provider) {
-    return DropdownButtonFormField<String>(
-      initialValue: _selectedPaymentMethod,
-      decoration: _inputStyle("Método de Pago", Icons.payment),
-      items: provider.paymentMethods
-          .map((m) => DropdownMenuItem(value: m.id, child: Text(m.name)))
-          .toList(),
-      onChanged: (val) => setState(() => _selectedPaymentMethod = val),
-      validator: (v) => v == null ? "Requerido" : null,
+    return Stack(
+      children: [
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 25,
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.shadow.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+          ),
+        ),
+        DropdownButtonFormField<String>(
+          initialValue: _selectedPaymentMethod,
+          decoration: _inputStyle("Método de Pago", Icons.payment),
+          items: provider.paymentMethods
+              .map((m) => DropdownMenuItem(value: m.id, child: Text(m.name)))
+              .toList(),
+          onChanged: (val) => setState(() => _selectedPaymentMethod = val),
+          validator: (v) => v == null ? "Requerido" : null,
+          borderRadius: BorderRadius.circular(16),
+          dropdownColor: AppColors.surface,
+        ),
+      ],
     );
   }
 
@@ -268,11 +293,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
             ? AppColors.success.withAlpha(20)
             : AppColors.warning.withAlpha(20),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: _isCompleted
-              ? AppColors.success.withAlpha(50)
-              : AppColors.warning.withAlpha(50),
-        ),
+        boxShadow: [BoxShadow(color: AppColors.shadow.withValues(alpha: 0.05))],
       ),
       child: SwitchListTile(
         activeThumbColor: AppColors.success,
@@ -297,17 +318,12 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
     return InputDecoration(
       labelText: label,
       prefixIcon: Icon(icon, color: AppColors.primary),
-      filled: true,
-      fillColor: AppColors.surface,
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: AppColors.border.withValues(alpha: 120)),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.primary, width: 2),
-      ),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      filled: false,
+      helperText: ' ',
+      border: InputBorder.none,
+      enabledBorder: InputBorder.none,
+      focusedBorder: InputBorder.none,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
     );
   }
 

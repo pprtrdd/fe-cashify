@@ -29,50 +29,65 @@ class CustomTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
-      controller: controller,
-      keyboardType: isNumeric
-          ? const TextInputType.numberWithOptions(decimal: true)
-          : TextInputType.text,
-      readOnly: readOnly,
-      onTap: onTap,
-      maxLines: maxLines,
-      style: const TextStyle(color: AppColors.textPrimary),
-      validator: (value) {
-        if (!isRequired && (value == null || value.isEmpty)) return null;
-        if (isRequired && (value == null || value.isEmpty)) {
-          return "Campo requerido";
-        }
-        if (isNumeric && value != null && value.isNotEmpty) {
-          if (double.tryParse(value.replaceAll(',', '.')) == null) {
-            return "Número inválido";
-          }
-        }
-        return validator?.call(value);
-      },
-      decoration: InputDecoration(
-        labelText: isRequired ? label : "$label (Opcional)",
-        labelStyle: TextStyle(color: AppColors.textLight),
-        prefixIcon: Icon(icon, color: AppColors.primary),
-        filled: true,
-        fillColor: AppColors.fieldFill,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: AppColors.border),
+    return Stack(
+      children: [
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 25,
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.shadow.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+          ),
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: AppColors.border),
+        TextFormField(
+          controller: controller,
+          keyboardType: isNumeric
+              ? const TextInputType.numberWithOptions(decimal: true)
+              : TextInputType.text,
+          readOnly: readOnly,
+          onTap: onTap,
+          maxLines: maxLines,
+          style: const TextStyle(color: AppColors.textPrimary),
+          validator: (value) {
+            if (!isRequired && (value == null || value.isEmpty)) return null;
+            if (isRequired && (value == null || value.isEmpty)) {
+              return "Campo requerido";
+            }
+            if (isNumeric && value != null && value.isNotEmpty) {
+              if (double.tryParse(value.replaceAll(',', '.')) == null) {
+                return "Número inválido";
+              }
+            }
+            return validator?.call(value);
+          },
+          decoration: InputDecoration(
+            labelText: isRequired ? label : "$label (Opcional)",
+            labelStyle: TextStyle(color: AppColors.textLight),
+            prefixIcon: Icon(icon, color: AppColors.primary),
+            filled: false,
+            helperText: ' ',
+            border: InputBorder.none,
+            enabledBorder: InputBorder.none,
+            focusedBorder: InputBorder.none,
+            errorBorder: InputBorder.none,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
+            ),
+          ),
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: accentColor, width: 2),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: AppColors.danger),
-        ),
-      ),
+      ],
     );
   }
 }
