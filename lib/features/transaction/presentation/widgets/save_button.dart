@@ -36,9 +36,19 @@ class SaveButton extends StatelessWidget {
                 ),
               ),
             )
-          : SizedBox(
+          : Container(
               key: const ValueKey('button-state'),
               width: double.infinity,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.shadow.withValues(alpha: 0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
               child: ElevatedButton.icon(
                 onPressed: onPressed,
                 icon: const Icon(

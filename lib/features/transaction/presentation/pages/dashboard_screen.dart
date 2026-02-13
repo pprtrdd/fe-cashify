@@ -1,8 +1,8 @@
 import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/core/utils/billing_period_utils.dart';
 import 'package:cashify/core/utils/formatters.dart';
-import 'package:cashify/features/configuration/presentation/providers/settings_provider.dart';
-import 'package:cashify/features/shared/helpers/ui_helpers.dart';
+import 'package:cashify/features/settings/presentation/providers/settings_provider.dart';
+import 'package:cashify/features/shared/helpers/ui_helper.dart';
 import 'package:cashify/features/shared/widgets/custom_drawer.dart';
 import 'package:cashify/features/transaction/presentation/pages/movement_form_screen.dart';
 import 'package:cashify/features/transaction/presentation/pages/pending_movements_screen.dart';
@@ -113,7 +113,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   const SizedBox(height: 24),
                   _CategoryTableBox(
-                    title: "GASTOS PLANEADOS",
+                    title: "PRESUPUESTADO",
                     icon: Icons.list_alt_rounded,
                     data: provider.plannedGrouped,
                     totalSection: provider.plannedTotal,
@@ -121,7 +121,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   const SizedBox(height: 20),
                   if (provider.hasExtraCategories)
                     _CategoryTableBox(
-                      title: "GASTOS EXTRAS",
+                      title: "IMPRESVISTO",
                       icon: Icons.auto_awesome_outlined,
                       data: provider.extraGrouped,
                       totalSection: provider.totalExtra,
@@ -209,7 +209,13 @@ class _CategoryTableBox extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadow.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -387,7 +393,13 @@ class _MiniInfoCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.shadow.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Column(
           children: [

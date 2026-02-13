@@ -1,7 +1,7 @@
 import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/core/utils/billing_period_utils.dart';
-import 'package:cashify/features/configuration/presentation/providers/settings_provider.dart';
-import 'package:cashify/features/shared/helpers/ui_helpers.dart';
+import 'package:cashify/features/settings/presentation/providers/settings_provider.dart';
+import 'package:cashify/features/shared/helpers/ui_helper.dart';
 import 'package:cashify/features/transaction/domain/entities/movement_entity.dart';
 import 'package:cashify/features/transaction/presentation/providers/billing_period_provider.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
@@ -131,63 +131,85 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
       ),
       body: Consumer<MovementProvider>(
         builder: (context, provider, child) {
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(20.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  CategoryDropdownField(
-                    value: _selectedCategory,
-                    provider: provider,
-                    onChanged: (val) => setState(() => _selectedCategory = val),
+          return Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        CategoryDropdownField(
+                          value: _selectedCategory,
+                          provider: provider,
+                          onChanged: (val) =>
+                              setState(() => _selectedCategory = val),
+                        ),
+                        const SizedBox(height: 15),
+                        CustomTextField(
+                          controller: _descController,
+                          label: "Descripción",
+                          icon: Icons.description,
+                        ),
+                        const SizedBox(height: 15),
+                        CustomTextField(
+                          controller: _sourceController,
+                          label: "Origen",
+                          icon: Icons.source,
+                          isRequired: false,
+                        ),
+                        const SizedBox(height: 15),
+                        _buildMoneySection(),
+                        const SizedBox(height: 15),
+                        _buildInstallmentsSection(),
+                        const SizedBox(height: 15),
+                        _buildPaymentMethodDropdown(provider),
+                        const SizedBox(height: 15),
+                        CustomTextField(
+                          controller: _billingPeriodController,
+                          label: "Asignar a Período",
+                          icon: Icons.calendar_today,
+                          readOnly: true,
+                          onTap: () => _selectPeriod(context),
+                        ),
+                        const SizedBox(height: 15),
+                        CustomTextField(
+                          controller: _notesController,
+                          label: "Notas",
+                          icon: Icons.note_add,
+                          maxLines: 3,
+                          isRequired: false,
+                        ),
+                        const SizedBox(height: 20),
+                        _buildStatusSwitch(),
+                        const SizedBox(height: 30),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 15),
-                  CustomTextField(
-                    controller: _descController,
-                    label: "Descripción",
-                    icon: Icons.description,
-                  ),
-                  const SizedBox(height: 15),
-                  CustomTextField(
-                    controller: _sourceController,
-                    label: "Origen",
-                    icon: Icons.source,
-                    isRequired: false,
-                  ),
-                  const SizedBox(height: 15),
-                  _buildMoneySection(),
-                  const SizedBox(height: 15),
-                  _buildInstallmentsSection(),
-                  const SizedBox(height: 15),
-                  _buildPaymentMethodDropdown(provider),
-                  const SizedBox(height: 15),
-                  CustomTextField(
-                    controller: _billingPeriodController,
-                    label: "Asignar a Período",
-                    icon: Icons.calendar_today,
-                    readOnly: true,
-                    onTap: () => _selectPeriod(context),
-                  ),
-                  const SizedBox(height: 15),
-                  CustomTextField(
-                    controller: _notesController,
-                    label: "Notas",
-                    icon: Icons.note_add,
-                    maxLines: 3,
-                    isRequired: false,
-                  ),
-                  const SizedBox(height: 20),
-                  _buildStatusSwitch(),
-                  const SizedBox(height: 30),
-                  SaveButton(
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.shadow.withValues(alpha: 0.1),
+                      offset: const Offset(0, -4),
+                      blurRadius: 10,
+                    ),
+                  ],
+                ),
+                child: SafeArea(
+                  child: SaveButton(
                     isLoading: provider.isLoading,
                     onPressed: () => _save(context),
                   ),
-                ],
+                ),
               ),
-            ),
+            ],
           );
         },
       ),
@@ -249,14 +271,39 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
   }
 
   Widget _buildPaymentMethodDropdown(MovementProvider provider) {
-    return DropdownButtonFormField<String>(
-      initialValue: _selectedPaymentMethod,
-      decoration: _inputStyle("Método de Pago", Icons.payment),
-      items: provider.paymentMethods
-          .map((m) => DropdownMenuItem(value: m.id, child: Text(m.name)))
-          .toList(),
-      onChanged: (val) => setState(() => _selectedPaymentMethod = val),
-      validator: (v) => v == null ? "Requerido" : null,
+    return Stack(
+      children: [
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 25,
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.shadow.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+          ),
+        ),
+        DropdownButtonFormField<String>(
+          initialValue: _selectedPaymentMethod,
+          decoration: _inputStyle("Método de Pago", Icons.payment),
+          items: provider.paymentMethods
+              .map((m) => DropdownMenuItem(value: m.id, child: Text(m.name)))
+              .toList(),
+          onChanged: (val) => setState(() => _selectedPaymentMethod = val),
+          validator: (v) => v == null ? "Requerido" : null,
+          borderRadius: BorderRadius.circular(16),
+          dropdownColor: AppColors.surface,
+        ),
+      ],
     );
   }
 
@@ -268,11 +315,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
             ? AppColors.success.withAlpha(20)
             : AppColors.warning.withAlpha(20),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: _isCompleted
-              ? AppColors.success.withAlpha(50)
-              : AppColors.warning.withAlpha(50),
-        ),
+        boxShadow: [BoxShadow(color: AppColors.shadow.withValues(alpha: 0.05))],
       ),
       child: SwitchListTile(
         activeThumbColor: AppColors.success,
@@ -297,17 +340,12 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
     return InputDecoration(
       labelText: label,
       prefixIcon: Icon(icon, color: AppColors.primary),
-      filled: true,
-      fillColor: AppColors.surface,
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: AppColors.border.withValues(alpha: 120)),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.primary, width: 2),
-      ),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      filled: false,
+      helperText: ' ',
+      border: InputBorder.none,
+      enabledBorder: InputBorder.none,
+      focusedBorder: InputBorder.none,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
     );
   }
 
@@ -319,7 +357,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
       ),
       builder: (context) => MonthYearPickerSheet(
         initialDate: _selectedDate,
-        onDateChanged: (DateTime newDate) {
+        onDateSelected: (DateTime newDate) {
           setState(() {
             _selectedDate = newDate;
             _updateBillingPeriodTextField(newDate);

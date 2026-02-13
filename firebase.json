@@ -1,51 +1,27 @@
 {
-    "flutter": {
-        "platforms": {
-            "dart": {
-                "lib/firebase_options.dart": {
-                    "projectId": "cashify-1d873",
-                    "configurations": {
-                        "web": "1:222552117534:web:ba3b0c8c39abe86d9cf90f"
-                    }
-                },
-                "lib/firebase_options_dev.dart": {
-                    "projectId": "cashify-dev-6c385",
-                    "configurations": {
-                        "web": "1:1055761016182:web:54ac2165e28e363b02c657"
-                    }
-                }
-            }
-        }
-    },
-    "hosting": [
-        {
-            "target": "development",
-            "public": "build/web",
-            "ignore": [
-                "firebase.json",
-                "**/node_modules/**"
-            ],
-            "rewrites": [
-                {
-                    "source": "**",
-                    "destination": "/index.html"
-                }
-            ]
-        },
-        {
-            "target": "production",
-            "public": "build/web",
-            "ignore": [
-                "firebase.json",
-                "**/.*",
-                "**/node_modules/**"
-            ],
-            "rewrites": [
-                {
-                    "source": "**",
-                    "destination": "/index.html"
-                }
-            ]
-        }
+  "hosting": {
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
     ]
+  },
+  "functions": {
+    "source": "functions",
+    "codebase": "default",
+    "ignore": [
+      "node_modules",
+      ".git",
+      "firebase-debug.log",
+      "firestore-debug.log",
+      "ui-debug.log"
+    ]
+  }
 }

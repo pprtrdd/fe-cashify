@@ -1,7 +1,8 @@
 {
   "projects": {
     "development": "cashify-dev-6c385",
-    "production": "cashify-1d873"
+    "production": "cashify-1d873",
+    "default": "cashify-dev-6c385"
   },
   "targets": {
     "cashify-1d873": {

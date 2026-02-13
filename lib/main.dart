@@ -1,24 +1,23 @@
+import 'package:cashify/core/app_config/presentation/providers/app_config_provider.dart';
 import 'package:cashify/core/auth/auth_wrapper.dart';
 import 'package:cashify/core/theme/app_colors.dart';
-import 'package:cashify/features/configuration/presentation/providers/settings_provider.dart';
+import 'package:cashify/features/settings/presentation/providers/settings_provider.dart';
 import 'package:cashify/features/transaction/presentation/providers/billing_period_provider.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
+import 'package:cashify/features/user_config/presentation/providers/user_config_provider.dart';
+import 'package:cashify/firebase_options.dart';
 import 'package:cashify/injection_container.dart' as di;
 import 'package:cashify/injection_container.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 
-Future<void> startApp({
-  required FirebaseOptions firebaseOptions,
-  required String envFile,
-}) async {
-  if (!dotenv.isInitialized) {
-    await dotenv.load(fileName: envFile);
-  }
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp(options: firebaseOptions);
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await initializeDateFormatting('es_CL', null);
   await di.init();
 
   runApp(
@@ -31,6 +30,10 @@ Future<void> startApp({
         ChangeNotifierProvider(
           create: (_) => sl<BillingPeriodProvider>()..loadPeriods(),
         ),
+        ChangeNotifierProvider(
+          create: (_) => sl<AppConfigProvider>()..loadAppConfig(),
+        ),
+        ChangeNotifierProvider(create: (_) => sl<UserConfigProvider>()),
       ],
       child: const MainApp(),
     ),

@@ -2,15 +2,28 @@ import 'package:cashify/core/theme/app_colors.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-class MonthYearPickerSheet extends StatelessWidget {
+class MonthYearPickerSheet extends StatefulWidget {
   final DateTime initialDate;
-  final Function(DateTime) onDateChanged;
+  final Function(DateTime) onDateSelected;
 
   const MonthYearPickerSheet({
     super.key,
     required this.initialDate,
-    required this.onDateChanged,
+    required this.onDateSelected,
   });
+
+  @override
+  State<MonthYearPickerSheet> createState() => _MonthYearPickerSheetState();
+}
+
+class _MonthYearPickerSheetState extends State<MonthYearPickerSheet> {
+  late DateTime _tempSelectedDate;
+
+  @override
+  void initState() {
+    super.initState();
+    _tempSelectedDate = widget.initialDate;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +52,10 @@ class MonthYearPickerSheet extends StatelessWidget {
                   ),
                 ),
                 TextButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () {
+                    widget.onDateSelected(_tempSelectedDate);
+                    Navigator.pop(context);
+                  },
                   child: const Text(
                     "Aceptar",
                     style: TextStyle(
@@ -63,10 +79,14 @@ class MonthYearPickerSheet extends StatelessWidget {
               ),
               child: CupertinoDatePicker(
                 mode: CupertinoDatePickerMode.monthYear,
-                initialDateTime: initialDate,
+                initialDateTime: widget.initialDate,
                 minimumDate: DateTime(2000),
                 maximumDate: DateTime(2100),
-                onDateTimeChanged: onDateChanged,
+                onDateTimeChanged: (DateTime newDate) {
+                  setState(() {
+                    _tempSelectedDate = newDate;
+                  });
+                },
               ),
             ),
           ),

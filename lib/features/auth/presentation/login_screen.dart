@@ -1,32 +1,28 @@
-import 'package:cashify/core/auth/auth_service.dart';
+import 'package:cashify/features/user_config/presentation/providers/user_config_provider.dart';
 import 'package:cashify/core/theme/app_colors.dart';
-import 'package:cashify/features/shared/helpers/ui_helpers.dart';
+import 'package:cashify/features/shared/helpers/ui_helper.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
 
-  @override
-  State<LoginScreen> createState() => _LoginScreenState();
-}
-
-class _LoginScreenState extends State<LoginScreen> {
-  bool _isLoading = false;
-
-  Future<void> _handleLogin() async {
-    setState(() => _isLoading = true);
+  Future<void> _handleLogin(
+    BuildContext context,
+    UserConfigProvider provider,
+  ) async {
     try {
-      await AuthService().signInWithGoogle();
+      await provider.signInWithGoogle();
     } catch (e) {
-      if (!mounted) return;
+      if (!context.mounted) return;
       context.showErrorSnackBar("Error al iniciar sesión: $e");
-    } finally {
-      setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<UserConfigProvider>();
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Center(
@@ -35,7 +31,10 @@ class _LoginScreenState extends State<LoginScreen> {
           children: [
             const _AppLogo(),
             const SizedBox(height: 40),
-            _LoginButton(isLoading: _isLoading, onPressed: _handleLogin),
+            _LoginButton(
+              isLoading: authProvider.isLoading,
+              onPressed: () => _handleLogin(context, authProvider),
+            ),
           ],
         ),
       ),
@@ -74,7 +73,7 @@ class _LoginButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return const CircularProgressIndicator();
+      return const CircularProgressIndicator(color: AppColors.primary);
     }
 
     return ElevatedButton.icon(
