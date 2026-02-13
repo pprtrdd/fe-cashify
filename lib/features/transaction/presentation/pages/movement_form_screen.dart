@@ -131,63 +131,85 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
       ),
       body: Consumer<MovementProvider>(
         builder: (context, provider, child) {
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(20.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  CategoryDropdownField(
-                    value: _selectedCategory,
-                    provider: provider,
-                    onChanged: (val) => setState(() => _selectedCategory = val),
+          return Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        CategoryDropdownField(
+                          value: _selectedCategory,
+                          provider: provider,
+                          onChanged: (val) =>
+                              setState(() => _selectedCategory = val),
+                        ),
+                        const SizedBox(height: 15),
+                        CustomTextField(
+                          controller: _descController,
+                          label: "Descripción",
+                          icon: Icons.description,
+                        ),
+                        const SizedBox(height: 15),
+                        CustomTextField(
+                          controller: _sourceController,
+                          label: "Origen",
+                          icon: Icons.source,
+                          isRequired: false,
+                        ),
+                        const SizedBox(height: 15),
+                        _buildMoneySection(),
+                        const SizedBox(height: 15),
+                        _buildInstallmentsSection(),
+                        const SizedBox(height: 15),
+                        _buildPaymentMethodDropdown(provider),
+                        const SizedBox(height: 15),
+                        CustomTextField(
+                          controller: _billingPeriodController,
+                          label: "Asignar a Período",
+                          icon: Icons.calendar_today,
+                          readOnly: true,
+                          onTap: () => _selectPeriod(context),
+                        ),
+                        const SizedBox(height: 15),
+                        CustomTextField(
+                          controller: _notesController,
+                          label: "Notas",
+                          icon: Icons.note_add,
+                          maxLines: 3,
+                          isRequired: false,
+                        ),
+                        const SizedBox(height: 20),
+                        _buildStatusSwitch(),
+                        const SizedBox(height: 30),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 15),
-                  CustomTextField(
-                    controller: _descController,
-                    label: "Descripción",
-                    icon: Icons.description,
-                  ),
-                  const SizedBox(height: 15),
-                  CustomTextField(
-                    controller: _sourceController,
-                    label: "Origen",
-                    icon: Icons.source,
-                    isRequired: false,
-                  ),
-                  const SizedBox(height: 15),
-                  _buildMoneySection(),
-                  const SizedBox(height: 15),
-                  _buildInstallmentsSection(),
-                  const SizedBox(height: 15),
-                  _buildPaymentMethodDropdown(provider),
-                  const SizedBox(height: 15),
-                  CustomTextField(
-                    controller: _billingPeriodController,
-                    label: "Asignar a Período",
-                    icon: Icons.calendar_today,
-                    readOnly: true,
-                    onTap: () => _selectPeriod(context),
-                  ),
-                  const SizedBox(height: 15),
-                  CustomTextField(
-                    controller: _notesController,
-                    label: "Notas",
-                    icon: Icons.note_add,
-                    maxLines: 3,
-                    isRequired: false,
-                  ),
-                  const SizedBox(height: 20),
-                  _buildStatusSwitch(),
-                  const SizedBox(height: 30),
-                  SaveButton(
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.shadow.withValues(alpha: 0.1),
+                      offset: const Offset(0, -4),
+                      blurRadius: 10,
+                    ),
+                  ],
+                ),
+                child: SafeArea(
+                  child: SaveButton(
                     isLoading: provider.isLoading,
                     onPressed: () => _save(context),
                   ),
-                ],
+                ),
               ),
-            ),
+            ],
           );
         },
       ),
