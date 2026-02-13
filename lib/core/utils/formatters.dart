@@ -11,4 +11,12 @@ class Formatters {
     final String sign = amount < 0 ? '-' : '';
     return '$sign\$${currency(amount)}';
   }
+
+  static String date(DateTime date) {
+    return DateFormat.yMd(_locale).format(date);
+  }
+
+  static String monthYear(DateTime date) {
+    return DateFormat.yMMMM(_locale).format(date);
+  }
 }

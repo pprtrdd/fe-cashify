@@ -144,10 +144,6 @@ class _CategoryGroupState extends State<_CategoryGroup> {
                 movement: m,
                 provider: widget.provider,
                 showStatusIcon: false,
-                actions: const [
-                  MovementAction.complete,
-                  MovementAction.delete,
-                ],
               );
             }).toList(),
           ),

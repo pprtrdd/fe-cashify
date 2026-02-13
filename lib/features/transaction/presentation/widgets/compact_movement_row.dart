@@ -2,24 +2,19 @@ import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/core/utils/formatters.dart';
 import 'package:cashify/features/transaction/domain/entities/movement_entity.dart';
 import 'package:cashify/features/transaction/presentation/components/movement_dialogs.dart';
-import 'package:cashify/features/transaction/presentation/pages/movement_form_screen.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
 import 'package:flutter/material.dart';
-
-enum MovementAction { copy, delete, edit, complete }
 
 class CompactMovementRow extends StatelessWidget {
   final MovementEntity movement;
   final MovementProvider provider;
   final bool showStatusIcon;
-  final List<MovementAction> actions;
 
   const CompactMovementRow({
     super.key,
     required this.movement,
     required this.provider,
     this.showStatusIcon = true,
-    this.actions = const [],
   });
 
   @override
@@ -131,7 +126,6 @@ class CompactMovementRow extends StatelessWidget {
                   ),
                 ),
               ),
-              _buildPopupMenu(context),
             ],
           ),
         ),
@@ -139,79 +133,11 @@ class CompactMovementRow extends StatelessWidget {
     );
   }
 
-  Widget _buildPopupMenu(BuildContext context) {
-    if (actions.isEmpty) return const SizedBox.shrink();
-
-    return PopupMenuButton<MovementAction>(
-      icon: Icon(Icons.more_vert, size: 20, color: AppColors.textFaded),
-      onSelected: (action) {
-        switch (action) {
-          case MovementAction.complete:
-            MovementDialogs.showCompleteConfirmation(
-              context: context,
-              movement: movement,
-              provider: provider,
-            );
-            break;
-          case MovementAction.copy:
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => MovementFormScreen(
-                  movement: provider.prepareCopy(movement),
-                ),
-              ),
-            );
-            break;
-          case MovementAction.edit:
-            _handleEdit(context);
-            break;
-          case MovementAction.delete:
-            MovementDialogs.showDeleteConfirmation(
-              context: context,
-              movement: movement,
-              provider: provider,
-            );
-            break;
-        }
-      },
-      itemBuilder: (context) {
-        return actions.map((action) {
-          switch (action) {
-            case MovementAction.complete:
-              return PopupMenuItem(
-                value: MovementAction.complete,
-                enabled: !movement.isCompleted,
-                child: const Text('Completar'),
-              );
-            case MovementAction.copy:
-              return const PopupMenuItem(
-                value: MovementAction.copy,
-                child: Text('Copiar'),
-              );
-            case MovementAction.edit:
-              return const PopupMenuItem(
-                value: MovementAction.edit,
-                child: Text('Editar'),
-              );
-            case MovementAction.delete:
-              return const PopupMenuItem(
-                value: MovementAction.delete,
-                child: Text(
-                  'Eliminar',
-                  style: TextStyle(color: AppColors.expense),
-                ),
-              );
-          }
-        }).toList();
-      },
-    );
-  }
-
   void _handleEdit(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => MovementFormScreen(movement: movement)),
+    MovementDialogs.showDetail(
+      context: context,
+      movement: movement,
+      provider: provider,
     );
   }
 }

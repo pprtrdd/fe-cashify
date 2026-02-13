@@ -97,11 +97,6 @@ class _MovementHistoryScreenState extends State<MovementHistoryScreen> {
                       movement: movement,
                       provider: provider,
                       showStatusIcon: true,
-                      actions: const [
-                        MovementAction.edit,
-                        MovementAction.copy,
-                        MovementAction.delete,
-                      ],
                     );
                   },
                 );
