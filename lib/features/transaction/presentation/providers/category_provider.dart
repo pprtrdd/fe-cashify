@@ -87,4 +87,36 @@ class CategoryProvider extends ChangeNotifier {
       return false;
     }
   }
+
+  Future<bool> updateCategory({
+    required CategoryEntity category,
+    required String name,
+    required bool isExpense,
+    required bool isExtra,
+  }) async {
+    try {
+      await categoryUsecases.update(
+        id: category.id,
+        name: name,
+        isExpense: isExpense,
+        isExtra: isExtra,
+      );
+
+      final index = _categories.indexWhere((c) => c.id == category.id);
+      if (index != -1) {
+        _categories[index] = category.copyWith(
+          name: name,
+          isExpense: isExpense,
+          isExtra: isExtra,
+        );
+        _categories.sort((a, b) => a.name.compareTo(b.name));
+        notifyListeners();
+      }
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
 }

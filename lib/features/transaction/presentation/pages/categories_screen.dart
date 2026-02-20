@@ -74,39 +74,39 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             );
           }
 
-          final expenses = provider.categories
-              .where((c) => c.isExpense)
-              .toList();
-          final incomes = provider.categories
-              .where((c) => !c.isExpense)
+          final planned = provider.categories.where((c) => !c.isExtra).toList();
+          final unforeseen = provider.categories
+              .where((c) => c.isExtra)
               .toList();
 
           return ListView(
             padding: const EdgeInsets.symmetric(vertical: 12),
             children: [
-              if (expenses.isNotEmpty) ...[
+              if (planned.isNotEmpty) ...[
                 _SectionHeader(
-                  label: 'Gastos',
-                  color: AppColors.expense,
-                  icon: Icons.arrow_upward_rounded,
+                  label: 'Planificados',
+                  color: AppColors.primary,
+                  icon: Icons.calendar_today_rounded,
                 ),
-                ...expenses.map(
+                ...planned.map(
                   (c) => _CategoryTile(
                     category: c,
+                    onTap: () => _showAddSheet(context, categoryToEdit: c),
                     onDelete: () => _onDelete(context, c, provider),
                   ),
                 ),
                 const SizedBox(height: 8),
               ],
-              if (incomes.isNotEmpty) ...[
+              if (unforeseen.isNotEmpty) ...[
                 _SectionHeader(
-                  label: 'Ingresos',
-                  color: AppColors.income,
-                  icon: Icons.arrow_downward_rounded,
+                  label: 'Imprevistos',
+                  color: AppColors.warning,
+                  icon: Icons.flash_on_rounded,
                 ),
-                ...incomes.map(
+                ...unforeseen.map(
                   (c) => _CategoryTile(
                     category: c,
+                    onTap: () => _showAddSheet(context, categoryToEdit: c),
                     onDelete: () => _onDelete(context, c, provider),
                   ),
                 ),
@@ -222,14 +222,14 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     );
   }
 
-  void _showAddSheet(BuildContext context) {
+  void _showAddSheet(BuildContext context, {CategoryEntity? categoryToEdit}) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: AppColors.transparent,
       builder: (_) => ChangeNotifierProvider.value(
         value: context.read<CategoryProvider>(),
-        child: const _AddCategorySheet(),
+        child: _AddCategorySheet(categoryToEdit: categoryToEdit),
       ),
     );
   }
@@ -271,9 +271,14 @@ class _SectionHeader extends StatelessWidget {
 
 class _CategoryTile extends StatelessWidget {
   final CategoryEntity category;
+  final VoidCallback onTap;
   final VoidCallback onDelete;
 
-  const _CategoryTile({required this.category, required this.onDelete});
+  const _CategoryTile({
+    required this.category,
+    required this.onTap,
+    required this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -294,7 +299,7 @@ class _CategoryTile extends StatelessWidget {
         ],
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+        contentPadding: const EdgeInsets.only(left: 16, right: 8),
         leading: CircleAvatar(
           radius: 18,
           backgroundColor: color.withValues(alpha: 0.12),
@@ -315,17 +320,35 @@ class _CategoryTile extends StatelessWidget {
           ),
         ),
         subtitle: Text(
-          category.isExtra ? 'Imprevisto' : 'Presupuestado',
-          style: const TextStyle(
-            fontSize: 12,
-            color: AppColors.textPrimary,
+          category.isExpense ? 'GASTO' : 'INGRESO',
+          style: TextStyle(
+            fontSize: 11,
+            color: color,
             fontWeight: FontWeight.bold,
+            letterSpacing: 0.5,
           ),
         ),
-        trailing: IconButton(
-          icon: const Icon(Icons.delete_outline, color: AppColors.danger),
-          tooltip: 'Eliminar',
-          onPressed: onDelete,
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.edit_outlined, size: 20),
+              color: AppColors.textLight,
+              tooltip: 'Editar',
+              onPressed: onTap,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            ),
+            const SizedBox(width: 16),
+            IconButton(
+              icon: const Icon(Icons.delete_outline, size: 20),
+              color: AppColors.danger,
+              tooltip: 'Eliminar',
+              onPressed: onDelete,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            ),
+          ],
         ),
       ),
     );
@@ -333,7 +356,9 @@ class _CategoryTile extends StatelessWidget {
 }
 
 class _AddCategorySheet extends StatefulWidget {
-  const _AddCategorySheet();
+  final CategoryEntity? categoryToEdit;
+
+  const _AddCategorySheet({this.categoryToEdit});
 
   @override
   State<_AddCategorySheet> createState() => _AddCategorySheetState();
@@ -341,11 +366,20 @@ class _AddCategorySheet extends StatefulWidget {
 
 class _AddCategorySheetState extends State<_AddCategorySheet> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
+  late final TextEditingController _nameController;
 
-  bool _isExpense = true;
-  bool _isExtra = false;
+  late bool _isExpense;
+  late bool _isExtra;
   bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final category = widget.categoryToEdit;
+    _nameController = TextEditingController(text: category?.name ?? '');
+    _isExpense = category?.isExpense ?? true;
+    _isExtra = category?.isExtra ?? false;
+  }
 
   @override
   void dispose() {
@@ -356,6 +390,7 @@ class _AddCategorySheetState extends State<_AddCategorySheet> {
   @override
   Widget build(BuildContext context) {
     final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
+    final isEditing = widget.categoryToEdit != null;
 
     return Container(
       padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + bottomPadding),
@@ -380,9 +415,9 @@ class _AddCategorySheetState extends State<_AddCategorySheet> {
               ),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'Nueva categoría',
-              style: TextStyle(
+            Text(
+              isEditing ? 'Editar categoría' : 'Nueva categoría',
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textPrimary,
@@ -514,11 +549,12 @@ class _AddCategorySheetState extends State<_AddCategorySheet> {
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           color: AppColors.background,
+                          strokeCap: StrokeCap.round,
                         ),
                       )
-                    : const Text(
-                        'Guardar',
-                        style: TextStyle(
+                    : Text(
+                        isEditing ? 'Guardar cambios' : 'Guardar',
+                        style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
                         ),
@@ -536,11 +572,24 @@ class _AddCategorySheetState extends State<_AddCategorySheet> {
 
     setState(() => _isSaving = true);
     final provider = context.read<CategoryProvider>();
-    final success = await provider.addCategory(
-      name: _nameController.text.trim(),
-      isExpense: _isExpense,
-      isExtra: _isExtra,
-    );
+    final isEditing = widget.categoryToEdit != null;
+    final name = _nameController.text.trim();
+
+    final bool success;
+    if (isEditing) {
+      success = await provider.updateCategory(
+        category: widget.categoryToEdit!,
+        name: name,
+        isExpense: _isExpense,
+        isExtra: _isExtra,
+      );
+    } else {
+      success = await provider.addCategory(
+        name: name,
+        isExpense: _isExpense,
+        isExtra: _isExtra,
+      );
+    }
 
     if (!context.mounted) return;
     if (success) {
@@ -549,8 +598,12 @@ class _AddCategorySheetState extends State<_AddCategorySheet> {
     } else {
       setState(() => _isSaving = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Error al guardar la categoría'),
+        SnackBar(
+          content: Text(
+            isEditing
+                ? 'Error al actualizar la categoría'
+                : 'Error al guardar la categoría',
+          ),
           backgroundColor: AppColors.danger,
         ),
       );

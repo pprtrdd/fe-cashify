@@ -31,4 +31,16 @@ class CategoryUsecases {
     fromCategoryId: fromCategoryId,
     toCategoryId: toCategoryId,
   );
+
+  Future<void> update({
+    required String id,
+    required String name,
+    required bool isExpense,
+    required bool isExtra,
+  }) => repository.updateCategory(
+    id: id,
+    name: name,
+    isExpense: isExpense,
+    isExtra: isExtra,
+  );
 }

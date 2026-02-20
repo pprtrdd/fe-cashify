@@ -33,16 +33,21 @@ class CategoryRepository {
     required bool isExtra,
   }) async {
     try {
+      final now = DateTime.now();
       final doc = await _categoriesRef.add({
         'name': name,
         'isExpense': isExpense,
         'isExtra': isExtra,
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
       });
       return CategoryModel(
         id: doc.id,
         name: name,
         isExpense: isExpense,
         isExtra: isExtra,
+        createdAt: now,
+        updatedAt: now,
       );
     } catch (e) {
       rethrow;
@@ -88,6 +93,24 @@ class CategoryRepository {
       }
       batch.delete(_categoriesRef.doc(fromCategoryId));
       await batch.commit();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> updateCategory({
+    required String id,
+    required String name,
+    required bool isExpense,
+    required bool isExtra,
+  }) async {
+    try {
+      await _categoriesRef.doc(id).update({
+        'name': name,
+        'isExpense': isExpense,
+        'isExtra': isExtra,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
     } catch (e) {
       rethrow;
     }
