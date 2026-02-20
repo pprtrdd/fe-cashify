@@ -9,28 +9,85 @@ class CategoryRepository {
 
   CategoryRepository(this._firestore, this._auth);
 
-  CollectionReference? get _categoriesRef {
-    final uid = _auth.currentUser?.uid;
-    if (uid == null) throw Exception("Usuario no autenticado");
+  String get _currentUid =>
+      _auth.currentUser?.uid ?? (throw Exception("Usuario no autenticado"));
 
-    return _firestore.collection('users').doc(uid).collection('categories');
-  }
+  CollectionReference<Map<String, dynamic>> get _categoriesRef =>
+      _firestore.collection('users').doc(_currentUid).collection('categories');
 
   Future<List<CategoryEntity>> fetchCategories() async {
     try {
-      final ref = _categoriesRef;
-      if (ref == null) throw Exception('ref is null');
-      final snapshot = await ref.orderBy('name').get();
-
+      final snapshot = await _categoriesRef.orderBy('name').get();
       return snapshot.docs
-          .map((doc) {
-            return CategoryModel.fromFirestore(
-              doc.data() as Map<String, dynamic>,
-              doc.id,
-            );
-          })
+          .map((doc) => CategoryModel.fromFirestore(doc.data(), doc.id))
           .cast<CategoryEntity>()
           .toList();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<CategoryEntity> addCategory({
+    required String name,
+    required bool isExpense,
+    required bool isExtra,
+  }) async {
+    try {
+      final doc = await _categoriesRef.add({
+        'name': name,
+        'isExpense': isExpense,
+        'isExtra': isExtra,
+      });
+      return CategoryModel(
+        id: doc.id,
+        name: name,
+        isExpense: isExpense,
+        isExtra: isExtra,
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<bool> checkCategoryHasMovements(String categoryId) async {
+    try {
+      final snapshot = await _firestore
+          .collectionGroup('movements')
+          .where('userId', isEqualTo: _currentUid)
+          .where('categoryId', isEqualTo: categoryId)
+          .limit(1)
+          .get();
+      return snapshot.docs.isNotEmpty;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> deleteCategory(String categoryId) async {
+    try {
+      await _categoriesRef.doc(categoryId).delete();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> migrateMovementsAndDelete({
+    required String fromCategoryId,
+    required String toCategoryId,
+  }) async {
+    try {
+      final snapshot = await _firestore
+          .collectionGroup('movements')
+          .where('userId', isEqualTo: _currentUid)
+          .where('categoryId', isEqualTo: fromCategoryId)
+          .get();
+
+      final batch = _firestore.batch();
+      for (final doc in snapshot.docs) {
+        batch.update(doc.reference, {'categoryId': toCategoryId});
+      }
+      batch.delete(_categoriesRef.doc(fromCategoryId));
+      await batch.commit();
     } catch (e) {
       rethrow;
     }

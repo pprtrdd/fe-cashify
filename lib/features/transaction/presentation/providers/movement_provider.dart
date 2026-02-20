@@ -211,6 +211,12 @@ class MovementProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> refreshData() async {
+    if (_lastLoadedBillingPeriodId != null) {
+      await loadDataByBillingPeriod(_lastLoadedBillingPeriodId!);
+    }
+  }
+
   Future<void> createMovement(
     MovementEntity movement,
     String currentViewId,
