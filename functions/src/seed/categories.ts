@@ -70,8 +70,12 @@ export const migrateAllUserCategoriesFromTemplate = onRequest({ timeoutSeconds: 
 
             currentUserCats.forEach(doc => batch.delete(doc.ref));
             templateCategories.forEach(cat => {
-                const { id, ...data } = cat;
-                batch.set(userCatsRef.doc(id), data);
+                const { id, createdAt: _createdAt, updatedAt: _updatedAt, ...data } = cat;
+                batch.set(userCatsRef.doc(id), {
+                    ...data,
+                    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+                });
             });
 
             const periodsSnapshot = await db.collection("users").doc(uid).collection("billing_periods").get();
