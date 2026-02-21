@@ -55,7 +55,7 @@ export const migrateAllUserCategoriesFromTemplate = onRequest({ timeoutSeconds: 
 
         const templateCategories = templateSnapshot.docs.map(doc => ({
             id: doc.id,
-            ...doc.data()
+            data: doc.data() as admin.firestore.DocumentData,
         }));
 
         const usersSnapshot = await db.collection("users").get();
@@ -70,9 +70,9 @@ export const migrateAllUserCategoriesFromTemplate = onRequest({ timeoutSeconds: 
 
             currentUserCats.forEach(doc => batch.delete(doc.ref));
             templateCategories.forEach(cat => {
-                const { id, createdAt: _createdAt, updatedAt: _updatedAt, ...data } = cat;
-                batch.set(userCatsRef.doc(id), {
-                    ...data,
+                const { createdAt: _c, updatedAt: _u, ...rest } = cat.data;
+                batch.set(userCatsRef.doc(cat.id), {
+                    ...rest,
                     createdAt: admin.firestore.FieldValue.serverTimestamp(),
                     updatedAt: admin.firestore.FieldValue.serverTimestamp(),
                 });
