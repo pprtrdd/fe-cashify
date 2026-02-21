@@ -58,7 +58,7 @@ class CustomTextField extends FormField<String> {
                    border: Border.all(
                      color: state.hasError && state.isErrorVisible
                          ? AppColors.danger
-                         : Colors.transparent,
+                         : AppColors.transparent,
                      width: 1.0,
                    ),
                  ),

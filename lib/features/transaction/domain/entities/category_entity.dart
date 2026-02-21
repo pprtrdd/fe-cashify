@@ -5,16 +5,27 @@ class CategoryEntity extends Equatable {
   final String name;
   final bool isExpense;
   final bool isExtra;
+  final DateTime createdAt;
+  final DateTime updatedAt;
 
   const CategoryEntity({
     required this.id,
     required this.name,
     required this.isExpense,
     required this.isExtra,
+    required this.createdAt,
+    required this.updatedAt,
   });
 
   @override
-  List<Object?> get props => [id, name, isExpense, isExtra];
+  List<Object?> get props => [
+    id,
+    name,
+    isExpense,
+    isExtra,
+    createdAt,
+    updatedAt,
+  ];
 
   CategoryEntity copyWith({
     String? id,
@@ -27,6 +38,8 @@ class CategoryEntity extends Equatable {
       name: name ?? this.name,
       isExpense: isExpense ?? this.isExpense,
       isExtra: isExtra ?? this.isExtra,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
     );
   }
 }
