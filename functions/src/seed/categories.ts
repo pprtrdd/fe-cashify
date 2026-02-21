@@ -10,11 +10,18 @@ export const migrateAllUserCategoriesFromTemplate = onRequest({ timeoutSeconds: 
     }
 
     const db = admin.firestore();
-    const migrationMap: { [key: string]: string } = {
-        "CATS": "PETS",
-        "DRUGSTORE": "HEALTH",
-        "EXTRA_PAYMENT": "EXTRA_PAYMENTS",
-        "PAYMENT": "PAYMENTS"
+    const oldIdToName: { [key: string]: string } = {
+        "PETS": "Mascotas",
+        "HEALTH": "Salud",
+        "HOME": "Hogar",
+        "MARKET": "Supermercado",
+        "PERSONAL": "Gastos personales",
+        "SUBSCRIPTIONS": "Subscripciones",
+        "TRANSPORT": "Transporte",
+        "MISC": "Otros",
+        "PAYMENTS": "Ingresos",
+        "EXTRA_MISC": "Gastos Hormiga",
+        "EXTRA_PAYMENTS": "Ingresos extras",
     };
 
     try {
@@ -28,7 +35,25 @@ export const migrateAllUserCategoriesFromTemplate = onRequest({ timeoutSeconds: 
             return;
         }
 
-        const latestCategories = templateSnapshot.docs.map(doc => ({
+        const nameToNewId: { [name: string]: string } = {};
+        templateSnapshot.docs.forEach(doc => {
+            const name = doc.data().name as string;
+            nameToNewId[name] = doc.id;
+        });
+
+        const oldIdToNewId: { [oldId: string]: string } = {};
+        for (const [oldId, name] of Object.entries(oldIdToName)) {
+            const newId = nameToNewId[name];
+            if (newId) {
+                oldIdToNewId[oldId] = newId;
+            } else {
+                console.warn(`⚠️ No se encontró nuevo ID para la categoría "${name}" (oldId: ${oldId})`);
+            }
+        }
+
+        console.log("Mapa de IDs:", JSON.stringify(oldIdToNewId, null, 2));
+
+        const templateCategories = templateSnapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
         }));
@@ -44,7 +69,7 @@ export const migrateAllUserCategoriesFromTemplate = onRequest({ timeoutSeconds: 
             const currentUserCats = await userCatsRef.get();
 
             currentUserCats.forEach(doc => batch.delete(doc.ref));
-            latestCategories.forEach(cat => {
+            templateCategories.forEach(cat => {
                 const { id, ...data } = cat;
                 batch.set(userCatsRef.doc(id), data);
             });
@@ -54,7 +79,7 @@ export const migrateAllUserCategoriesFromTemplate = onRequest({ timeoutSeconds: 
             for (const periodDoc of periodsSnapshot.docs) {
                 const movementsRef = periodDoc.ref.collection("movements");
 
-                for (const [oldId, newId] of Object.entries(migrationMap)) {
+                for (const [oldId, newId] of Object.entries(oldIdToNewId)) {
                     const movementsSnapshot = await movementsRef.where("categoryId", "==", oldId).get();
 
                     movementsSnapshot.forEach(movDoc => {
@@ -67,13 +92,14 @@ export const migrateAllUserCategoriesFromTemplate = onRequest({ timeoutSeconds: 
             await batch.commit();
 
             totalUsers++;
-            console.log(`✅ Usuario ${uid} y sus periodos migrados.`);
+            console.log(`✅ Usuario ${uid} migrado.`);
         }
 
         res.status(200).send({
             status: "success",
             usersProcessed: totalUsers,
             movementsUpdated: totalMovementsUpdated,
+            idMap: oldIdToNewId,
         });
 
     } catch (error) {
