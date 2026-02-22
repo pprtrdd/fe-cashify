@@ -1,4 +1,5 @@
 import 'package:cashify/core/theme/app_colors.dart';
+import 'package:cashify/features/transaction/presentation/providers/billing_period_provider.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
 import 'package:cashify/features/transaction/presentation/widgets/compact_movement_row.dart';
 import 'package:flutter/material.dart';
@@ -12,12 +13,28 @@ class MovementHistoryScreen extends StatefulWidget {
 }
 
 class _MovementHistoryScreenState extends State<MovementHistoryScreen> {
+  String? _lastPeriodSynced;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<MovementProvider>().clearFilters();
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final periodProv = context.watch<BillingPeriodProvider>();
+    final movementProv = context.read<MovementProvider>();
+    final activeId = periodProv.selectedPeriodId;
+
+    if (_lastPeriodSynced != activeId) {
+      _lastPeriodSynced = activeId;
+      Future.microtask(() => movementProv.loadDataByBillingPeriod(activeId));
+    }
   }
 
   @override

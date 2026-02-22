@@ -186,9 +186,9 @@ class _PeriodSelector extends StatelessWidget {
     BillingPeriodProvider periodProv,
     SettingsProvider settingsProv,
   ) {
-    final DateTime initialDate = periodProv.selectedPeriodId != null
-        ? BillingPeriodUtils.getDateFromId(periodProv.selectedPeriodId!)
-        : DateTime.now();
+    final DateTime initialDate = BillingPeriodUtils.getDateFromId(
+      periodProv.selectedPeriodId,
+    );
 
     showModalBottomSheet(
       context: context,
@@ -220,11 +220,7 @@ class _PeriodSelector extends StatelessWidget {
     final periodProv = context.watch<BillingPeriodProvider>();
     final settingsProv = context.watch<SettingsProvider>();
 
-    final String realCurrentId = BillingPeriodUtils.generateId(
-      DateTime.now(),
-      settingsProv.settings.startDay,
-    );
-    final activeViewId = periodProv.selectedPeriodId ?? realCurrentId;
+    final activeViewId = periodProv.selectedPeriodId;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
