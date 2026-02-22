@@ -27,8 +27,13 @@ void main() async {
         ChangeNotifierProvider(
           create: (_) => sl<SettingsProvider>()..loadSettings(),
         ),
-        ChangeNotifierProvider(
+        ChangeNotifierProxyProvider<SettingsProvider, BillingPeriodProvider>(
           create: (_) => sl<BillingPeriodProvider>()..loadPeriods(),
+          update: (_, settings, period) {
+            final provider = period ?? sl<BillingPeriodProvider>();
+            provider.updateStartDay(settings.settings.startDay);
+            return provider;
+          },
         ),
         ChangeNotifierProvider(
           create: (_) => sl<AppConfigProvider>()..loadAppConfig(),

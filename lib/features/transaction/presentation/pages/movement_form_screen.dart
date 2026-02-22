@@ -78,12 +78,17 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final settingsProv = context.read<SettingsProvider>();
-      final currentId = BillingPeriodUtils.generateId(
-        DateTime.now(),
-        settingsProv.settings.startDay,
-      );
-      context.read<MovementProvider>().loadDataByBillingPeriod(currentId);
+      final periodProv = context.read<BillingPeriodProvider>();
+      final activeId = periodProv.selectedPeriodId;
+
+      if (!isEditing || isCopying) {
+        setState(() {
+          _selectedDate = BillingPeriodUtils.getDateFromId(activeId);
+          _updateBillingPeriodTextField(_selectedDate);
+        });
+      }
+
+      context.read<MovementProvider>().loadDataByBillingPeriod(activeId);
     });
   }
 
@@ -382,13 +387,6 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
       final movement = _createMovementEntity(periodProv, settingsProv);
 
       try {
-        final currentViewId =
-            periodProv.selectedPeriodId ??
-            BillingPeriodUtils.generateId(
-              DateTime.now(),
-              settingsProv.settings.startDay,
-            );
-
         if (isEditing) {
           await movementProv.updateMovement(movement);
           if (context.mounted) {
@@ -397,7 +395,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
         } else {
           await movementProv.createMovement(
             movement,
-            currentViewId,
+            periodProv.selectedPeriodId,
             settingsProv.settings.startDay,
             () async {
               try {

@@ -1,3 +1,4 @@
+import 'package:cashify/core/utils/billing_period_utils.dart';
 import 'package:cashify/features/transaction/domain/usecases/billing_period_usecases.dart';
 import 'package:flutter/material.dart';
 
@@ -11,8 +12,25 @@ class BillingPeriodProvider extends ChangeNotifier {
   BillingPeriodProvider({required this.usecases});
 
   List<String> get periods => _periods;
-  String? get selectedPeriodId => _selectedPeriodId;
   bool get isLoading => _isLoading;
+  int _startDay = 1;
+
+  void updateStartDay(int startDay) {
+    if (_startDay != startDay) {
+      _startDay = startDay;
+    }
+  }
+
+  String get selectedPeriodId {
+    if (_selectedPeriodId == null) {
+      _selectedPeriodId = BillingPeriodUtils.generateId(
+        DateTime.now(),
+        _startDay,
+      );
+      Future.microtask(() => notifyListeners());
+    }
+    return _selectedPeriodId!;
+  }
 
   DateTimeRange getRangeFromId(String periodId, int startDay) {
     final parts = periodId.split('_');
