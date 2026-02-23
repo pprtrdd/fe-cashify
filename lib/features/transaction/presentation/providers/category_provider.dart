@@ -69,12 +69,30 @@ class CategoryProvider extends ChangeNotifier {
     }
   }
 
+  Future<bool> migrateMovements({
+    required String fromCategoryId,
+    required String toCategoryId,
+  }) async {
+    try {
+      await categoryUsecases.migrateMovements(
+        fromCategoryId: fromCategoryId,
+        toCategoryId: toCategoryId,
+      );
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
   Future<bool> migrateAndDelete({
     required String fromCategoryId,
     required String toCategoryId,
   }) async {
     try {
-      await categoryUsecases.migrateAndDelete(
+      await categoryUsecases.migrateMovementsAndDelete(
         fromCategoryId: fromCategoryId,
         toCategoryId: toCategoryId,
       );

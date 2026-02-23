@@ -24,7 +24,15 @@ class CategoryUsecases {
   Future<void> delete(String categoryId) =>
       repository.deleteCategory(categoryId);
 
-  Future<void> migrateAndDelete({
+  Future<void> migrateMovements({
+    required String fromCategoryId,
+    required String toCategoryId,
+  }) => repository.migrateMovements(
+    fromCategoryId: fromCategoryId,
+    toCategoryId: toCategoryId,
+  );
+
+  Future<void> migrateMovementsAndDelete({
     required String fromCategoryId,
     required String toCategoryId,
   }) => repository.migrateMovementsAndDelete(

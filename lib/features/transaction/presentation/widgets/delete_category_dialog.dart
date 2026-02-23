@@ -7,11 +7,13 @@ import 'package:provider/provider.dart';
 class DeleteCategoryDialog extends StatefulWidget {
   final CategoryEntity categoryToDelete;
   final List<CategoryEntity> availableCategories;
+  final bool onlyMigrate;
 
   const DeleteCategoryDialog({
     super.key,
     required this.categoryToDelete,
     required this.availableCategories,
+    this.onlyMigrate = false,
   });
 
   @override
@@ -32,12 +34,17 @@ class _DeleteCategoryDialogState extends State<DeleteCategoryDialog> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: Row(
         children: [
-          const Icon(Icons.warning_amber_rounded, color: AppColors.warning),
-          const SizedBox(width: 8),
-          const Expanded(
+          Icon(
+            widget.onlyMigrate
+                ? Icons.sync_alt_rounded
+                : Icons.warning_amber_rounded,
+            color: widget.onlyMigrate ? AppColors.warning : AppColors.warning,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
             child: Text(
-              'Categoría en uso',
-              style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+              widget.onlyMigrate ? 'Migrar movimientos' : 'Categoría en uso',
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),
         ],
@@ -51,9 +58,10 @@ class _DeleteCategoryDialogState extends State<DeleteCategoryDialog> {
               style: const TextStyle(
                 color: AppColors.textSecondary,
                 fontSize: 14,
+                height: 1.4,
               ),
               children: [
-                const TextSpan(text: 'La categoría '),
+                const TextSpan(text: 'Se moverán los movimientos de '),
                 TextSpan(
                   text: '"${widget.categoryToDelete.name}"',
                   style: const TextStyle(
@@ -61,29 +69,30 @@ class _DeleteCategoryDialogState extends State<DeleteCategoryDialog> {
                     color: AppColors.textPrimary,
                   ),
                 ),
-                const TextSpan(
-                  text:
-                      ' tiene movimientos asociados. Seleccioná una categoría destino para migrarlos antes de eliminarla.',
+                TextSpan(
+                  text: widget.onlyMigrate
+                      ? ' a otra categoría.'
+                      : ' a una nueva categoría antes de eliminarla definitivamente.',
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
           InputDecorator(
             decoration: InputDecoration(
-              labelText: 'Mover movimientos a...',
+              labelText: 'Categoría destino',
               labelStyle: const TextStyle(
                 fontSize: 13,
                 color: AppColors.textLight,
               ),
               contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12,
+                horizontal: 14,
                 vertical: 4,
               ),
               filled: true,
               fillColor: AppColors.background,
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide.none,
               ),
             ),
@@ -91,15 +100,20 @@ class _DeleteCategoryDialogState extends State<DeleteCategoryDialog> {
               value: _selectedTarget,
               isExpanded: true,
               underline: const SizedBox.shrink(),
+              icon: const Icon(Icons.keyboard_arrow_down_rounded),
               hint: const Text(
                 'Seleccionar categoría',
-                style: TextStyle(fontSize: 13, color: AppColors.textFaded),
+                style: TextStyle(fontSize: 14, color: AppColors.textFaded),
               ),
               items: others
                   .map(
                     (c) => DropdownMenuItem(
                       value: c,
-                      child: Text(c.name, overflow: TextOverflow.ellipsis),
+                      child: Text(
+                        c.name,
+                        style: const TextStyle(fontSize: 14),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   )
                   .toList(),
@@ -116,11 +130,15 @@ class _DeleteCategoryDialogState extends State<DeleteCategoryDialog> {
             style: TextStyle(color: AppColors.textLight),
           ),
         ),
+        const SizedBox(width: 8),
         FilledButton(
           style: FilledButton.styleFrom(
-            backgroundColor: AppColors.danger,
+            backgroundColor: widget.onlyMigrate
+                ? AppColors.warning
+                : AppColors.danger,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(10),
             ),
           ),
           onPressed: (_selectedTarget == null || _isMigrating)
@@ -128,14 +146,17 @@ class _DeleteCategoryDialogState extends State<DeleteCategoryDialog> {
               : () => _migrate(context),
           child: _isMigrating
               ? const SizedBox(
-                  width: 16,
-                  height: 16,
+                  width: 18,
+                  height: 18,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    color: AppColors.background,
+                    color: AppColors.surface,
                   ),
                 )
-              : const Text('Migrar y eliminar'),
+              : Text(
+                  widget.onlyMigrate ? 'Migrar ahora' : 'Migrar y eliminar',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
         ),
       ],
     );
@@ -146,10 +167,19 @@ class _DeleteCategoryDialogState extends State<DeleteCategoryDialog> {
     setState(() => _isMigrating = true);
 
     final provider = context.read<CategoryProvider>();
-    final success = await provider.migrateAndDelete(
-      fromCategoryId: widget.categoryToDelete.id,
-      toCategoryId: _selectedTarget!.id,
-    );
+    final bool success;
+
+    if (widget.onlyMigrate) {
+      success = await provider.migrateMovements(
+        fromCategoryId: widget.categoryToDelete.id,
+        toCategoryId: _selectedTarget!.id,
+      );
+    } else {
+      success = await provider.migrateAndDelete(
+        fromCategoryId: widget.categoryToDelete.id,
+        toCategoryId: _selectedTarget!.id,
+      );
+    }
 
     if (!context.mounted) return;
     Navigator.pop(context, success);

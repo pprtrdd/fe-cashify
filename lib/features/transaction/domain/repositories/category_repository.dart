@@ -76,7 +76,7 @@ class CategoryRepository {
     }
   }
 
-  Future<void> migrateMovementsAndDelete({
+  Future<void> migrateMovements({
     required String fromCategoryId,
     required String toCategoryId,
   }) async {
@@ -87,12 +87,28 @@ class CategoryRepository {
           .where('categoryId', isEqualTo: fromCategoryId)
           .get();
 
+      if (snapshot.docs.isEmpty) return;
+
       final batch = _firestore.batch();
       for (final doc in snapshot.docs) {
         batch.update(doc.reference, {'categoryId': toCategoryId});
       }
-      batch.delete(_categoriesRef.doc(fromCategoryId));
       await batch.commit();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> migrateMovementsAndDelete({
+    required String fromCategoryId,
+    required String toCategoryId,
+  }) async {
+    try {
+      await migrateMovements(
+        fromCategoryId: fromCategoryId,
+        toCategoryId: toCategoryId,
+      );
+      await deleteCategory(fromCategoryId);
     } catch (e) {
       rethrow;
     }
