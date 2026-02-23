@@ -219,6 +219,86 @@ class _CategoryTile extends StatelessWidget {
     final isExpense = category.isExpense;
     final color = isExpense ? AppColors.expense : AppColors.income;
 
+    final isArchived = category.isArchived;
+
+    Widget content = ListTile(
+      contentPadding: const EdgeInsets.only(left: 16, right: 8),
+      leading: CircleAvatar(
+        radius: 18,
+        backgroundColor: color.withValues(alpha: 0.12),
+        child: Icon(
+          isExpense ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded,
+          size: 16,
+          color: color,
+        ),
+      ),
+      title: Row(
+        children: [
+          Expanded(
+            child: Text(
+              category.name,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ),
+          if (isArchived)
+            const Padding(
+              padding: EdgeInsets.only(right: 8),
+              child: Text(
+                'ARCHIVADA',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textFaded,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ),
+        ],
+      ),
+      subtitle: Text(
+        category.isExpense ? 'GASTO' : 'INGRESO',
+        style: TextStyle(
+          fontSize: 11,
+          color: color,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 0.5,
+        ),
+      ),
+      onTap: onTap,
+    );
+
+    if (isArchived) {
+      content = ColorFiltered(
+        colorFilter: const ColorFilter.matrix([
+          0.2126,
+          0.7152,
+          0.0722,
+          0,
+          0,
+          0.2126,
+          0.7152,
+          0.0722,
+          0,
+          0,
+          0.2126,
+          0.7152,
+          0.0722,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+        ]),
+        child: Opacity(opacity: 0.6, child: content),
+      );
+    }
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
@@ -232,38 +312,7 @@ class _CategoryTile extends StatelessWidget {
           ),
         ],
       ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.only(left: 16, right: 8),
-        leading: CircleAvatar(
-          radius: 18,
-          backgroundColor: color.withValues(alpha: 0.12),
-          child: Icon(
-            isExpense
-                ? Icons.arrow_upward_rounded
-                : Icons.arrow_downward_rounded,
-            size: 16,
-            color: color,
-          ),
-        ),
-        title: Text(
-          category.name,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        subtitle: Text(
-          category.isExpense ? 'GASTO' : 'INGRESO',
-          style: TextStyle(
-            fontSize: 11,
-            color: color,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 0.5,
-          ),
-        ),
-        onTap: onTap,
-      ),
+      child: content,
     );
   }
 }

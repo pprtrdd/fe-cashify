@@ -7,6 +7,7 @@ class CategoryEntity extends Equatable {
   final bool isExtra;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final bool isArchived;
 
   const CategoryEntity({
     required this.id,
@@ -15,6 +16,7 @@ class CategoryEntity extends Equatable {
     required this.isExtra,
     required this.createdAt,
     required this.updatedAt,
+    required this.isArchived,
   });
 
   @override
@@ -25,6 +27,7 @@ class CategoryEntity extends Equatable {
     isExtra,
     createdAt,
     updatedAt,
+    isArchived,
   ];
 
   CategoryEntity copyWith({
@@ -32,12 +35,14 @@ class CategoryEntity extends Equatable {
     String? name,
     bool? isExpense,
     bool? isExtra,
+    bool? isArchived,
   }) {
     return CategoryEntity(
       id: id ?? this.id,
       name: name ?? this.name,
       isExpense: isExpense ?? this.isExpense,
       isExtra: isExtra ?? this.isExtra,
+      isArchived: isArchived ?? this.isArchived,
       createdAt: createdAt,
       updatedAt: updatedAt,
     );

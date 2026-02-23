@@ -130,6 +130,7 @@ class MovementProvider extends ChangeNotifier {
     if (_categories.isEmpty) return;
 
     for (final cat in _categories) {
+      if (cat.isArchived) continue;
       if (cat.isExtra) {
         _extraGrouped[cat.name] = 0;
       } else {

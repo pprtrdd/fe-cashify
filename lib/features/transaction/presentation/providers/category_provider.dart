@@ -137,4 +137,25 @@ class CategoryProvider extends ChangeNotifier {
       return false;
     }
   }
+
+  Future<bool> archiveCategory(
+    String categoryId, {
+    required bool isArchived,
+  }) async {
+    try {
+      await categoryUsecases.archive(categoryId, isArchived: isArchived);
+      final index = _categories.indexWhere((c) => c.id == categoryId);
+      if (index != -1) {
+        _categories[index] = _categories[index].copyWith(
+          isArchived: isArchived,
+        );
+        notifyListeners();
+      }
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
 }

@@ -9,6 +9,7 @@ class CategoryModel extends CategoryEntity {
     required super.isExtra,
     required super.createdAt,
     required super.updatedAt,
+    required super.isArchived,
   });
 
   factory CategoryModel.fromFirestore(Map<String, dynamic> json, String id) {
@@ -17,6 +18,7 @@ class CategoryModel extends CategoryEntity {
       name: json['name'].toString(),
       isExpense: json['isExpense'],
       isExtra: json['isExtra'],
+      isArchived: json['isArchived'],
       createdAt: (json['createdAt'] as Timestamp).toDate(),
       updatedAt: (json['updatedAt'] as Timestamp).toDate(),
     );
@@ -27,6 +29,7 @@ class CategoryModel extends CategoryEntity {
       'name': name,
       'isExpense': isExpense,
       'isExtra': isExtra,
+      'isArchived': isArchived,
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': Timestamp.fromDate(updatedAt),
     };
@@ -38,6 +41,7 @@ class CategoryModel extends CategoryEntity {
       name: e.name,
       isExpense: e.isExpense,
       isExtra: e.isExtra,
+      isArchived: e.isArchived,
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
     );

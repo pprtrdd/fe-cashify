@@ -51,4 +51,7 @@ class CategoryUsecases {
     isExpense: isExpense,
     isExtra: isExtra,
   );
+
+  Future<void> archive(String id, {required bool isArchived}) =>
+      repository.archiveCategory(id, isArchived: isArchived);
 }

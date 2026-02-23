@@ -38,6 +38,7 @@ class CategoryRepository {
         'name': name,
         'isExpense': isExpense,
         'isExtra': isExtra,
+        'isArchived': false,
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
       });
@@ -48,6 +49,7 @@ class CategoryRepository {
         isExtra: isExtra,
         createdAt: now,
         updatedAt: now,
+        isArchived: false,
       );
     } catch (e) {
       rethrow;
@@ -125,6 +127,17 @@ class CategoryRepository {
         'name': name,
         'isExpense': isExpense,
         'isExtra': isExtra,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> archiveCategory(String id, {required bool isArchived}) async {
+    try {
+      await _categoriesRef.doc(id).update({
+        'isArchived': isArchived,
         'updatedAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {

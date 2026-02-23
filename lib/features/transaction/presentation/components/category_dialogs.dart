@@ -201,6 +201,14 @@ class _CategoryDetailDialog extends StatelessWidget {
                   onTap: () => _onMigrate(context),
                 ),
                 _ActionButton(
+                  icon: category.isArchived
+                      ? Icons.unarchive_outlined
+                      : Icons.archive_outlined,
+                  label: category.isArchived ? "Desarchivar" : "Archivar",
+                  color: AppColors.textLight,
+                  onTap: () => _onArchive(context),
+                ),
+                _ActionButton(
                   icon: Icons.delete_outline_rounded,
                   label: "Eliminar",
                   color: AppColors.expense,
@@ -244,6 +252,67 @@ class _CategoryDetailDialog extends StatelessWidget {
         ),
       );
       Navigator.pop(context);
+    }
+  }
+
+  Future<void> _onArchive(BuildContext context) async {
+    final isArchiving = !category.isArchived;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          isArchiving ? '¿Archivar categoría?' : '¿Desarchivar categoría?',
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+        ),
+        content: Text(
+          isArchiving
+              ? 'La categoría "${category.name}" ya no aparecerá al agregar nuevos movimientos, pero se mantendrá en los anteriores.'
+              : 'La categoría "${category.name}" volverá a aparecer al agregar nuevos movimientos.',
+          style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text(
+              'Cancelar',
+              style: TextStyle(color: AppColors.textLight),
+            ),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.textPrimary,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(isArchiving ? 'Archivar' : 'Desarchivar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      final success = await provider.archiveCategory(
+        category.id,
+        isArchived: isArchiving,
+      );
+      if (success && context.mounted) {
+        context.read<MovementProvider>().refreshData();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              isArchiving
+                  ? 'Categoría archivada correctamente'
+                  : 'Categoría desarchivada correctamente',
+            ),
+            backgroundColor: AppColors.success,
+          ),
+        );
+        Navigator.pop(context, 'archive_success');
+      }
     }
   }
 
