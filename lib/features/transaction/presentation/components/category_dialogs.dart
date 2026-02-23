@@ -179,11 +179,7 @@ class _CategoryDetailDialog extends StatelessWidget {
               icon: Icons.history_rounded,
               label: "Fecha de creación",
               value:
-                  category.createdAt.day.toString().padLeft(2, '0') +
-                  '/' +
-                  category.createdAt.month.toString().padLeft(2, '0') +
-                  '/' +
-                  category.createdAt.year.toString(),
+                  '${category.createdAt.day.toString().padLeft(2, '0')}/${category.createdAt.month.toString().padLeft(2, '0')}/${category.createdAt.year}',
             ),
             const SizedBox(height: 40),
             Row(
