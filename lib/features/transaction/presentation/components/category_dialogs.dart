@@ -3,6 +3,7 @@ import 'package:cashify/features/transaction/domain/entities/category_entity.dar
 import 'package:cashify/features/transaction/presentation/providers/category_provider.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
 import 'package:cashify/features/transaction/presentation/widgets/delete_category_dialog.dart';
+import 'package:cashify/features/transaction/presentation/widgets/migrate_movements_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -231,10 +232,9 @@ class _CategoryDetailDialog extends StatelessWidget {
       context: context,
       builder: (_) => ChangeNotifierProvider.value(
         value: provider,
-        child: DeleteCategoryDialog(
-          categoryToDelete: category,
+        child: MigrateMovementsDialog(
+          sourceCategory: category,
           availableCategories: provider.categories,
-          onlyMigrate: true,
         ),
       ),
     );
