@@ -66,8 +66,6 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
       _totalInstallmentsController.text = widget.movement!.totalInstallments
           .toString();
       _selectedPaymentMethod = widget.movement!.paymentMethodId;
-      /* TODO: Handle billing period value on screen */
-      _billingPeriodController.text = widget.movement!.billingPeriodId;
       _notesController.text = (widget.movement!.notes ?? '');
       _isCompleted = widget.movement!.isCompleted;
       _createdAt = widget.movement!.createdAt;
@@ -84,9 +82,9 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
       if (!isEditing || isCopying) {
         setState(() {
           _selectedDate = BillingPeriodUtils.getDateFromId(activeId);
-          _updateBillingPeriodTextField(_selectedDate);
         });
       }
+      _updateBillingPeriodTextField(_selectedDate);
 
       context.read<MovementProvider>().loadDataByBillingPeriod(activeId);
     });
@@ -182,6 +180,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                           label: "Asignar a Período",
                           icon: Icons.calendar_today,
                           readOnly: true,
+                          isEnabled: !isEditing,
                           onTap: isEditing
                               ? null
                               : () => _selectPeriod(context),
