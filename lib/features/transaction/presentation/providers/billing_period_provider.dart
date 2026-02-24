@@ -13,11 +13,13 @@ class BillingPeriodProvider extends ChangeNotifier {
 
   List<String> get periods => _periods;
   bool get isLoading => _isLoading;
-  int _startDay = 1;
+  int _startDay = 0;
 
   void updateStartDay(int startDay) {
     if (_startDay != startDay) {
       _startDay = startDay;
+      _selectedPeriodId = null;
+      notifyListeners();
     }
   }
 
