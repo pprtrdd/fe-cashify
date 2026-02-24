@@ -130,6 +130,7 @@ class MovementProvider extends ChangeNotifier {
     if (_categories.isEmpty) return;
 
     for (final cat in _categories) {
+      if (cat.isArchived) continue;
       if (cat.isExtra) {
         _extraGrouped[cat.name] = 0;
       } else {
@@ -208,6 +209,12 @@ class MovementProvider extends ChangeNotifier {
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  Future<void> refreshData() async {
+    if (_lastLoadedBillingPeriodId != null) {
+      await loadDataByBillingPeriod(_lastLoadedBillingPeriodId!);
     }
   }
 
