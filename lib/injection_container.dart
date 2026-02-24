@@ -1,4 +1,5 @@
 import 'package:cashify/core/app_config/domain/repositories/app_config_repository.dart';
+import 'package:cashify/features/transaction/presentation/providers/category_provider.dart';
 import 'package:cashify/core/app_config/domain/usecases/app_config_usecases.dart';
 import 'package:cashify/core/app_config/presentation/providers/app_config_provider.dart';
 import 'package:cashify/core/auth/auth_service.dart';
@@ -42,6 +43,7 @@ Future<void> init() async {
   sl.registerFactory(
     () => UserConfigProvider(userConfigUsecases: sl(), authService: sl()),
   );
+  sl.registerFactory(() => CategoryProvider(categoryUsecases: sl()));
 
   /* --------------------------------------------------------------------------- */
   /* USE CASES (Lazy Singletons)                                                 */

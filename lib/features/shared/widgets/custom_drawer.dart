@@ -3,6 +3,7 @@ import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/core/utils/billing_period_utils.dart';
 import 'package:cashify/features/settings/presentation/pages/settings_screen.dart';
 import 'package:cashify/features/settings/presentation/providers/settings_provider.dart';
+import 'package:cashify/features/transaction/presentation/pages/categories_screen.dart';
 import 'package:cashify/features/transaction/presentation/pages/movements_screen.dart';
 import 'package:cashify/features/transaction/presentation/pages/pending_movements_screen.dart';
 import 'package:cashify/features/transaction/presentation/providers/billing_period_provider.dart';
@@ -27,7 +28,11 @@ class CustomDrawer extends StatelessWidget {
           Expanded(
             child: ListView(
               padding: EdgeInsets.zero,
-              children: [const _MovementsItem(), const _PendingMovementsItem()],
+              children: [
+                const _MovementsItem(),
+                const _PendingMovementsItem(),
+                const _CategoriesItem(),
+              ],
             ),
           ),
           const Divider(color: AppColors.divider),
@@ -186,13 +191,13 @@ class _PeriodSelector extends StatelessWidget {
     BillingPeriodProvider periodProv,
     SettingsProvider settingsProv,
   ) {
-    final DateTime initialDate = periodProv.selectedPeriodId != null
-        ? BillingPeriodUtils.getDateFromId(periodProv.selectedPeriodId!)
-        : DateTime.now();
+    final DateTime initialDate = BillingPeriodUtils.getDateFromId(
+      periodProv.selectedPeriodId,
+    );
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.transparent,
       isScrollControlled: true,
       builder: (context) => MonthYearPickerSheet(
         initialDate: initialDate,
@@ -220,11 +225,7 @@ class _PeriodSelector extends StatelessWidget {
     final periodProv = context.watch<BillingPeriodProvider>();
     final settingsProv = context.watch<SettingsProvider>();
 
-    final String realCurrentId = BillingPeriodUtils.generateId(
-      DateTime.now(),
-      settingsProv.settings.startDay,
-    );
-    final activeViewId = periodProv.selectedPeriodId ?? realCurrentId;
+    final activeViewId = periodProv.selectedPeriodId;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
@@ -329,6 +330,26 @@ class _PendingMovementsItem extends StatelessWidget {
               MaterialPageRoute(builder: (_) => const PendingMovementsScreen()),
             );
           },
+        );
+      },
+    );
+  }
+}
+
+class _CategoriesItem extends StatelessWidget {
+  const _CategoriesItem();
+
+  @override
+  Widget build(BuildContext context) {
+    return _DrawerItem(
+      icon: Icons.category_outlined,
+      label: "Categorías",
+      iconColor: AppColors.primary,
+      onTap: () {
+        Navigator.pop(context);
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const CategoriesScreen()),
         );
       },
     );

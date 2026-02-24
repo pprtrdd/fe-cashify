@@ -2,10 +2,10 @@ import { onRequest } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 
 interface CategorySeed {
-    id: string;
     name: string;
     isExpense: boolean;
     isExtra: boolean;
+    isArchived: boolean;
 }
 
 export const seedDefaultCategories = onRequest(async (req, res) => {
@@ -21,23 +21,23 @@ export const seedDefaultCategories = onRequest(async (req, res) => {
     const collectionRef = db.collection("app_defaults").doc("categories_v1").collection("items");
 
     const categories: CategorySeed[] = [
-        { id: "PETS", name: "Mascotas", isExpense: true, isExtra: false },
-        { id: "HEALTH", name: "Salud", isExpense: true, isExtra: false },
-        { id: "HOME", name: "Hogar", isExpense: true, isExtra: false },
-        { id: "MARKET", name: "Supermercado", isExpense: true, isExtra: false },
-        { id: "PERSONAL", name: "Gastos personales", isExpense: true, isExtra: false },
-        { id: "SUBSCRIPTIONS", name: "Subscripciones", isExpense: true, isExtra: false },
-        { id: "TRANSPORT", name: "Transporte", isExpense: true, isExtra: false },
-        { id: "MISC", name: "Otros", isExpense: true, isExtra: false },
-        { id: "PAYMENTS", name: "Ingresos", isExpense: false, isExtra: false },
-        { id: "EXTRA_MISC", name: "Gastos Hormiga", isExpense: true, isExtra: true },
-        { id: "EXTRA_PAYMENTS", name: "Ingresos extras", isExpense: false, isExtra: true },
+        { name: "Mascotas", isExpense: true, isExtra: false, isArchived: false },
+        { name: "Salud", isExpense: true, isExtra: false, isArchived: false },
+        { name: "Hogar", isExpense: true, isExtra: false, isArchived: false },
+        { name: "Supermercado", isExpense: true, isExtra: false, isArchived: false },
+        { name: "Gastos personales", isExpense: true, isExtra: false, isArchived: false },
+        { name: "Subscripciones", isExpense: true, isExtra: false, isArchived: false },
+        { name: "Transporte", isExpense: true, isExtra: false, isArchived: false },
+        { name: "Otros", isExpense: true, isExtra: false, isArchived: false },
+        { name: "Ingresos", isExpense: false, isExtra: false, isArchived: false },
+        { name: "Gastos Hormiga", isExpense: true, isExtra: true, isArchived: false },
+        { name: "Ingresos extras", isExpense: false, isExtra: true, isArchived: false },
     ];
 
     try {
         const batch = db.batch();
         const parentDocRef = db.collection("app_defaults").doc("categories_v1");
-        
+
         batch.set(parentDocRef, {
             version: 1,
             lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
@@ -52,12 +52,13 @@ export const seedDefaultCategories = onRequest(async (req, res) => {
 
         /* Seed */
         categories.forEach((cat) => {
-            const docRef = collectionRef.doc(cat.id);
+            const docRef = collectionRef.doc();
             batch.set(docRef, {
                 name: cat.name,
                 isExpense: cat.isExpense,
                 isExtra: cat.isExtra,
-                createdAt: admin.firestore.FieldValue.serverTimestamp()
+                createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                updatedAt: admin.firestore.FieldValue.serverTimestamp(),
             });
         });
 

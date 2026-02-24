@@ -30,6 +30,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
   bool _isCompleted = true;
   bool isEditing = false;
   bool isCopying = false;
+  String? _originalBillingPeriodId;
 
   final _idController = TextEditingController();
   final _groupIdController = TextEditingController();
@@ -65,20 +66,27 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
       _totalInstallmentsController.text = widget.movement!.totalInstallments
           .toString();
       _selectedPaymentMethod = widget.movement!.paymentMethodId;
-      /* TODO: Handle billing period value on screen */
-      _billingPeriodController.text = widget.movement!.billingPeriodId;
       _notesController.text = (widget.movement!.notes ?? '');
       _isCompleted = widget.movement!.isCompleted;
       _createdAt = widget.movement!.createdAt;
+      _originalBillingPeriodId = widget.movement!.billingPeriodId;
+      _selectedDate = BillingPeriodUtils.getDateFromId(
+        widget.movement!.billingPeriodId,
+      );
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final settingsProv = context.read<SettingsProvider>();
-      final currentId = BillingPeriodUtils.generateId(
-        DateTime.now(),
-        settingsProv.settings.startDay,
-      );
-      context.read<MovementProvider>().loadDataByBillingPeriod(currentId);
+      final periodProv = context.read<BillingPeriodProvider>();
+      final activeId = periodProv.selectedPeriodId;
+
+      if (!isEditing || isCopying) {
+        setState(() {
+          _selectedDate = BillingPeriodUtils.getDateFromId(activeId);
+        });
+      }
+      _updateBillingPeriodTextField(_selectedDate);
+
+      context.read<MovementProvider>().loadDataByBillingPeriod(activeId);
     });
   }
 
@@ -172,7 +180,10 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                           label: "Asignar a Período",
                           icon: Icons.calendar_today,
                           readOnly: true,
-                          onTap: () => _selectPeriod(context),
+                          isEnabled: !isEditing,
+                          onTap: isEditing
+                              ? null
+                              : () => _selectPeriod(context),
                         ),
                         const SizedBox(height: 15),
                         CustomTextField(
@@ -375,13 +386,6 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
       final movement = _createMovementEntity(periodProv, settingsProv);
 
       try {
-        final currentViewId =
-            periodProv.selectedPeriodId ??
-            BillingPeriodUtils.generateId(
-              DateTime.now(),
-              settingsProv.settings.startDay,
-            );
-
         if (isEditing) {
           await movementProv.updateMovement(movement);
           if (context.mounted) {
@@ -390,7 +394,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
         } else {
           await movementProv.createMovement(
             movement,
-            currentViewId,
+            periodProv.selectedPeriodId,
             settingsProv.settings.startDay,
             () async {
               try {
@@ -419,10 +423,12 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
     BillingPeriodProvider periodProv,
     SettingsProvider settingsProv,
   ) {
-    final String calculatedId = BillingPeriodUtils.generateId(
-      _selectedDate,
-      settingsProv.settings.startDay,
-    );
+    final String calculatedId = isEditing
+        ? _originalBillingPeriodId!
+        : BillingPeriodUtils.generateId(
+            _selectedDate,
+            settingsProv.settings.startDay,
+          );
 
     return MovementEntity(
       id: _idController.text,

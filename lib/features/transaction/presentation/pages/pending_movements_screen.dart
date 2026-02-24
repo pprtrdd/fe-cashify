@@ -84,7 +84,7 @@ class _CategoryGroupState extends State<_CategoryGroup> {
     final backgroundColor = widget.isIngreso
         ? AppColors.income
         : AppColors.expense;
-    const textColor = Colors.white;
+    const textColor = AppColors.background;
 
     return Column(
       children: [
@@ -98,7 +98,7 @@ class _CategoryGroupState extends State<_CategoryGroup> {
               color: backgroundColor,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
+                  color: AppColors.shadow.withValues(alpha: 0.1),
                   blurRadius: 4,
                   offset: const Offset(0, 2),
                 ),

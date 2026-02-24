@@ -34,7 +34,7 @@ class CategoryDropdownField extends FormField<String> {
                    border: Border.all(
                      color: state.hasError && state.isErrorVisible
                          ? AppColors.danger
-                         : Colors.transparent,
+                         : AppColors.transparent,
                      width: 1.0,
                    ),
                  ),
@@ -64,34 +64,39 @@ class CategoryDropdownField extends FormField<String> {
                            ),
                          ],
                        ),
-                       items: provider.categories.map((cat) {
-                         final bool isExpense = cat.isExpense;
-                         final Color iconColor = isExpense
-                             ? AppColors.expense
-                             : AppColors.income;
+                       items: provider.categories
+                           .where(
+                             (cat) => !cat.isArchived || cat.id == state.value,
+                           )
+                           .map((cat) {
+                             final bool isExpense = cat.isExpense;
+                             final Color iconColor = isExpense
+                                 ? AppColors.expense
+                                 : AppColors.income;
 
-                         return DropdownMenuItem<String>(
-                           value: cat.id,
-                           child: Row(
-                             children: [
-                               Icon(
-                                 isExpense
-                                     ? Icons.remove_circle_outline
-                                     : Icons.add_circle_outline,
-                                 color: iconColor,
-                                 size: 18,
+                             return DropdownMenuItem<String>(
+                               value: cat.id,
+                               child: Row(
+                                 children: [
+                                   Icon(
+                                     isExpense
+                                         ? Icons.remove_circle_outline
+                                         : Icons.add_circle_outline,
+                                     color: iconColor,
+                                     size: 18,
+                                   ),
+                                   const SizedBox(width: 10),
+                                   Text(
+                                     cat.name,
+                                     style: const TextStyle(
+                                       color: AppColors.textPrimary,
+                                     ),
+                                   ),
+                                 ],
                                ),
-                               const SizedBox(width: 10),
-                               Text(
-                                 cat.name,
-                                 style: const TextStyle(
-                                   color: AppColors.textPrimary,
-                                 ),
-                               ),
-                             ],
-                           ),
-                         );
-                       }).toList(),
+                             );
+                           })
+                           .toList(),
                        onChanged: (val) {
                          state.didChange(val);
                          onChanged(val);

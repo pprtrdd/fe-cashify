@@ -9,6 +9,7 @@ class CustomTextField extends FormField<String> {
   final bool isNumeric;
   final int maxLines;
   final bool readOnly;
+  final bool isEnabled;
   final VoidCallback? onTap;
 
   CustomTextField({
@@ -20,6 +21,7 @@ class CustomTextField extends FormField<String> {
     this.isNumeric = false,
     this.maxLines = 1,
     this.readOnly = false,
+    this.isEnabled = true,
     this.onTap,
     String? Function(String?)? validator,
   }) : super(
@@ -46,7 +48,7 @@ class CustomTextField extends FormField<String> {
              children: [
                Container(
                  decoration: BoxDecoration(
-                   color: AppColors.surface,
+                   color: isEnabled ? AppColors.surface : AppColors.background,
                    borderRadius: BorderRadius.circular(16),
                    boxShadow: [
                      BoxShadow(
@@ -58,7 +60,7 @@ class CustomTextField extends FormField<String> {
                    border: Border.all(
                      color: state.hasError && state.isErrorVisible
                          ? AppColors.danger
-                         : Colors.transparent,
+                         : AppColors.transparent,
                      width: 1.0,
                    ),
                  ),
@@ -70,11 +72,14 @@ class CustomTextField extends FormField<String> {
                    keyboardType: isNumeric
                        ? const TextInputType.numberWithOptions(decimal: true)
                        : TextInputType.text,
-                   readOnly: readOnly,
-                   onTap: () {
-                     state.hideError();
-                     onTap?.call();
-                   },
+                   readOnly: readOnly || !isEnabled,
+                   enabled: isEnabled,
+                   onTap: !isEnabled
+                       ? null
+                       : () {
+                           state.hideError();
+                           onTap?.call();
+                         },
                    maxLines: maxLines,
                    style: const TextStyle(color: AppColors.textPrimary),
                    decoration: InputDecoration(
