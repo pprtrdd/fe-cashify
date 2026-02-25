@@ -79,6 +79,15 @@ class CompactMovementRow extends StatelessWidget {
                               ),
                             ),
                           ),
+                        if (movement.frequentId != null)
+                          const Padding(
+                            padding: EdgeInsets.only(left: 6),
+                            child: Icon(
+                              Icons.auto_awesome,
+                              size: 14,
+                              color: AppColors.primary,
+                            ),
+                          ),
                       ],
                     ),
                     const SizedBox(height: 2),

@@ -4,9 +4,11 @@ import 'package:cashify/core/utils/billing_period_utils.dart';
 import 'package:cashify/features/settings/presentation/pages/settings_screen.dart';
 import 'package:cashify/features/settings/presentation/providers/settings_provider.dart';
 import 'package:cashify/features/transaction/presentation/pages/categories_screen.dart';
+import 'package:cashify/features/transaction/presentation/pages/frequent_movements_screen.dart';
 import 'package:cashify/features/transaction/presentation/pages/movements_screen.dart';
 import 'package:cashify/features/transaction/presentation/pages/pending_movements_screen.dart';
 import 'package:cashify/features/transaction/presentation/providers/billing_period_provider.dart';
+import 'package:cashify/features/transaction/presentation/providers/frequent_movement_provider.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
 import 'package:cashify/features/transaction/presentation/widgets/month_year_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -31,6 +33,7 @@ class CustomDrawer extends StatelessWidget {
               children: [
                 const _MovementsItem(),
                 const _PendingMovementsItem(),
+                const _FrequentItem(),
                 const _CategoriesItem(),
               ],
             ),
@@ -328,6 +331,58 @@ class _PendingMovementsItem extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const PendingMovementsScreen()),
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class _FrequentItem extends StatelessWidget {
+  const _FrequentItem();
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer3<
+      FrequentMovementProvider,
+      BillingPeriodProvider,
+      MovementProvider
+    >(
+      builder: (context, freqProv, periodProv, movementProv, child) {
+        final settingsProv = context.watch<SettingsProvider>();
+        final pendingCount = freqProv
+            .getPendingForBillingPeriod(
+              periodProv.selectedPeriodId,
+              settingsProv.settings.startDay,
+              movementProv.movements,
+              movementProv.lastLoadedBillingPeriodId,
+            )
+            .length;
+
+        final bool hasPending = pendingCount > 0;
+
+        return _DrawerItem(
+          icon: Icons.auto_awesome,
+          label: "Frecuentes",
+          isBold: hasPending,
+          iconColor: AppColors.primary,
+          trailing: hasPending
+              ? Badge(
+                  backgroundColor: AppColors.notification,
+                  label: Text(
+                    '$pendingCount',
+                    style: const TextStyle(color: AppColors.textOnPrimary),
+                  ),
+                )
+              : null,
+          onTap: () {
+            Navigator.pop(context);
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const FrequentMovementsScreen(),
+              ),
             );
           },
         );

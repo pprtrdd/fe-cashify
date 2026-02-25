@@ -14,7 +14,7 @@ class MovementDialogs {
     showDialog(
       context: context,
       builder: (_) =>
-          _MovementDetailDialog(movement: movement, provider: provider),
+          MovementDetailDialog(movement: movement, provider: provider),
     );
   }
 
@@ -265,11 +265,15 @@ class _CompleteMovementDialogState extends State<_CompleteMovementDialog> {
   }
 }
 
-class _MovementDetailDialog extends StatelessWidget {
+class MovementDetailDialog extends StatelessWidget {
   final MovementEntity movement;
   final MovementProvider provider;
 
-  const _MovementDetailDialog({required this.movement, required this.provider});
+  const MovementDetailDialog({
+    super.key,
+    required this.movement,
+    required this.provider,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -320,14 +324,30 @@ class _MovementDetailDialog extends StatelessWidget {
                     style: amountStyle,
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    movement.description,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          movement.description,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                      ),
+                      if (movement.frequentId != null)
+                        const Padding(
+                          padding: EdgeInsets.only(left: 8),
+                          child: Icon(
+                            Icons.auto_awesome,
+                            size: 18,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                    ],
                   ),
                   const SizedBox(height: 4),
                   Container(
@@ -356,7 +376,7 @@ class _MovementDetailDialog extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: _DetailRow(
+                    child: DetailRow(
                       icon: Icons.info_outline_rounded,
                       label: "Estado",
                       value: movement.isCompleted ? "Completado" : "Pendiente",
@@ -367,7 +387,7 @@ class _MovementDetailDialog extends StatelessWidget {
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: _DetailRow(
+                    child: DetailRow(
                       icon: Icons.calendar_month_rounded,
                       label: "Período",
                       value: Formatters.monthYear(billingDate),
@@ -376,7 +396,7 @@ class _MovementDetailDialog extends StatelessWidget {
                 ],
               ),
               const Divider(height: 24, color: AppColors.background),
-              _DetailRow(
+              DetailRow(
                 icon: Icons.store_rounded,
                 label: "Origen/Lugar",
                 value: movement.source,
@@ -386,7 +406,7 @@ class _MovementDetailDialog extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: _DetailRow(
+                    child: DetailRow(
                       icon: Icons.numbers_rounded,
                       label: "Cantidad",
                       value: movement.quantity.toString(),
@@ -394,7 +414,7 @@ class _MovementDetailDialog extends StatelessWidget {
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: _DetailRow(
+                    child: DetailRow(
                       icon: Icons.attach_money_rounded,
                       label: "Monto Unitario",
                       value: Formatters.currencyWithSymbol(movement.amount),
@@ -407,7 +427,7 @@ class _MovementDetailDialog extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: _DetailRow(
+                    child: DetailRow(
                       icon: Icons.pie_chart_rounded,
                       label: "Cuotas",
                       value:
@@ -416,7 +436,7 @@ class _MovementDetailDialog extends StatelessWidget {
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: _DetailRow(
+                    child: DetailRow(
                       icon: Icons.calendar_today_rounded,
                       label: "Fecha Registro",
                       value: Formatters.date(movement.createdAt),
@@ -425,14 +445,14 @@ class _MovementDetailDialog extends StatelessWidget {
                 ],
               ),
               const Divider(height: 24, color: AppColors.background),
-              _DetailRow(
+              DetailRow(
                 icon: Icons.credit_card_rounded,
                 label: "Método de Pago",
                 value: paymentMethodName,
               ),
               if (movement.notes != null && movement.notes!.isNotEmpty) ...[
                 const Divider(height: 24, color: AppColors.background),
-                _DetailRow(
+                DetailRow(
                   icon: Icons.notes_rounded,
                   label: "Notas",
                   value: movement.notes!,
@@ -442,7 +462,7 @@ class _MovementDetailDialog extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _ActionButton(
+                  MovementActionButton(
                     icon: Icons.edit_rounded,
                     label: "Editar",
                     onTap: () {
@@ -456,7 +476,7 @@ class _MovementDetailDialog extends StatelessWidget {
                       );
                     },
                   ),
-                  _ActionButton(
+                  MovementActionButton(
                     icon: Icons.copy_rounded,
                     label: "Copiar",
                     onTap: () {
@@ -472,7 +492,7 @@ class _MovementDetailDialog extends StatelessWidget {
                     },
                   ),
                   if (!movement.isCompleted)
-                    _ActionButton(
+                    MovementActionButton(
                       icon: Icons.check_circle_outline_rounded,
                       label: "Completar",
                       color: AppColors.success,
@@ -485,7 +505,7 @@ class _MovementDetailDialog extends StatelessWidget {
                         );
                       },
                     ),
-                  _ActionButton(
+                  MovementActionButton(
                     icon: Icons.delete_outline_rounded,
                     label: "Eliminar",
                     color: AppColors.expense,
@@ -516,13 +536,14 @@ class _MovementDetailDialog extends StatelessWidget {
   }
 }
 
-class _DetailRow extends StatelessWidget {
+class DetailRow extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
   final Color? valueColor;
 
-  const _DetailRow({
+  const DetailRow({
+    super.key,
     required this.icon,
     required this.label,
     required this.value,
@@ -565,13 +586,14 @@ class _DetailRow extends StatelessWidget {
   }
 }
 
-class _ActionButton extends StatelessWidget {
+class MovementActionButton extends StatelessWidget {
   final IconData icon;
   final String label;
   final VoidCallback onTap;
   final Color? color;
 
-  const _ActionButton({
+  const MovementActionButton({
+    super.key,
     required this.icon,
     required this.label,
     required this.onTap,

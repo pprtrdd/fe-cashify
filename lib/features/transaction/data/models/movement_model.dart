@@ -21,6 +21,7 @@ class MovementModel extends MovementEntity {
     required super.isCompleted,
     required super.createdAt,
     required super.updatedAt,
+    super.frequentId,
   });
 
   factory MovementModel.fromFirestore(Map<String, dynamic> json, String docId) {
@@ -43,6 +44,7 @@ class MovementModel extends MovementEntity {
       isCompleted: json['isCompleted'],
       createdAt: (json['createdAt'] as Timestamp).toDate(),
       updatedAt: (json['updatedAt'] as Timestamp).toDate(),
+      frequentId: json['frequentId'],
     );
   }
 
@@ -65,6 +67,7 @@ class MovementModel extends MovementEntity {
       'isCompleted': isCompleted,
       'createdAt': createdAt,
       'updatedAt': updatedAt,
+      'frequentId': frequentId,
     };
   }
 
@@ -88,6 +91,7 @@ class MovementModel extends MovementEntity {
       isCompleted: e.isCompleted,
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
+      frequentId: e.frequentId,
     );
   }
 }
