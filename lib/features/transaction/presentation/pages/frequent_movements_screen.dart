@@ -284,7 +284,7 @@ class _FrequentItemRow extends StatelessWidget {
           width: 32,
           height: 32,
           decoration: const BoxDecoration(
-            color: AppColors.iconInfo,
+            color: AppColors.iconIdle,
             shape: BoxShape.circle,
           ),
           child: const Center(

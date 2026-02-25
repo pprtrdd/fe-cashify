@@ -12,14 +12,12 @@ class AppColors {
   // --- SEMÁNTICA FINANCIERA ACCESIBLE ---
   static const Color income = Color(0xFF0056B3);
   static const Color expense = Color(0xFFD9534F);
-  static const Color extra = Color(0xFF854000);
 
   // --- SEMÁNTICA DE ESTADO ---
   static const Color success = Color(0xFF0056B3);
   static const Color warning = Color(0xFFFFC107);
   static const Color danger = Color(0xFFD9534F);
   static const Color notification = Color(0xFFFF5252);
-  static const Color info = Color(0xFF17A2B8);
 
   // --- TEXTOS ---
   static const Color textPrimary = Color(0xFF000000);
@@ -34,20 +32,16 @@ class AppColors {
   static const Color shadow = Color(0xFF000000);
 
   // --- ICONOS ---
-  static const Color iconPrimary = primary;
-  static const Color iconSuccess = Color(0xFF4CAF50); // Green
-  static const Color iconWarning = warning;
-  static const Color iconDanger = danger;
-  static const Color iconIncome = income;
-  static const Color iconExpense = expense;
-  static const Color iconInfo = Color(0xFF2196F3); // Blue
-  static const Color iconFaded = textFaded;
-  static const Color iconLight = textLight;
-  static const Color iconOnPrimary = textOnPrimary;
-
-  // --- GENÉRICOS ---
-  static const Color green = Color(0xFF4CAF50);
-  static const Color blue = Color(0xFF2196F3);
+  static const Color iconPrimary = Color(0xFF311B92);
+  static const Color iconSuccess = Color(0xFF4CAF50);
+  static const Color iconWarning = Color(0xFFFFC107);
+  static const Color iconDanger = Color(0xFFD9534F);
+  static const Color iconIncome = Color(0xFF0056B3);
+  static const Color iconExpense = Color(0xFFD9534F);
+  static const Color iconIdle = Color(0xFF2196F3);
+  static const Color iconFaded = Color(0xFF757575);
+  static const Color iconLight = Color(0xFF616161);
+  static const Color iconOnPrimary = Color(0xFFFFFFFF);
 
   // --- MISC ---
   static const Color github = Color(0xFF24292E);
