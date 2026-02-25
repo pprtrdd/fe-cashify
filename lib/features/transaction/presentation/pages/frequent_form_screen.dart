@@ -1,4 +1,5 @@
 import 'package:cashify/core/theme/app_colors.dart';
+import 'package:cashify/core/widgets/primary_app_bar.dart';
 import 'package:cashify/features/shared/helpers/ui_helper.dart';
 import 'package:cashify/features/transaction/domain/entities/frequent_movement_entity.dart';
 import 'package:cashify/features/transaction/presentation/providers/frequent_movement_provider.dart';
@@ -59,9 +60,8 @@ class _FrequentFormScreenState extends State<FrequentFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(isEditing ? "Editar Frecuente" : "Nuevo Frecuente"),
-        centerTitle: true,
+      appBar: PrimaryAppBar(
+        title: isEditing ? "Editar Frecuente" : "Nuevo Frecuente",
       ),
       body: Consumer<FrequentMovementProvider>(
         builder: (context, provider, child) {

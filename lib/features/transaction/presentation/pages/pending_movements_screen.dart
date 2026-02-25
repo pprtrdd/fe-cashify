@@ -1,5 +1,6 @@
 import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/core/utils/formatters.dart';
+import 'package:cashify/core/widgets/primary_app_bar.dart';
 import 'package:cashify/features/transaction/domain/entities/movement_entity.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
 import 'package:cashify/features/transaction/presentation/widgets/compact_movement_row.dart';
@@ -14,10 +15,7 @@ class PendingMovementsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text("Movimientos Pendientes"),
-        centerTitle: true,
-      ),
+      appBar: const PrimaryAppBar(title: "Movimientos Pendientes"),
       body: Consumer<MovementProvider>(
         builder: (context, provider, child) {
           final pendingItems = provider.movements

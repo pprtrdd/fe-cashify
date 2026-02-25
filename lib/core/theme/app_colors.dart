@@ -33,6 +33,22 @@ class AppColors {
   static const Color fieldFill = Color(0xFFE3E6E8);
   static const Color shadow = Color(0xFF000000);
 
+  // --- ICONOS ---
+  static const Color iconPrimary = primary;
+  static const Color iconSuccess = Color(0xFF4CAF50); // Green
+  static const Color iconWarning = warning;
+  static const Color iconDanger = danger;
+  static const Color iconIncome = income;
+  static const Color iconExpense = expense;
+  static const Color iconInfo = Color(0xFF2196F3); // Blue
+  static const Color iconFaded = textFaded;
+  static const Color iconLight = textLight;
+  static const Color iconOnPrimary = textOnPrimary;
+
+  // --- GENÉRICOS ---
+  static const Color green = Color(0xFF4CAF50);
+  static const Color blue = Color(0xFF2196F3);
+
   // --- MISC ---
   static const Color github = Color(0xFF24292E);
   static const Color linkedin = Color(0xFF0077B5);

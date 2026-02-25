@@ -42,7 +42,7 @@ class CustomDrawer extends StatelessWidget {
           _DrawerItem(
             icon: Icons.settings_outlined,
             label: "Configuración",
-            iconColor: AppColors.textLight,
+            iconColor: AppColors.iconLight,
             onTap: () {
               Navigator.pop(context);
               Navigator.push(
@@ -55,7 +55,7 @@ class CustomDrawer extends StatelessWidget {
             icon: Icons.logout_rounded,
             label: "Cerrar Sesión",
             textColor: AppColors.danger,
-            iconColor: AppColors.danger,
+            iconColor: AppColors.iconDanger,
             onTap: () async {
               await AuthService().signOut();
               if (!context.mounted) return;
@@ -153,7 +153,7 @@ class _UserHeader extends StatelessWidget {
             children: [
               const Icon(
                 Icons.bolt_rounded,
-                color: AppColors.textOnPrimary,
+                color: AppColors.iconOnPrimary,
                 size: 16,
               ),
               const SizedBox(width: 8),
@@ -256,12 +256,12 @@ class _PeriodSelector extends StatelessWidget {
             prefixIcon: const Icon(
               Icons.remove_red_eye_outlined,
               size: 20,
-              color: AppColors.primary,
+              color: AppColors.iconPrimary,
             ),
             suffixIcon: const Icon(
               Icons.calendar_month_outlined,
               size: 18,
-              color: AppColors.primary,
+              color: AppColors.iconPrimary,
             ),
           ),
           child: Text(
@@ -284,7 +284,7 @@ class _MovementsItem extends StatelessWidget {
         return _DrawerItem(
           icon: Icons.history,
           label: "Historial",
-          iconColor: AppColors.success,
+          iconColor: AppColors.iconSuccess,
           onTap: () {
             Navigator.pop(context);
             Navigator.push(
@@ -316,7 +316,7 @@ class _PendingMovementsItem extends StatelessWidget {
           icon: Icons.pending_actions,
           label: "Pendientes",
           isBold: hasPending, // Pasamos la condición
-          iconColor: AppColors.warning,
+          iconColor: AppColors.iconWarning,
           trailing: hasPending
               ? Badge(
                   backgroundColor: AppColors.notification,
@@ -367,7 +367,7 @@ class _FrequentItem extends StatelessWidget {
               icon: Icons.auto_awesome,
               label: "Frecuentes",
               isBold: hasPending,
-              iconColor: AppColors.primary,
+              iconColor: AppColors.iconPrimary,
               trailing: hasPending
                   ? Badge(
                       backgroundColor: AppColors.notification,
@@ -400,7 +400,7 @@ class _CategoriesItem extends StatelessWidget {
     return _DrawerItem(
       icon: Icons.category_outlined,
       label: "Categorías",
-      iconColor: AppColors.primary,
+      iconColor: AppColors.iconPrimary,
       onTap: () {
         Navigator.pop(context);
         Navigator.push(
@@ -434,7 +434,7 @@ class _DrawerItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: Icon(icon, color: iconColor ?? AppColors.textPrimary),
+      leading: Icon(icon, color: iconColor ?? AppColors.iconFaded),
       title: Text(
         label,
         style: TextStyle(

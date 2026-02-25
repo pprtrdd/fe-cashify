@@ -24,8 +24,8 @@ class CompactMovementRow extends StatelessWidget {
     );
     final String categoryName = provider.getCategoryName(movement.categoryId);
     final Color categoryColor = isIngreso
-        ? AppColors.income
-        : AppColors.expense;
+        ? AppColors.iconIncome
+        : AppColors.iconExpense;
 
     return Container(
       width: double.infinity,
@@ -43,8 +43,8 @@ class CompactMovementRow extends StatelessWidget {
                       : Icons.pending_rounded,
                   size: 18,
                   color: movement.isCompleted
-                      ? AppColors.success
-                      : AppColors.warning,
+                      ? AppColors.iconSuccess
+                      : AppColors.iconWarning,
                 ),
                 const SizedBox(width: 12),
               ],
@@ -85,7 +85,7 @@ class CompactMovementRow extends StatelessWidget {
                             child: Icon(
                               Icons.auto_awesome,
                               size: 14,
-                              color: AppColors.primary,
+                              color: AppColors.iconPrimary,
                             ),
                           ),
                       ],

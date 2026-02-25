@@ -1,5 +1,6 @@
 import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/core/utils/formatters.dart';
+import 'package:cashify/core/widgets/primary_app_bar.dart';
 import 'package:cashify/features/settings/presentation/providers/settings_provider.dart';
 import 'package:cashify/features/shared/helpers/ui_helper.dart';
 import 'package:cashify/features/shared/widgets/custom_drawer.dart';
@@ -57,10 +58,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       drawer: const CustomDrawer(),
-      appBar: AppBar(
-        title: const Text("Cashify"),
-        centerTitle: true,
-        actions: const [_NotificationBadge()],
+      appBar: const PrimaryAppBar(
+        title: "Cashify",
+        actions: [_NotificationBadge()],
       ),
       body: Consumer<MovementProvider>(
         builder: (context, provider, child) {
@@ -85,14 +85,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       _MiniInfoCard(
                         label: "Ingresos",
                         amount: provider.totalIncomes,
-                        color: AppColors.income,
+                        color: AppColors.iconIncome,
                         icon: Icons.add_circle_outline,
                       ),
                       const SizedBox(width: 12),
                       _MiniInfoCard(
                         label: "Gastos",
                         amount: provider.totalExpenses,
-                        color: AppColors.expense,
+                        color: AppColors.iconExpense,
                         icon: Icons.remove_circle_outline,
                       ),
                     ],
@@ -155,7 +155,7 @@ class _CurrentPeriodLabel extends StatelessWidget {
         Icon(
           Icons.calendar_view_month,
           size: 14,
-          color: AppColors.textLight.withValues(alpha: 0.7),
+          color: AppColors.iconLight.withValues(alpha: 0.7),
         ),
         const SizedBox(width: 6),
         Text(
@@ -204,7 +204,7 @@ class _CategoryTableBox extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: Row(
               children: [
-                Icon(icon, size: 18, color: AppColors.primary),
+                Icon(icon, size: 18, color: AppColors.iconPrimary),
                 const SizedBox(width: 8),
                 Text(
                   title,
@@ -429,7 +429,10 @@ class _NotificationBadge extends StatelessWidget {
               style: const TextStyle(color: AppColors.textOnPrimary),
             ),
             isLabelVisible: pendingCount > 0,
-            child: const Icon(Icons.notifications_none_rounded),
+            child: const Icon(
+              Icons.notifications_none_rounded,
+              color: AppColors.iconOnPrimary,
+            ),
           ),
           onPressed: () => Navigator.push(
             context,

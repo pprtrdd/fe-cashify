@@ -1,5 +1,6 @@
 import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/core/utils/billing_period_utils.dart';
+import 'package:cashify/core/widgets/primary_app_bar.dart';
 import 'package:cashify/features/settings/presentation/providers/settings_provider.dart';
 import 'package:cashify/features/transaction/domain/entities/frequent_movement_entity.dart';
 import 'package:cashify/features/transaction/presentation/pages/frequent_form_screen.dart';
@@ -31,7 +32,14 @@ class _FrequentMovementsScreenState extends State<FrequentMovementsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text("Frecuentes"), centerTitle: true),
+      appBar: PrimaryAppBar(
+        title: "Frecuentes",
+        showAddButton: true,
+        onAddPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const FrequentFormScreen()),
+        ),
+      ),
       body: Consumer<FrequentMovementProvider>(
         builder: (context, provider, child) {
           if (provider.isLoading) {
@@ -49,14 +57,6 @@ class _FrequentMovementsScreenState extends State<FrequentMovementsScreen> {
             children: _buildListItems(context, provider),
           );
         },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const FrequentFormScreen()),
-        ),
-        backgroundColor: AppColors.primary,
-        child: const Icon(Icons.add, color: AppColors.textOnPrimary),
       ),
     );
   }
@@ -258,21 +258,25 @@ class _FrequentItemRow extends StatelessWidget {
           width: 32,
           height: 32,
           decoration: const BoxDecoration(
-            color: AppColors.warning,
+            color: AppColors.iconWarning,
             shape: BoxShape.circle,
           ),
           child: const Center(
             child: Icon(
-              Icons.schedule,
+              Icons.access_time_filled,
               size: 18,
-              color: AppColors.textOnPrimary,
+              color: AppColors.iconOnPrimary,
             ),
           ),
         );
 
       /* 3. Already entered this period (Green + Check) */
       case FrequentStatus.completed:
-        return const Icon(Icons.check_circle, color: Colors.green, size: 32);
+        return const Icon(
+          Icons.check_circle,
+          color: AppColors.iconSuccess,
+          size: 32,
+        );
 
       /* 4. No requires entry this month (Blue + Three dots) */
       case FrequentStatus.none:
@@ -280,14 +284,14 @@ class _FrequentItemRow extends StatelessWidget {
           width: 32,
           height: 32,
           decoration: const BoxDecoration(
-            color: Colors.blue,
+            color: AppColors.iconInfo,
             shape: BoxShape.circle,
           ),
           child: const Center(
             child: Icon(
               Icons.more_horiz,
-              size: 18,
-              color: AppColors.textOnPrimary,
+              color: AppColors.iconOnPrimary,
+              size: 20,
             ),
           ),
         );
