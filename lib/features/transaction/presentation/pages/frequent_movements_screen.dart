@@ -152,77 +152,76 @@ class _FrequentItemRow extends StatelessWidget {
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: _buildStatusIcon(status, noHistory: noHistory),
-        title: Row(
-          children: [
-            Expanded(
-              child: Text(
-                frequent.description,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
-            if (isNextPeriod)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: AppColors.warning.withValues(alpha: 0.9),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: const Text(
-                  "PRÓXIMO MES",
-                  style: TextStyle(
-                    fontSize: 9,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textOnPrimary,
-                  ),
+        title: Text.rich(
+          TextSpan(
+            children: [
+              TextSpan(
+                text: frequent.description,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
                 ),
               ),
-          ],
+              if (isNextPeriod)
+                WidgetSpan(
+                  alignment: PlaceholderAlignment.middle,
+                  child: Container(
+                    margin: const EdgeInsets.only(left: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.warning.withValues(alpha: 0.9),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Text(
+                      "PRÓXIMO MES",
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textOnPrimary,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            RichText(
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              text: TextSpan(
-                style: const TextStyle(fontSize: 11),
-                children: [
-                  TextSpan(
-                    text: _getCategoryName(
-                      context,
-                      frequent.categoryId,
-                    ).toUpperCase(),
-                    style: TextStyle(
-                      color: _isIngreso(context, frequent.categoryId)
-                          ? AppColors.income
-                          : AppColors.expense,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.3,
-                    ),
-                  ),
-                  TextSpan(
-                    text: " | ",
-                    style: TextStyle(
-                      color: AppColors.textLight.withValues(alpha: 0.4),
-                    ),
-                  ),
-                  TextSpan(
-                    text: frequent.source,
-                    style: TextStyle(
-                      color: AppColors.textLight.withValues(alpha: 0.9),
-                    ),
-                  ),
-                ],
+        subtitle: RichText(
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          text: TextSpan(
+            style: const TextStyle(fontSize: 11),
+            children: [
+              TextSpan(
+                text: _getCategoryName(
+                  context,
+                  frequent.categoryId,
+                ).toUpperCase(),
+                style: TextStyle(
+                  color: _isIngreso(context, frequent.categoryId)
+                      ? AppColors.income
+                      : AppColors.expense,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.3,
+                ),
               ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              "Día ${frequent.paymentDay} de cada mes",
-              style: const TextStyle(fontSize: 12, color: AppColors.textLight),
-            ),
-          ],
+              TextSpan(
+                text: " | ",
+                style: TextStyle(
+                  color: AppColors.textLight.withValues(alpha: 0.4),
+                ),
+              ),
+              TextSpan(
+                text: frequent.source,
+                style: TextStyle(
+                  color: AppColors.textLight.withValues(alpha: 0.9),
+                ),
+              ),
+            ],
+          ),
         ),
-        trailing: const Icon(Icons.chevron_right, color: AppColors.textLight),
         onTap: () => showDialog(
           context: context,
           builder: (_) => FrequentDetailDialog(frequent: frequent),
