@@ -25,6 +25,6 @@ class BillingPeriodUtils {
       month = 1;
       year++;
     }
-    return "${year}_${month.toString().padLeft(2, '0')}";
+    return "${year}_$month";
   }
 }

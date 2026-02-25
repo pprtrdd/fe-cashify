@@ -1,6 +1,4 @@
 import 'package:cashify/core/theme/app_colors.dart';
-import 'package:cashify/core/utils/billing_period_utils.dart';
-import 'package:cashify/features/settings/presentation/providers/settings_provider.dart';
 import 'package:cashify/features/shared/helpers/ui_helper.dart';
 import 'package:cashify/features/transaction/domain/entities/frequent_movement_entity.dart';
 import 'package:cashify/features/transaction/presentation/providers/frequent_movement_provider.dart';
@@ -165,14 +163,7 @@ class _FrequentFormScreenState extends State<FrequentFormScreen> {
         return;
       }
 
-      final settingsProv = context.read<SettingsProvider>();
       final frequentProv = context.read<FrequentMovementProvider>();
-
-      final startDay = settingsProv.settings.startDay;
-      final currentPeriodId = BillingPeriodUtils.generateId(
-        DateTime.now(),
-        startDay,
-      );
 
       final frequent = FrequentMovementEntity(
         id: isEditing ? widget.frequent!.id : '',
@@ -183,9 +174,6 @@ class _FrequentFormScreenState extends State<FrequentFormScreen> {
         frequency: _frequency,
         paymentDay: int.parse(_paymentDayController.text),
         isArchived: false,
-        startPeriodId: isEditing
-            ? widget.frequent!.startPeriodId
-            : currentPeriodId,
         createdAt: isEditing ? widget.frequent!.createdAt : DateTime.now(),
         updatedAt: DateTime.now(),
       );

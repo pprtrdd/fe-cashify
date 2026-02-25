@@ -29,7 +29,6 @@ class FrequentMovementEntity extends Equatable {
   final FrequentFrequency frequency;
   final int paymentDay;
   final bool isArchived;
-  final String startPeriodId;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -42,7 +41,6 @@ class FrequentMovementEntity extends Equatable {
     required this.frequency,
     required this.paymentDay,
     required this.isArchived,
-    required this.startPeriodId,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -57,7 +55,6 @@ class FrequentMovementEntity extends Equatable {
     frequency,
     paymentDay,
     isArchived,
-    startPeriodId,
     createdAt,
     updatedAt,
   ];
@@ -71,7 +68,6 @@ class FrequentMovementEntity extends Equatable {
     FrequentFrequency? frequency,
     int? paymentDay,
     bool? isArchived,
-    String? startPeriodId,
     DateTime? updatedAt,
   }) {
     return FrequentMovementEntity(
@@ -83,7 +79,6 @@ class FrequentMovementEntity extends Equatable {
       frequency: frequency ?? this.frequency,
       paymentDay: paymentDay ?? this.paymentDay,
       isArchived: isArchived ?? this.isArchived,
-      startPeriodId: startPeriodId ?? this.startPeriodId,
       createdAt: createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

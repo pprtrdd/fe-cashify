@@ -11,7 +11,6 @@ class FrequentMovementModel extends FrequentMovementEntity {
     required super.frequency,
     required super.paymentDay,
     required super.isArchived,
-    required super.startPeriodId,
     required super.createdAt,
     required super.updatedAt,
   });
@@ -31,7 +30,6 @@ class FrequentMovementModel extends FrequentMovementEntity {
       ),
       paymentDay: (json['paymentDay'] as num).toInt(),
       isArchived: json['isArchived'] ?? false,
-      startPeriodId: json['startPeriodId'],
       createdAt: (json['createdAt'] as Timestamp).toDate(),
       updatedAt: (json['updatedAt'] as Timestamp).toDate(),
     );
@@ -46,7 +44,6 @@ class FrequentMovementModel extends FrequentMovementEntity {
       'frequency': frequency.months,
       'paymentDay': paymentDay,
       'isArchived': isArchived,
-      'startPeriodId': startPeriodId,
       'createdAt': createdAt,
       'updatedAt': updatedAt,
     };
@@ -62,7 +59,6 @@ class FrequentMovementModel extends FrequentMovementEntity {
       frequency: e.frequency,
       paymentDay: e.paymentDay,
       isArchived: e.isArchived,
-      startPeriodId: e.startPeriodId,
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
     );

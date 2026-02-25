@@ -344,49 +344,50 @@ class _FrequentItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer3<
+    return Consumer4<
       FrequentMovementProvider,
       BillingPeriodProvider,
-      MovementProvider
+      MovementProvider,
+      SettingsProvider
     >(
-      builder: (context, freqProv, periodProv, movementProv, child) {
-        final settingsProv = context.watch<SettingsProvider>();
-        final pendingCount = freqProv
-            .getPendingForBillingPeriod(
-              periodProv.selectedPeriodId,
-              settingsProv.settings.startDay,
-              movementProv.movements,
-              movementProv.lastLoadedBillingPeriodId,
-            )
-            .length;
-
-        final bool hasPending = pendingCount > 0;
-
-        return _DrawerItem(
-          icon: Icons.auto_awesome,
-          label: "Frecuentes",
-          isBold: hasPending,
-          iconColor: AppColors.primary,
-          trailing: hasPending
-              ? Badge(
-                  backgroundColor: AppColors.notification,
-                  label: Text(
-                    '$pendingCount',
-                    style: const TextStyle(color: AppColors.textOnPrimary),
-                  ),
+      builder:
+          (context, freqProv, periodProv, movementProv, settingsProv, child) {
+            final pendingCount = freqProv
+                .getPendingForBillingPeriod(
+                  periodProv.selectedPeriodId,
+                  settingsProv.settings.startDay,
+                  movementProv.movements,
+                  movementProv.lastLoadedBillingPeriodId,
                 )
-              : null,
-          onTap: () {
-            Navigator.pop(context);
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const FrequentMovementsScreen(),
-              ),
+                .length;
+
+            final bool hasPending = pendingCount > 0;
+
+            return _DrawerItem(
+              icon: Icons.auto_awesome,
+              label: "Frecuentes",
+              isBold: hasPending,
+              iconColor: AppColors.primary,
+              trailing: hasPending
+                  ? Badge(
+                      backgroundColor: AppColors.notification,
+                      label: Text(
+                        '$pendingCount',
+                        style: const TextStyle(color: AppColors.textOnPrimary),
+                      ),
+                    )
+                  : null,
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const FrequentMovementsScreen(),
+                  ),
+                );
+              },
             );
           },
-        );
-      },
     );
   }
 }

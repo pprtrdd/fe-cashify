@@ -17,6 +17,7 @@ class FrequentMovementProvider extends ChangeNotifier {
   final PaymentMethodUsecases paymentMethodUsecases;
 
   List<FrequentMovementEntity> _frequents = [];
+  Map<String, String> _lastMovePeriodByFrequent = {};
   bool _isLoading = false;
 
   FrequentMovementProvider({
@@ -27,13 +28,19 @@ class FrequentMovementProvider extends ChangeNotifier {
   });
 
   List<FrequentMovementEntity> get frequents => _frequents;
+  Map<String, String> get lastMovePeriodByFrequent => _lastMovePeriodByFrequent;
   bool get isLoading => _isLoading;
 
   Future<void> loadFrequent() async {
     _isLoading = true;
     notifyListeners();
     try {
-      _frequents = await usecases.fetchAll();
+      final results = await Future.wait([
+        usecases.fetchAll(),
+        movementUsecases.fetchLastMovementsPerFrequent(),
+      ]);
+      _frequents = results[0] as List<FrequentMovementEntity>;
+      _lastMovePeriodByFrequent = results[1] as Map<String, String>;
     } catch (e) {
       debugPrint("Error loading frequent: $e");
     } finally {
@@ -48,16 +55,18 @@ class FrequentMovementProvider extends ChangeNotifier {
   ) {
     if (frequent.isArchived) return false;
 
+    final lastPeriodId = _lastMovePeriodByFrequent[frequent.id];
+    if (lastPeriodId == null) return false;
+
     final parts = billingPeriodId.split('_');
     final pYear = int.parse(parts[0]);
     final pMonth = int.parse(parts[1]);
 
-    final startParts = frequent.startPeriodId.split('_');
-    final sYear = int.parse(startParts[0]);
-    final sMonth = int.parse(startParts[1]);
-    final diffMonths = (pYear - sYear) * 12 + (pMonth - sMonth);
-
-    if (diffMonths < 0) return false;
+    final lastParts = lastPeriodId.split('_');
+    final lYear = int.parse(lastParts[0]);
+    final lMonth = int.parse(lastParts[1]);
+    final diffMonths = (pYear - lYear) * 12 + (pMonth - lMonth);
+    if (diffMonths == 0) return true;
 
     return diffMonths % frequent.frequency.months == 0;
   }
@@ -69,28 +78,33 @@ class FrequentMovementProvider extends ChangeNotifier {
     List<MovementEntity> movements,
     String? currentLoadedBillingPeriodId,
   ) {
-    if (!shouldEnterInBillingPeriod(frequent, selectedBillingPeriodId)) {
-      return FrequentStatus.none;
-    }
+    final selParts = selectedBillingPeriodId.split('_');
+    final selYear = int.parse(selParts[0]);
+    final selMonth = int.parse(selParts[1]);
+    final normalizedSelectedId = "${selYear}_$selMonth";
 
-    final exists = movements.any(
-      (m) =>
-          m.frequentId == frequent.id &&
-          m.billingPeriodId == selectedBillingPeriodId,
-    );
+    final exists = movements.any((m) {
+      final mParts = m.billingPeriodId.split('_');
+      final mYear = int.parse(mParts[0]);
+      final mMonth = int.parse(mParts[1]);
+      final normalizedMId = "${mYear}_$mMonth";
+
+      return m.frequentId == frequent.id &&
+          normalizedMId == normalizedSelectedId;
+    });
 
     if (exists) {
       return FrequentStatus.completed;
+    }
+
+    if (!shouldEnterInBillingPeriod(frequent, selectedBillingPeriodId)) {
+      return FrequentStatus.none;
     }
 
     final currentPeriodId = BillingPeriodUtils.generateId(
       DateTime.now(),
       startDay,
     );
-    final parts = selectedBillingPeriodId.split('_');
-    final selYear = int.parse(parts[0]);
-    final selMonth = int.parse(parts[1]);
-
     final curParts = currentPeriodId.split('_');
     final curYear = int.parse(curParts[0]);
     final curMonth = int.parse(curParts[1]);

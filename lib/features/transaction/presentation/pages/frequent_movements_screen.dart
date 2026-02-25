@@ -46,7 +46,7 @@ class _FrequentMovementsScreenState extends State<FrequentMovementsScreen> {
 
           return ListView(
             padding: const EdgeInsets.all(16),
-            children: _buildGroupedList(context, provider),
+            children: _buildListItems(context, provider),
           );
         },
       ),
@@ -61,84 +61,89 @@ class _FrequentMovementsScreenState extends State<FrequentMovementsScreen> {
     );
   }
 
-  List<Widget> _buildGroupedList(
+  List<Widget> _buildListItems(
     BuildContext context,
     FrequentMovementProvider provider,
   ) {
     final periodProv = context.watch<BillingPeriodProvider>();
+    final settingsProv = context.watch<SettingsProvider>();
+    final movementProv = context.watch<MovementProvider>();
     final selectedPeriodId = periodProv.selectedPeriodId;
-    final List<Widget> widgets = [];
-    final pendingFrequentsCurrentBillingPeriod = provider.frequents
-        .where((f) => provider.shouldEnterInBillingPeriod(f, selectedPeriodId))
-        .toList();
-    if (pendingFrequentsCurrentBillingPeriod.isNotEmpty) {
-      widgets.add(_buildHeader("Este período"));
-      widgets.addAll(
-        pendingFrequentsCurrentBillingPeriod.map(
-          (f) => _FrequentItemRow(frequent: f, periodId: selectedPeriodId),
-        ),
-      );
-    }
-
     final nextBillingPeriodId = BillingPeriodUtils.getNextBillingPeriodId(
       selectedPeriodId,
     );
-    final pendingFrequentsNextBillingPeriod = provider.frequents
-        .where(
-          (f) => provider.shouldEnterInBillingPeriod(f, nextBillingPeriodId),
-        )
-        .where(
-          (f) => !pendingFrequentsCurrentBillingPeriod.any((e) => e.id == f.id),
-        )
-        .toList();
-    if (pendingFrequentsNextBillingPeriod.isNotEmpty) {
-      widgets.add(_buildHeader("Próximo período"));
-      widgets.addAll(
-        pendingFrequentsNextBillingPeriod.map(
-          (f) => _FrequentItemRow(frequent: f, periodId: nextBillingPeriodId),
-        ),
+    final list = provider.frequents.map((f) {
+      final status = provider.getStatus(
+        f,
+        selectedPeriodId,
+        settingsProv.settings.startDay,
+        movementProv.movements,
+        movementProv.lastLoadedBillingPeriodId,
       );
-    }
+      final isNextPeriod = provider.shouldEnterInBillingPeriod(
+        f,
+        nextBillingPeriodId,
+      );
+      final noHistory = provider.lastMovePeriodByFrequent[f.id] == null;
 
-    return widgets;
-  }
+      int priority = 100;
 
-  Widget _buildHeader(String title) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-      child: Text(
-        title.toUpperCase(),
-        style: const TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-          color: AppColors.primary,
-          letterSpacing: 1.2,
-        ),
-      ),
-    );
+      if (status == FrequentStatus.completed) {
+        priority = 10;
+      } else if (status == FrequentStatus.pending ||
+          status == FrequentStatus.overdue) {
+        priority = 20;
+      } else if (!noHistory) {
+        priority = 30;
+      } else {
+        priority = 40;
+      }
+
+      return {
+        'frequent': f,
+        'status': status,
+        'isNextPeriod': isNextPeriod,
+        'noHistory': noHistory,
+        'priority': priority,
+      };
+    }).toList();
+
+    list.sort((a, b) {
+      final int pA = a['priority'] as int;
+      final int pB = b['priority'] as int;
+      if (pA != pB) return pA.compareTo(pB);
+
+      final FrequentMovementEntity fA = a['frequent'] as FrequentMovementEntity;
+      final FrequentMovementEntity fB = b['frequent'] as FrequentMovementEntity;
+      return fA.paymentDay.compareTo(fB.paymentDay);
+    });
+
+    return list.map((item) {
+      return _FrequentItemRow(
+        frequent: item['frequent'] as FrequentMovementEntity,
+        status: item['status'] as FrequentStatus,
+        isNextPeriod: item['isNextPeriod'] as bool,
+        noHistory: item['noHistory'] as bool,
+      );
+    }).toList();
   }
 }
 
 class _FrequentItemRow extends StatelessWidget {
   final FrequentMovementEntity frequent;
-  final String periodId;
+  final FrequentStatus status;
+  final bool isNextPeriod;
+  final bool noHistory;
 
-  const _FrequentItemRow({required this.frequent, required this.periodId});
+  const _FrequentItemRow({
+    required this.frequent,
+    required this.status,
+    required this.isNextPeriod,
+    required this.noHistory,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<FrequentMovementProvider>();
-    final movementProv = context.watch<MovementProvider>();
-    final settingsProv = context.watch<SettingsProvider>();
-
-    final status = provider.getStatus(
-      frequent,
-      periodId,
-      settingsProv.settings.startDay,
-      movementProv.movements,
-      movementProv.lastLoadedBillingPeriodId,
-    );
-
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -146,10 +151,32 @@ class _FrequentItemRow extends StatelessWidget {
       color: AppColors.surface,
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: _buildStatusIcon(status),
-        title: Text(
-          frequent.description,
-          style: const TextStyle(fontWeight: FontWeight.bold),
+        leading: _buildStatusIcon(status, noHistory: noHistory),
+        title: Row(
+          children: [
+            Expanded(
+              child: Text(
+                frequent.description,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+            if (isNextPeriod)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.warning.withValues(alpha: 0.9),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Text(
+                  "PRÓXIMO MES",
+                  style: TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textOnPrimary,
+                  ),
+                ),
+              ),
+          ],
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -204,9 +231,30 @@ class _FrequentItemRow extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusIcon(FrequentStatus status) {
+  Widget _buildStatusIcon(FrequentStatus status, {bool noHistory = false}) {
+    /* 1. Without movements (gray + plus icon) */
+    if (noHistory) {
+      return Container(
+        width: 32,
+        height: 32,
+        decoration: BoxDecoration(
+          color: AppColors.textLight.withValues(alpha: 0.2),
+          shape: BoxShape.circle,
+        ),
+        child: const Center(
+          child: Icon(
+            Icons.add_circle_outline,
+            size: 18,
+            color: AppColors.textLight,
+          ),
+        ),
+      );
+    }
+
     switch (status) {
+      /* 2. Pending/Overdue in this period (Yellow + Clock) */
       case FrequentStatus.pending:
+      case FrequentStatus.overdue:
         return Container(
           width: 32,
           height: 32,
@@ -216,29 +264,31 @@ class _FrequentItemRow extends StatelessWidget {
           ),
           child: const Center(
             child: Icon(
-              Icons.more_horiz,
+              Icons.schedule,
               size: 18,
               color: AppColors.textOnPrimary,
             ),
           ),
         );
+
+      /* 3. Already entered this period (Green + Check) */
       case FrequentStatus.completed:
-        return const Icon(Icons.check_circle, color: AppColors.info, size: 32);
-      case FrequentStatus.overdue:
-        return const Icon(Icons.error, color: AppColors.danger, size: 32);
+        return const Icon(Icons.check_circle, color: Colors.green, size: 32);
+
+      /* 4. No requires entry this month (Blue + Three dots) */
       case FrequentStatus.none:
         return Container(
           width: 32,
           height: 32,
-          decoration: BoxDecoration(
-            color: AppColors.textLight.withAlpha(50),
+          decoration: const BoxDecoration(
+            color: Colors.blue,
             shape: BoxShape.circle,
           ),
           child: const Center(
             child: Icon(
-              Icons.do_disturb_on,
+              Icons.more_horiz,
               size: 18,
-              color: AppColors.textLight,
+              color: AppColors.textOnPrimary,
             ),
           ),
         );
