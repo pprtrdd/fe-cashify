@@ -71,6 +71,35 @@ class FrequentMovementProvider extends ChangeNotifier {
     return diffMonths % frequent.frequency.months == 0;
   }
 
+  int? getPeriodsAway(
+    FrequentMovementEntity frequent,
+    String currentBillingPeriodId,
+  ) {
+    if (frequent.isArchived) return null;
+
+    final lastPeriodId = _lastMovePeriodByFrequent[frequent.id];
+    if (lastPeriodId == null) return null;
+
+    final parts = currentBillingPeriodId.split('_');
+    final pYear = int.parse(parts[0]);
+    final pMonth = int.parse(parts[1]);
+
+    final lastParts = lastPeriodId.split('_');
+    final lYear = int.parse(lastParts[0]);
+    final lMonth = int.parse(lastParts[1]);
+
+    final diffMonths = (pYear - lYear) * 12 + (pMonth - lMonth);
+
+    final freq = frequent.frequency.months;
+    int k;
+    if (diffMonths < 0) {
+      k = 1;
+    } else {
+      k = (diffMonths ~/ freq) + 1;
+    }
+    return k * freq - diffMonths;
+  }
+
   FrequentStatus getStatus(
     FrequentMovementEntity frequent,
     String selectedBillingPeriodId,

@@ -1,5 +1,4 @@
 import 'package:cashify/core/theme/app_colors.dart';
-import 'package:cashify/core/utils/billing_period_utils.dart';
 import 'package:cashify/core/widgets/primary_app_bar.dart';
 import 'package:cashify/features/settings/presentation/providers/settings_provider.dart';
 import 'package:cashify/features/transaction/domain/entities/frequent_movement_entity.dart';
@@ -69,9 +68,6 @@ class _FrequentMovementsScreenState extends State<FrequentMovementsScreen> {
     final settingsProv = context.watch<SettingsProvider>();
     final movementProv = context.watch<MovementProvider>();
     final selectedPeriodId = periodProv.selectedPeriodId;
-    final nextBillingPeriodId = BillingPeriodUtils.getNextBillingPeriodId(
-      selectedPeriodId,
-    );
     final list = provider.frequents.map((f) {
       final status = provider.getStatus(
         f,
@@ -80,10 +76,7 @@ class _FrequentMovementsScreenState extends State<FrequentMovementsScreen> {
         movementProv.movements,
         movementProv.lastLoadedBillingPeriodId,
       );
-      final isNextPeriod = provider.shouldEnterInBillingPeriod(
-        f,
-        nextBillingPeriodId,
-      );
+      final periodsAway = provider.getPeriodsAway(f, selectedPeriodId);
       final noHistory = provider.lastMovePeriodByFrequent[f.id] == null;
 
       int priority = 100;
@@ -102,7 +95,7 @@ class _FrequentMovementsScreenState extends State<FrequentMovementsScreen> {
       return {
         'frequent': f,
         'status': status,
-        'isNextPeriod': isNextPeriod,
+        'periodsAway': periodsAway,
         'noHistory': noHistory,
         'priority': priority,
       };
@@ -122,7 +115,7 @@ class _FrequentMovementsScreenState extends State<FrequentMovementsScreen> {
       return _FrequentItemRow(
         frequent: item['frequent'] as FrequentMovementEntity,
         status: item['status'] as FrequentStatus,
-        isNextPeriod: item['isNextPeriod'] as bool,
+        periodsAway: item['periodsAway'] as int?,
         noHistory: item['noHistory'] as bool,
       );
     }).toList();
@@ -132,13 +125,13 @@ class _FrequentMovementsScreenState extends State<FrequentMovementsScreen> {
 class _FrequentItemRow extends StatelessWidget {
   final FrequentMovementEntity frequent;
   final FrequentStatus status;
-  final bool isNextPeriod;
+  final int? periodsAway;
   final bool noHistory;
 
   const _FrequentItemRow({
     required this.frequent,
     required this.status,
-    required this.isNextPeriod,
+    required this.periodsAway,
     required this.noHistory,
   });
 
@@ -152,42 +145,41 @@ class _FrequentItemRow extends StatelessWidget {
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: _buildStatusIcon(status, noHistory: noHistory),
-        title: Text.rich(
-          TextSpan(
-            children: [
-              TextSpan(
-                text: frequent.description,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              if (isNextPeriod)
-                WidgetSpan(
-                  alignment: PlaceholderAlignment.middle,
-                  child: Container(
-                    margin: const EdgeInsets.only(left: 8),
+        title: Text(
+          frequent.description,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        trailing: periodsAway != null
+            ? Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 6,
                       vertical: 2,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.warning.withValues(alpha: 0.9),
+                      color: _getPeriodsColor(
+                        periodsAway!,
+                      ).withValues(alpha: 0.9),
                       borderRadius: BorderRadius.circular(4),
                     ),
-                    child: const Text(
-                      "PRÓXIMO MES",
-                      style: TextStyle(
+                    child: Text(
+                      _getPeriodsText(periodsAway!),
+                      style: const TextStyle(
                         fontSize: 9,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textOnPrimary,
                       ),
                     ),
                   ),
-                ),
-            ],
-          ),
-        ),
+                ],
+              )
+            : null,
         subtitle: RichText(
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
@@ -295,6 +287,24 @@ class _FrequentItemRow extends StatelessWidget {
             ),
           ),
         );
+    }
+  }
+
+  Color _getPeriodsColor(int periodsAway) {
+    if (periodsAway > 3) {
+      return AppColors.iconSuccess;
+    } else if (periodsAway > 1) {
+      return AppColors.warning;
+    } else {
+      return Colors.orange;
+    }
+  }
+
+  String _getPeriodsText(int periodsAway) {
+    if (periodsAway == 1) {
+      return "PRÓXIMO PERÍODO";
+    } else {
+      return "EN $periodsAway PERÍODOS";
     }
   }
 
