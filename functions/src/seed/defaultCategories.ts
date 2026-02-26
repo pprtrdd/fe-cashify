@@ -57,6 +57,7 @@ export const seedDefaultCategories = onRequest(async (req, res) => {
                 name: cat.name,
                 isExpense: cat.isExpense,
                 isExtra: cat.isExtra,
+                isArchived: cat.isArchived,
                 createdAt: admin.firestore.FieldValue.serverTimestamp(),
                 updatedAt: admin.firestore.FieldValue.serverTimestamp(),
             });
