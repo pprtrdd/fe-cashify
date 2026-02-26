@@ -27,7 +27,6 @@ class _FrequentFormScreenState extends State<FrequentFormScreen> {
   final _descController = TextEditingController();
   final _sourceController = TextEditingController();
   final _amountController = TextEditingController();
-  final _paymentDayController = TextEditingController();
 
   bool isEditing = false;
 
@@ -40,10 +39,7 @@ class _FrequentFormScreenState extends State<FrequentFormScreen> {
       _descController.text = widget.frequent!.description;
       _sourceController.text = widget.frequent!.source;
       _amountController.text = widget.frequent!.amount.toString();
-      _paymentDayController.text = widget.frequent!.paymentDay.toString();
       _frequency = widget.frequent!.frequency;
-    } else {
-      _paymentDayController.text = "1";
     }
   }
 
@@ -52,7 +48,6 @@ class _FrequentFormScreenState extends State<FrequentFormScreen> {
     _descController.dispose();
     _sourceController.dispose();
     _amountController.dispose();
-    _paymentDayController.dispose();
     super.dispose();
   }
 
@@ -103,13 +98,6 @@ class _FrequentFormScreenState extends State<FrequentFormScreen> {
                         ),
                         const SizedBox(height: 15),
                         _buildFrequencyDropdown(),
-                        const SizedBox(height: 15),
-                        CustomTextField(
-                          controller: _paymentDayController,
-                          label: "Día de pago",
-                          icon: Icons.calendar_today,
-                          isNumeric: true,
-                        ),
                         const SizedBox(height: 30),
                       ],
                     ),
@@ -172,7 +160,6 @@ class _FrequentFormScreenState extends State<FrequentFormScreen> {
         source: _sourceController.text,
         amount: int.parse(_amountController.text),
         frequency: _frequency,
-        paymentDay: int.parse(_paymentDayController.text),
         isArchived: false,
         createdAt: isEditing ? widget.frequent!.createdAt : DateTime.now(),
         updatedAt: DateTime.now(),

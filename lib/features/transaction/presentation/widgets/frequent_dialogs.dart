@@ -99,12 +99,6 @@ class FrequentDetailDialog extends StatelessWidget {
               ),
               const Divider(height: 24, color: AppColors.background),
               DetailRow(
-                icon: Icons.calendar_today_rounded,
-                label: "Día de Pago",
-                value: "Día ${frequent.paymentDay} de cada mes",
-              ),
-              const Divider(height: 24, color: AppColors.background),
-              DetailRow(
                 icon: Icons.store_rounded,
                 label: "Origen/Lugar",
                 value: frequent.source,

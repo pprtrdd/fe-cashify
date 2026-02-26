@@ -115,7 +115,7 @@ class _FrequentMovementsScreenState extends State<FrequentMovementsScreen> {
 
       final FrequentMovementEntity fA = a['frequent'] as FrequentMovementEntity;
       final FrequentMovementEntity fB = b['frequent'] as FrequentMovementEntity;
-      return fA.paymentDay.compareTo(fB.paymentDay);
+      return fA.description.compareTo(fB.description);
     });
 
     return list.map((item) {
