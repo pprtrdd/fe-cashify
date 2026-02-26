@@ -42,7 +42,7 @@ class FrequentMovementProvider extends ChangeNotifier {
       _frequents = results[0] as List<FrequentMovementEntity>;
       _lastMovePeriodByFrequent = results[1] as Map<String, String>;
     } catch (e) {
-      debugPrint("Error loading frequent: $e");
+      rethrow;
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -105,7 +105,6 @@ class FrequentMovementProvider extends ChangeNotifier {
     String selectedBillingPeriodId,
     int startDay,
     List<MovementEntity> movements,
-    String? currentLoadedBillingPeriodId,
   ) {
     final selParts = selectedBillingPeriodId.split('_');
     final selYear = int.parse(selParts[0]);
@@ -149,26 +148,13 @@ class FrequentMovementProvider extends ChangeNotifier {
     String billingPeriodId,
     int startDay,
     List<MovementEntity> movements,
-    String? currentLoadedBillingPeriodId,
   ) {
     return _frequents
         .where(
           (f) =>
-              getStatus(
-                    f,
-                    billingPeriodId,
-                    startDay,
-                    movements,
-                    currentLoadedBillingPeriodId,
-                  ) ==
+              getStatus(f, billingPeriodId, startDay, movements) ==
                   FrequentStatus.pending ||
-              getStatus(
-                    f,
-                    billingPeriodId,
-                    startDay,
-                    movements,
-                    currentLoadedBillingPeriodId,
-                  ) ==
+              getStatus(f, billingPeriodId, startDay, movements) ==
                   FrequentStatus.overdue,
         )
         .toList();

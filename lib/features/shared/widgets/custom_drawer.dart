@@ -357,7 +357,6 @@ class _FrequentItem extends StatelessWidget {
                   periodProv.selectedPeriodId,
                   settingsProv.settings.startDay,
                   movementProv.movements,
-                  movementProv.lastLoadedBillingPeriodId,
                 )
                 .length;
 

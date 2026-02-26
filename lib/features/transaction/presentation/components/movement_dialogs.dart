@@ -277,12 +277,12 @@ class MovementDetailDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isIngreso = provider.incomeCategoryIds.contains(movement.categoryId);
+    final isIncome = provider.incomeCategoryIds.contains(movement.categoryId);
     final categoryName = provider.getCategoryName(movement.categoryId);
     final paymentMethodName = provider.getPaymentMethodName(
       movement.paymentMethodId,
     );
-    final color = isIngreso ? AppColors.income : AppColors.expense;
+    final color = isIncome ? AppColors.income : AppColors.expense;
     final amountStyle = TextStyle(
       fontSize: 28,
       fontWeight: FontWeight.w900,
@@ -311,7 +311,7 @@ class MovementDetailDialog extends StatelessWidget {
                     radius: 32,
                     backgroundColor: color.withValues(alpha: 0.1),
                     child: Icon(
-                      isIngreso
+                      isIncome
                           ? Icons.arrow_downward
                           : Icons.arrow_upward_rounded,
                       color: color,

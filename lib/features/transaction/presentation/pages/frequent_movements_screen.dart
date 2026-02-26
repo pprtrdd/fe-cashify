@@ -74,7 +74,6 @@ class _FrequentMovementsScreenState extends State<FrequentMovementsScreen> {
         selectedPeriodId,
         settingsProv.settings.startDay,
         movementProv.movements,
-        movementProv.lastLoadedBillingPeriodId,
       );
       final periodsAway = provider.getPeriodsAway(f, selectedPeriodId);
       final noHistory = provider.lastMovePeriodByFrequent[f.id] == null;
@@ -192,7 +191,7 @@ class _FrequentItemRow extends StatelessWidget {
                   frequent.categoryId,
                 ).toUpperCase(),
                 style: TextStyle(
-                  color: _isIngreso(context, frequent.categoryId)
+                  color: _isIncome(context, frequent.categoryId)
                       ? AppColors.income
                       : AppColors.expense,
                   fontWeight: FontWeight.w900,
@@ -317,7 +316,7 @@ class _FrequentItemRow extends StatelessWidget {
     }
   }
 
-  bool _isIngreso(BuildContext context, String catId) {
+  bool _isIncome(BuildContext context, String catId) {
     try {
       final movementProv = context.read<MovementProvider>();
       return movementProv.incomeCategoryIds.contains(catId);

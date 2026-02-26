@@ -19,11 +19,11 @@ class CompactMovementRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isIngreso = provider.incomeCategoryIds.contains(
+    final bool isIncome = provider.incomeCategoryIds.contains(
       movement.categoryId,
     );
     final String categoryName = provider.getCategoryName(movement.categoryId);
-    final Color categoryColor = isIngreso
+    final Color categoryColor = isIncome
         ? AppColors.iconIncome
         : AppColors.iconExpense;
 

@@ -37,13 +37,13 @@ class PendingMovementsScreen extends StatelessWidget {
             itemBuilder: (context, index) {
               final catId = groupedItems.keys.elementAt(index);
               final movs = groupedItems[catId]!;
-              final isIngreso = provider.incomeCategoryIds.contains(catId);
+              final isIncome = provider.incomeCategoryIds.contains(catId);
               final total = movs.fold<int>(0, (sum, m) => sum + m.totalAmount);
 
               return _CategoryGroup(
                 name: provider.getCategoryName(catId),
                 total: total,
-                isIngreso: isIngreso,
+                isIncome: isIncome,
                 movements: movs,
                 provider: provider,
               );
@@ -58,14 +58,14 @@ class PendingMovementsScreen extends StatelessWidget {
 class _CategoryGroup extends StatefulWidget {
   final String name;
   final int total;
-  final bool isIngreso;
+  final bool isIncome;
   final List<MovementEntity> movements;
   final MovementProvider provider;
 
   const _CategoryGroup({
     required this.name,
     required this.total,
-    required this.isIngreso,
+    required this.isIncome,
     required this.movements,
     required this.provider,
   });
@@ -79,7 +79,7 @@ class _CategoryGroupState extends State<_CategoryGroup> {
 
   @override
   Widget build(BuildContext context) {
-    final backgroundColor = widget.isIngreso
+    final backgroundColor = widget.isIncome
         ? AppColors.income
         : AppColors.expense;
     const textColor = AppColors.background;
