@@ -49,7 +49,11 @@ class _AppLogo extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: const [
-        Icon(Icons.account_balance_wallet, size: 80, color: AppColors.primary),
+        Icon(
+          Icons.account_balance_wallet,
+          size: 80,
+          color: AppColors.iconPrimary,
+        ),
         SizedBox(height: 20),
         Text(
           "Cashify",

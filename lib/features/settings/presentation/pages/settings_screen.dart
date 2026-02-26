@@ -1,6 +1,7 @@
 import 'package:cashify/core/app_config/presentation/providers/app_config_provider.dart';
 import 'package:cashify/core/app_config/services/app_config_service.dart';
 import 'package:cashify/core/theme/app_colors.dart';
+import 'package:cashify/core/widgets/primary_app_bar.dart';
 import 'package:cashify/features/settings/presentation/pages/billing_period_setting_screen.dart';
 import 'package:cashify/features/shared/helpers/launcher_helper.dart';
 import 'package:cashify/features/shared/widgets/section_header.dart';
@@ -33,7 +34,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text("Configuración"), centerTitle: true),
+      appBar: const PrimaryAppBar(title: "Configuración"),
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
         children: [

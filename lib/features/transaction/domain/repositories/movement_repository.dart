@@ -157,4 +157,30 @@ class MovementRepository {
       rethrow;
     }
   }
+
+  Future<Map<String, String>> fetchLastMovementsPerFrequent() async {
+    try {
+      final snapshot = await _firestore
+          .collectionGroup('movements')
+          .where('userId', isEqualTo: _currentUid)
+          .where('frequentId', isGreaterThan: '')
+          .orderBy('frequentId')
+          .orderBy('createdAt', descending: true)
+          .get();
+      final Map<String, String> lastPeriods = {};
+
+      for (var doc in snapshot.docs) {
+        final data = doc.data();
+        final frequentId = data['frequentId'] as String;
+        final billingPeriodId = data['billingPeriodId'] as String;
+
+        if (!lastPeriods.containsKey(frequentId)) {
+          lastPeriods[frequentId] = billingPeriodId;
+        }
+      }
+      return lastPeriods;
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

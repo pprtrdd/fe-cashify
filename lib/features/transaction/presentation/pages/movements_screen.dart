@@ -1,4 +1,5 @@
 import 'package:cashify/core/theme/app_colors.dart';
+import 'package:cashify/core/widgets/primary_app_bar.dart';
 import 'package:cashify/features/transaction/presentation/providers/billing_period_provider.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
 import 'package:cashify/features/transaction/presentation/widgets/compact_movement_row.dart';
@@ -41,9 +42,8 @@ class _MovementHistoryScreenState extends State<MovementHistoryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text("Historial"),
-        centerTitle: true,
+      appBar: PrimaryAppBar(
+        title: "Historial",
         actions: [
           Consumer<MovementProvider>(
             builder: (context, provider, child) {

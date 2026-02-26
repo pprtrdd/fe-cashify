@@ -92,8 +92,8 @@ class CustomTextField extends FormField<String> {
                      prefixIcon: Icon(
                        icon,
                        color: state.hasError && state.isErrorVisible
-                           ? AppColors.danger
-                           : AppColors.primary,
+                           ? AppColors.iconDanger
+                           : AppColors.iconPrimary,
                      ),
                      filled: false,
                      border: InputBorder.none,

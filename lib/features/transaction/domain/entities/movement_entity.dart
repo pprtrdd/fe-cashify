@@ -19,6 +19,7 @@ class MovementEntity extends Equatable {
   final bool isCompleted;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final String? frequentId;
 
   const MovementEntity({
     required this.id,
@@ -39,6 +40,7 @@ class MovementEntity extends Equatable {
     required this.isCompleted,
     required this.createdAt,
     required this.updatedAt,
+    this.frequentId,
   });
 
   int get totalAmount => quantity * amount;
@@ -61,6 +63,7 @@ class MovementEntity extends Equatable {
     isCompleted,
     createdAt,
     updatedAt,
+    frequentId,
   ];
 
   MovementEntity copyWith({
@@ -79,6 +82,7 @@ class MovementEntity extends Equatable {
     String? billingPeriodId,
     String? notes,
     bool? isCompleted,
+    String? frequentId,
   }) {
     return MovementEntity(
       id: id ?? this.id,
@@ -99,6 +103,7 @@ class MovementEntity extends Equatable {
       isCompleted: isCompleted ?? this.isCompleted,
       createdAt: createdAt,
       updatedAt: updatedAt,
+      frequentId: frequentId ?? this.frequentId,
     );
   }
 }

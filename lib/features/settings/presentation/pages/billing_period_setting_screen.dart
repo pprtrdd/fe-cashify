@@ -1,4 +1,5 @@
 import 'package:cashify/core/theme/app_colors.dart';
+import 'package:cashify/core/widgets/primary_app_bar.dart';
 import 'package:cashify/features/settings/presentation/pages/billing_period_setting_form_screen.dart';
 import 'package:cashify/features/settings/presentation/providers/settings_provider.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +12,7 @@ class BillingSettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text("Período de Facturación"), elevation: 0),
+      appBar: const PrimaryAppBar(title: "Período de Facturación"),
       body: Consumer<SettingsProvider>(
         builder: (context, provider, child) {
           if (provider.isLoading) {

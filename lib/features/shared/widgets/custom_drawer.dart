@@ -4,9 +4,11 @@ import 'package:cashify/core/utils/billing_period_utils.dart';
 import 'package:cashify/features/settings/presentation/pages/settings_screen.dart';
 import 'package:cashify/features/settings/presentation/providers/settings_provider.dart';
 import 'package:cashify/features/transaction/presentation/pages/categories_screen.dart';
+import 'package:cashify/features/transaction/presentation/pages/frequent_movements_screen.dart';
 import 'package:cashify/features/transaction/presentation/pages/movements_screen.dart';
 import 'package:cashify/features/transaction/presentation/pages/pending_movements_screen.dart';
 import 'package:cashify/features/transaction/presentation/providers/billing_period_provider.dart';
+import 'package:cashify/features/transaction/presentation/providers/frequent_movement_provider.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
 import 'package:cashify/features/transaction/presentation/widgets/month_year_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -31,6 +33,7 @@ class CustomDrawer extends StatelessWidget {
               children: [
                 const _MovementsItem(),
                 const _PendingMovementsItem(),
+                const _FrequentItem(),
                 const _CategoriesItem(),
               ],
             ),
@@ -39,7 +42,7 @@ class CustomDrawer extends StatelessWidget {
           _DrawerItem(
             icon: Icons.settings_outlined,
             label: "Configuración",
-            iconColor: AppColors.textLight,
+            iconColor: AppColors.iconLight,
             onTap: () {
               Navigator.pop(context);
               Navigator.push(
@@ -52,7 +55,7 @@ class CustomDrawer extends StatelessWidget {
             icon: Icons.logout_rounded,
             label: "Cerrar Sesión",
             textColor: AppColors.danger,
-            iconColor: AppColors.danger,
+            iconColor: AppColors.iconDanger,
             onTap: () async {
               await AuthService().signOut();
               if (!context.mounted) return;
@@ -150,7 +153,7 @@ class _UserHeader extends StatelessWidget {
             children: [
               const Icon(
                 Icons.bolt_rounded,
-                color: AppColors.textOnPrimary,
+                color: AppColors.iconOnPrimary,
                 size: 16,
               ),
               const SizedBox(width: 8),
@@ -253,12 +256,12 @@ class _PeriodSelector extends StatelessWidget {
             prefixIcon: const Icon(
               Icons.remove_red_eye_outlined,
               size: 20,
-              color: AppColors.primary,
+              color: AppColors.iconPrimary,
             ),
             suffixIcon: const Icon(
               Icons.calendar_month_outlined,
               size: 18,
-              color: AppColors.primary,
+              color: AppColors.iconPrimary,
             ),
           ),
           child: Text(
@@ -281,7 +284,7 @@ class _MovementsItem extends StatelessWidget {
         return _DrawerItem(
           icon: Icons.history,
           label: "Historial",
-          iconColor: AppColors.success,
+          iconColor: AppColors.iconSuccess,
           onTap: () {
             Navigator.pop(context);
             Navigator.push(
@@ -313,7 +316,7 @@ class _PendingMovementsItem extends StatelessWidget {
           icon: Icons.pending_actions,
           label: "Pendientes",
           isBold: hasPending, // Pasamos la condición
-          iconColor: AppColors.warning,
+          iconColor: AppColors.iconWarning,
           trailing: hasPending
               ? Badge(
                   backgroundColor: AppColors.notification,
@@ -336,6 +339,58 @@ class _PendingMovementsItem extends StatelessWidget {
   }
 }
 
+class _FrequentItem extends StatelessWidget {
+  const _FrequentItem();
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer4<
+      FrequentMovementProvider,
+      BillingPeriodProvider,
+      MovementProvider,
+      SettingsProvider
+    >(
+      builder:
+          (context, freqProv, periodProv, movementProv, settingsProv, child) {
+            final pendingCount = freqProv
+                .getPendingForBillingPeriod(
+                  periodProv.selectedPeriodId,
+                  settingsProv.settings.startDay,
+                  movementProv.movements,
+                )
+                .length;
+
+            final bool hasPending = pendingCount > 0;
+
+            return _DrawerItem(
+              icon: Icons.auto_awesome,
+              label: "Frecuentes",
+              isBold: hasPending,
+              iconColor: AppColors.iconPrimary,
+              trailing: hasPending
+                  ? Badge(
+                      backgroundColor: AppColors.notification,
+                      label: Text(
+                        '$pendingCount',
+                        style: const TextStyle(color: AppColors.textOnPrimary),
+                      ),
+                    )
+                  : null,
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const FrequentMovementsScreen(),
+                  ),
+                );
+              },
+            );
+          },
+    );
+  }
+}
+
 class _CategoriesItem extends StatelessWidget {
   const _CategoriesItem();
 
@@ -344,7 +399,7 @@ class _CategoriesItem extends StatelessWidget {
     return _DrawerItem(
       icon: Icons.category_outlined,
       label: "Categorías",
-      iconColor: AppColors.primary,
+      iconColor: AppColors.iconPrimary,
       onTap: () {
         Navigator.pop(context);
         Navigator.push(
@@ -378,7 +433,7 @@ class _DrawerItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: Icon(icon, color: iconColor ?? AppColors.textPrimary),
+      leading: Icon(icon, color: iconColor ?? AppColors.iconFaded),
       title: Text(
         label,
         style: TextStyle(

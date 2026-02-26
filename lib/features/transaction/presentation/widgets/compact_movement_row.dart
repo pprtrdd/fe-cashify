@@ -19,13 +19,13 @@ class CompactMovementRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isIngreso = provider.incomeCategoryIds.contains(
+    final bool isIncome = provider.incomeCategoryIds.contains(
       movement.categoryId,
     );
     final String categoryName = provider.getCategoryName(movement.categoryId);
-    final Color categoryColor = isIngreso
-        ? AppColors.income
-        : AppColors.expense;
+    final Color categoryColor = isIncome
+        ? AppColors.iconIncome
+        : AppColors.iconExpense;
 
     return Container(
       width: double.infinity,
@@ -43,8 +43,8 @@ class CompactMovementRow extends StatelessWidget {
                       : Icons.pending_rounded,
                   size: 18,
                   color: movement.isCompleted
-                      ? AppColors.success
-                      : AppColors.warning,
+                      ? AppColors.iconSuccess
+                      : AppColors.iconWarning,
                 ),
                 const SizedBox(width: 12),
               ],
@@ -77,6 +77,15 @@ class CompactMovementRow extends StatelessWidget {
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
                               ),
+                            ),
+                          ),
+                        if (movement.frequentId != null)
+                          const Padding(
+                            padding: EdgeInsets.only(left: 6),
+                            child: Icon(
+                              Icons.auto_awesome,
+                              size: 14,
+                              color: AppColors.iconPrimary,
                             ),
                           ),
                       ],

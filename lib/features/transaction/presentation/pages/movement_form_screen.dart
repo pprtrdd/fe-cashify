@@ -1,5 +1,6 @@
 import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/core/utils/billing_period_utils.dart';
+import 'package:cashify/core/widgets/primary_app_bar.dart';
 import 'package:cashify/features/settings/presentation/providers/settings_provider.dart';
 import 'package:cashify/features/shared/helpers/ui_helper.dart';
 import 'package:cashify/features/transaction/domain/entities/movement_entity.dart';
@@ -129,9 +130,8 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text("Nuevo Movimiento"),
-        centerTitle: true,
+      appBar: PrimaryAppBar(
+        title: isEditing ? "Editar Movimiento" : "Nuevo Movimiento",
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: () => Navigator.pop(context),
