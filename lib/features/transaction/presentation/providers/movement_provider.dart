@@ -10,6 +10,7 @@ import 'package:uuid/uuid.dart';
 
 class MovementProvider extends ChangeNotifier {
   final MovementUseCase movementUseCase;
+  String? get lastLoadedBillingPeriodId => _lastLoadedBillingPeriodId;
   final CategoryUsecases categoryUsecases;
   final PaymentMethodUsecases paymentMethodUsecases;
 

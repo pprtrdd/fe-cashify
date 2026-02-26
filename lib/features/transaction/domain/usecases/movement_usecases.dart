@@ -34,6 +34,10 @@ class MovementUseCase {
     return await repository.deleteGroup(groupId);
   }
 
+  Future<Map<String, String>> fetchLastMovementsPerFrequent() async {
+    return await repository.fetchLastMovementsPerFrequent();
+  }
+
   Future<List<MovementEntity>> fetchByBillingPeriod(String periodId) async {
     return await repository.fetchByBillingPeriod(periodId);
   }

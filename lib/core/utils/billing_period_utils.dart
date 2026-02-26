@@ -15,4 +15,16 @@ class BillingPeriodUtils {
       return DateTime.now();
     }
   }
+
+  static String getNextBillingPeriodId(String periodId) {
+    final parts = periodId.split('_');
+    int year = int.parse(parts[0]);
+    int month = int.parse(parts[1]);
+    month++;
+    if (month > 12) {
+      month = 1;
+      year++;
+    }
+    return "${year}_$month";
+  }
 }

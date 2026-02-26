@@ -1,4 +1,5 @@
 import 'package:cashify/core/theme/app_colors.dart';
+import 'package:cashify/core/widgets/primary_app_bar.dart';
 import 'package:cashify/features/transaction/domain/entities/category_entity.dart';
 import 'package:cashify/features/transaction/presentation/components/category_dialogs.dart';
 import 'package:cashify/features/transaction/presentation/providers/category_provider.dart';
@@ -27,20 +28,10 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.textOnPrimary,
-        title: const Text(
-          'Categorías',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add_circle_outline),
-            tooltip: 'Nueva categoría',
-            onPressed: () => _showAddSheet(context),
-          ),
-        ],
+      appBar: PrimaryAppBar(
+        title: 'Categorías',
+        showAddButton: true,
+        onAddPressed: () => _showAddSheet(context),
       ),
       body: Consumer<CategoryProvider>(
         builder: (context, provider, _) {
@@ -58,7 +49,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   Icon(
                     Icons.category_outlined,
                     size: 64,
-                    color: AppColors.textLight.withValues(alpha: 0.4),
+                    color: AppColors.iconLight.withValues(alpha: 0.4),
                   ),
                   const SizedBox(height: 12),
                   const Text(
@@ -86,7 +77,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               if (planned.isNotEmpty) ...[
                 _SectionHeader(
                   label: 'Planificados',
-                  color: AppColors.primary,
+                  color: AppColors.iconPrimary,
                   icon: Icons.calendar_today_rounded,
                 ),
                 ...planned.map(
@@ -100,7 +91,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               if (unforeseen.isNotEmpty) ...[
                 _SectionHeader(
                   label: 'Imprevistos',
-                  color: AppColors.warning,
+                  color: AppColors.iconWarning,
                   icon: Icons.flash_on_rounded,
                 ),
                 ...unforeseen.map(
@@ -217,7 +208,7 @@ class _CategoryTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isExpense = category.isExpense;
-    final color = isExpense ? AppColors.expense : AppColors.income;
+    final color = isExpense ? AppColors.iconExpense : AppColors.iconIncome;
 
     final isArchived = category.isArchived;
 

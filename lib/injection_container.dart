@@ -1,5 +1,4 @@
 import 'package:cashify/core/app_config/domain/repositories/app_config_repository.dart';
-import 'package:cashify/features/transaction/presentation/providers/category_provider.dart';
 import 'package:cashify/core/app_config/domain/usecases/app_config_usecases.dart';
 import 'package:cashify/core/app_config/presentation/providers/app_config_provider.dart';
 import 'package:cashify/core/auth/auth_service.dart';
@@ -8,13 +7,17 @@ import 'package:cashify/features/settings/domain/usecases/settings_usecases.dart
 import 'package:cashify/features/settings/presentation/providers/settings_provider.dart';
 import 'package:cashify/features/transaction/domain/repositories/billing_period_repository.dart';
 import 'package:cashify/features/transaction/domain/repositories/category_repository.dart';
+import 'package:cashify/features/transaction/domain/repositories/frequent_movement_repository.dart';
 import 'package:cashify/features/transaction/domain/repositories/movement_repository.dart';
 import 'package:cashify/features/transaction/domain/repositories/payment_method_repository.dart';
 import 'package:cashify/features/transaction/domain/usecases/billing_period_usecases.dart';
 import 'package:cashify/features/transaction/domain/usecases/category_usecases.dart';
+import 'package:cashify/features/transaction/domain/usecases/frequent_movement_usecases.dart';
 import 'package:cashify/features/transaction/domain/usecases/movement_usecases.dart';
 import 'package:cashify/features/transaction/domain/usecases/payment_method_usecases.dart';
 import 'package:cashify/features/transaction/presentation/providers/billing_period_provider.dart';
+import 'package:cashify/features/transaction/presentation/providers/category_provider.dart';
+import 'package:cashify/features/transaction/presentation/providers/frequent_movement_provider.dart';
 import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
 import 'package:cashify/features/user_config/domain/repositories/user_config_repository.dart';
 import 'package:cashify/features/user_config/domain/usecases/user_config_usecases.dart';
@@ -44,6 +47,14 @@ Future<void> init() async {
     () => UserConfigProvider(userConfigUsecases: sl(), authService: sl()),
   );
   sl.registerFactory(() => CategoryProvider(categoryUsecases: sl()));
+  sl.registerFactory(
+    () => FrequentMovementProvider(
+      usecases: sl(),
+      movementUsecases: sl(),
+      categoryUsecases: sl(),
+      paymentMethodUsecases: sl(),
+    ),
+  );
 
   /* --------------------------------------------------------------------------- */
   /* USE CASES (Lazy Singletons)                                                 */
@@ -55,6 +66,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => BillingPeriodUsecases(repository: sl()));
   sl.registerLazySingleton(() => AppConfigUsecases(repository: sl()));
   sl.registerLazySingleton(() => UserConfigUsecases(repository: sl()));
+  sl.registerLazySingleton(() => FrequentMovementUsecases(repository: sl()));
 
   /* --------------------------------------------------------------------------- */
   /* REPOSITORIES (Lazy Singletons)                                              */
@@ -77,6 +89,10 @@ Future<void> init() async {
   sl.registerLazySingleton(() => AppConfigRepository(sl<FirebaseFirestore>()));
   sl.registerLazySingleton(
     () => UserConfigRepository(sl<FirebaseFirestore>(), sl<FirebaseAuth>()),
+  );
+  sl.registerLazySingleton(
+    () =>
+        FrequentMovementRepository(sl<FirebaseFirestore>(), sl<FirebaseAuth>()),
   );
 
   /* --------------------------------------------------------------------------- */
