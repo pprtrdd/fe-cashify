@@ -382,7 +382,7 @@ class _EnterFrequentMovementDialogState
   void _enter(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
       final frequentProv = context.read<FrequentMovementProvider>();
-      final periodProv = context.read<BillingPeriodProvider>();
+      final billingPeriodProv = context.read<BillingPeriodProvider>();
       final settingsProv = context.read<SettingsProvider>();
       final movementProv = context.read<MovementProvider>();
 
@@ -390,7 +390,7 @@ class _EnterFrequentMovementDialogState
         frequent: widget.frequent,
         amount: int.parse(_amountController.text),
         paymentMethodId: _selectedPaymentMethod!,
-        billingPeriodId: periodProv.selectedPeriodId,
+        billingPeriodId: billingPeriodProv.selectedBillingPeriodId,
         startDay: settingsProv.settings.startDay,
       );
 

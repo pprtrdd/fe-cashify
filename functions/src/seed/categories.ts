@@ -78,10 +78,10 @@ export const migrateAllUserCategoriesFromTemplate = onRequest({ timeoutSeconds: 
                 });
             });
 
-            const periodsSnapshot = await db.collection("users").doc(uid).collection("billing_periods").get();
+            const billingPeriodsSnapshot = await db.collection("users").doc(uid).collection("billing_periods").get();
 
-            for (const periodDoc of periodsSnapshot.docs) {
-                const movementsRef = periodDoc.ref.collection("movements");
+            for (const billingPeriodDoc of billingPeriodsSnapshot.docs) {
+                const movementsRef = billingPeriodDoc.ref.collection("movements");
 
                 for (const [oldId, newId] of Object.entries(oldIdToNewId)) {
                     const movementsSnapshot = await movementsRef.where("categoryId", "==", oldId).get();

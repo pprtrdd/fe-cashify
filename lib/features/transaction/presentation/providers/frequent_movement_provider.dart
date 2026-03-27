@@ -55,14 +55,14 @@ class FrequentMovementProvider extends ChangeNotifier {
   ) {
     if (frequent.isArchived) return false;
 
-    final lastPeriodId = _lastMovePeriodByFrequent[frequent.id];
-    if (lastPeriodId == null) return false;
+    final lastBillingPeriodId = _lastMovePeriodByFrequent[frequent.id];
+    if (lastBillingPeriodId == null) return false;
 
     final parts = billingPeriodId.split('_');
     final pYear = int.parse(parts[0]);
     final pMonth = int.parse(parts[1]);
 
-    final lastParts = lastPeriodId.split('_');
+    final lastParts = lastBillingPeriodId.split('_');
     final lYear = int.parse(lastParts[0]);
     final lMonth = int.parse(lastParts[1]);
     final diffMonths = (pYear - lYear) * 12 + (pMonth - lMonth);
@@ -71,20 +71,20 @@ class FrequentMovementProvider extends ChangeNotifier {
     return diffMonths % frequent.frequency.months == 0;
   }
 
-  int? getPeriodsAway(
+  int? getBillingPeriodsAway(
     FrequentMovementEntity frequent,
     String currentBillingPeriodId,
   ) {
     if (frequent.isArchived) return null;
 
-    final lastPeriodId = _lastMovePeriodByFrequent[frequent.id];
-    if (lastPeriodId == null) return null;
+    final lastBillingPeriodId = _lastMovePeriodByFrequent[frequent.id];
+    if (lastBillingPeriodId == null) return null;
 
     final parts = currentBillingPeriodId.split('_');
     final pYear = int.parse(parts[0]);
     final pMonth = int.parse(parts[1]);
 
-    final lastParts = lastPeriodId.split('_');
+    final lastParts = lastBillingPeriodId.split('_');
     final lYear = int.parse(lastParts[0]);
     final lMonth = int.parse(lastParts[1]);
 

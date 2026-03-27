@@ -77,8 +77,8 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final periodProv = context.read<BillingPeriodProvider>();
-      final activeId = periodProv.selectedPeriodId;
+      final billingPeriodProv = context.read<BillingPeriodProvider>();
+      final activeId = billingPeriodProv.selectedBillingPeriodId;
 
       if (!isEditing || isCopying) {
         setState(() {
@@ -99,14 +99,14 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
   }
 
   void _updateBillingPeriodTextField(DateTime date) {
-    final periodProv = context.read<BillingPeriodProvider>();
+    final billingPeriodProv = context.read<BillingPeriodProvider>();
     final settingsProv = context.read<SettingsProvider>();
 
     final id = BillingPeriodUtils.generateId(
       date,
       settingsProv.settings.startDay,
     );
-    _billingPeriodController.text = periodProv.formatId(id);
+    _billingPeriodController.text = billingPeriodProv.formatId(id);
   }
 
   @override
@@ -381,9 +381,9 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
   void _save(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
       final settingsProv = context.read<SettingsProvider>();
-      final periodProv = context.read<BillingPeriodProvider>();
+      final billingPeriodProv = context.read<BillingPeriodProvider>();
       final movementProv = context.read<MovementProvider>();
-      final movement = _createMovementEntity(periodProv, settingsProv);
+      final movement = _createMovementEntity(billingPeriodProv, settingsProv);
 
       try {
         if (isEditing) {
@@ -394,11 +394,11 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
         } else {
           await movementProv.createMovement(
             movement,
-            periodProv.selectedPeriodId,
+            billingPeriodProv.selectedBillingPeriodId,
             settingsProv.settings.startDay,
             () async {
               try {
-                await periodProv.loadPeriods();
+                await billingPeriodProv.loadPeriods();
               } catch (e) {
                 if (!context.mounted) return;
                 context.showErrorSnackBar("Error al cargar periodos: $e");
@@ -420,7 +420,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
   }
 
   MovementEntity _createMovementEntity(
-    BillingPeriodProvider periodProv,
+    BillingPeriodProvider billingPeriodProv,
     SettingsProvider settingsProv,
   ) {
     final String calculatedId = isEditing

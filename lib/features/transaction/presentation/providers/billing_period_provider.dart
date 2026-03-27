@@ -5,37 +5,40 @@ import 'package:flutter/material.dart';
 class BillingPeriodProvider extends ChangeNotifier {
   final BillingPeriodUsecases usecases;
 
-  List<String> _periods = [];
-  String? _selectedPeriodId;
+  List<String> _billingPeriodIds = [];
+  String? _selectedBillingPeriodId;
   bool _isLoading = false;
 
   BillingPeriodProvider({required this.usecases});
 
-  List<String> get periods => _periods;
+  List<String> get billingPeriodIds => _billingPeriodIds;
   bool get isLoading => _isLoading;
   int _startDay = 0;
 
   void updateStartDay(int startDay) {
     if (_startDay != startDay) {
       _startDay = startDay;
-      _selectedPeriodId = null;
+      _selectedBillingPeriodId = null;
       notifyListeners();
     }
   }
 
-  String get selectedPeriodId {
-    if (_selectedPeriodId == null) {
-      _selectedPeriodId = BillingPeriodUtils.generateId(
+  String get selectedBillingPeriodId {
+    if (_selectedBillingPeriodId == null) {
+      _selectedBillingPeriodId = BillingPeriodUtils.generateId(
         DateTime.now(),
         _startDay,
       );
       Future.microtask(() => notifyListeners());
     }
-    return _selectedPeriodId!;
+    return _selectedBillingPeriodId!;
   }
 
-  DateTimeRange getRangeFromId(String periodId, int startDay) {
-    final parts = periodId.split('_');
+  DateTimeRange getRangeFromBillingPeriodId(
+    String billingPeriodId,
+    int startDay,
+  ) {
+    final parts = billingPeriodId.split('_');
     final year = int.parse(parts[0]);
     final month = int.parse(parts[1]);
 
@@ -67,10 +70,10 @@ class BillingPeriodProvider extends ChangeNotifier {
     return "${months[monthIndex]} $year";
   }
 
-  void selectPeriod(String periodId) {
-    if (_selectedPeriodId == periodId) return;
+  void selectPeriod(String billingPeriodId) {
+    if (_selectedBillingPeriodId == billingPeriodId) return;
 
-    _selectedPeriodId = periodId;
+    _selectedBillingPeriodId = billingPeriodId;
     notifyListeners();
   }
 
@@ -81,7 +84,7 @@ class BillingPeriodProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _periods = await usecases.fetchAll();
+      _billingPeriodIds = await usecases.fetchAll();
     } catch (e) {
       rethrow;
     } finally {

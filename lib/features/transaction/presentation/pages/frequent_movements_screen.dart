@@ -64,18 +64,21 @@ class _FrequentMovementsScreenState extends State<FrequentMovementsScreen> {
     BuildContext context,
     FrequentMovementProvider provider,
   ) {
-    final periodProv = context.watch<BillingPeriodProvider>();
+    final billingPeriodProv = context.watch<BillingPeriodProvider>();
     final settingsProv = context.watch<SettingsProvider>();
     final movementProv = context.watch<MovementProvider>();
-    final selectedPeriodId = periodProv.selectedPeriodId;
+    final selectedBillingPeriodId = billingPeriodProv.selectedBillingPeriodId;
     final list = provider.frequents.map((f) {
       final status = provider.getStatus(
         f,
-        selectedPeriodId,
+        selectedBillingPeriodId,
         settingsProv.settings.startDay,
         movementProv.movements,
       );
-      final periodsAway = provider.getPeriodsAway(f, selectedPeriodId);
+      final billingPeriodsAway = provider.getBillingPeriodsAway(
+        f,
+        selectedBillingPeriodId,
+      );
       final noHistory = provider.lastMovePeriodByFrequent[f.id] == null;
 
       int priority = 100;
@@ -94,7 +97,7 @@ class _FrequentMovementsScreenState extends State<FrequentMovementsScreen> {
       return {
         'frequent': f,
         'status': status,
-        'periodsAway': periodsAway,
+        'billingPeriodsAway': billingPeriodsAway,
         'noHistory': noHistory,
         'priority': priority,
       };
@@ -114,7 +117,7 @@ class _FrequentMovementsScreenState extends State<FrequentMovementsScreen> {
       return _FrequentItemRow(
         frequent: item['frequent'] as FrequentMovementEntity,
         status: item['status'] as FrequentStatus,
-        periodsAway: item['periodsAway'] as int?,
+        billingPeriodsAway: item['billingPeriodsAway'] as int?,
         noHistory: item['noHistory'] as bool,
       );
     }).toList();
@@ -124,13 +127,13 @@ class _FrequentMovementsScreenState extends State<FrequentMovementsScreen> {
 class _FrequentItemRow extends StatelessWidget {
   final FrequentMovementEntity frequent;
   final FrequentStatus status;
-  final int? periodsAway;
+  final int? billingPeriodsAway;
   final bool noHistory;
 
   const _FrequentItemRow({
     required this.frequent,
     required this.status,
-    required this.periodsAway,
+    required this.billingPeriodsAway,
     required this.noHistory,
   });
 
@@ -151,7 +154,7 @@ class _FrequentItemRow extends StatelessWidget {
             color: AppColors.textPrimary,
           ),
         ),
-        trailing: periodsAway != null
+        trailing: billingPeriodsAway != null
             ? Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 mainAxisSize: MainAxisSize.min,
@@ -162,13 +165,13 @@ class _FrequentItemRow extends StatelessWidget {
                       vertical: 2,
                     ),
                     decoration: BoxDecoration(
-                      color: _getPeriodsColor(
-                        periodsAway!,
+                      color: _getBillingPeriodsColor(
+                        billingPeriodsAway!,
                       ).withValues(alpha: 0.9),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
-                      _getPeriodsText(periodsAway!),
+                      _getbillingPeriodsText(billingPeriodsAway!),
                       style: const TextStyle(
                         fontSize: 9,
                         fontWeight: FontWeight.bold,
@@ -242,7 +245,7 @@ class _FrequentItemRow extends StatelessWidget {
     }
 
     switch (status) {
-      /* 2. Pending/Overdue in this period (Yellow + Clock) */
+      /* 2. Pending/Overdue in this billing period (Yellow + Clock) */
       case FrequentStatus.pending:
       case FrequentStatus.overdue:
         return Container(
@@ -261,7 +264,7 @@ class _FrequentItemRow extends StatelessWidget {
           ),
         );
 
-      /* 3. Already entered this period (Green + Check) */
+      /* 3. Already entered this billing period (Green + Check) */
       case FrequentStatus.completed:
         return const Icon(
           Icons.check_circle,
@@ -289,21 +292,21 @@ class _FrequentItemRow extends StatelessWidget {
     }
   }
 
-  Color _getPeriodsColor(int periodsAway) {
-    if (periodsAway > 3) {
+  Color _getBillingPeriodsColor(int billingPeriodsAway) {
+    if (billingPeriodsAway > 3) {
       return AppColors.iconSuccess;
-    } else if (periodsAway > 1) {
+    } else if (billingPeriodsAway > 1) {
       return AppColors.warning;
     } else {
       return Colors.orange;
     }
   }
 
-  String _getPeriodsText(int periodsAway) {
-    if (periodsAway == 1) {
+  String _getbillingPeriodsText(int billingPeriodsAway) {
+    if (billingPeriodsAway == 1) {
       return "PRÓXIMO PERÍODO";
     } else {
-      return "EN $periodsAway PERÍODOS";
+      return "EN $billingPeriodsAway PERÍODOS";
     }
   }
 

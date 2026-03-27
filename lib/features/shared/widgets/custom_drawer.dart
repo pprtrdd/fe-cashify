@@ -80,19 +80,19 @@ class _UserHeader extends StatelessWidget {
     final bool hasValidPhoto =
         user?.photoURL != null && user!.photoURL!.isNotEmpty;
 
-    final periodProv = context.watch<BillingPeriodProvider>();
+    final billingPeriodProv = context.watch<BillingPeriodProvider>();
     final settingsProv = context.watch<SettingsProvider>();
 
     final String realCurrentId = BillingPeriodUtils.generateId(
       DateTime.now(),
       settingsProv.settings.startDay,
     );
-    final realRange = periodProv.getRangeFromId(
+    final realRange = billingPeriodProv.getRangeFromBillingPeriodId(
       realCurrentId,
       settingsProv.settings.startDay,
     );
 
-    final String realMonthName = periodProv.formatId(realCurrentId);
+    final String realMonthName = billingPeriodProv.formatId(realCurrentId);
     final String realDateRangeStr =
         "${realRange.start.day}/${realRange.start.month} al ${realRange.end.day}/${realRange.end.month}";
 
@@ -191,11 +191,11 @@ class _PeriodSelector extends StatelessWidget {
 
   void _showPicker(
     BuildContext context,
-    BillingPeriodProvider periodProv,
+    BillingPeriodProvider billingPeriodProv,
     SettingsProvider settingsProv,
   ) {
     final DateTime initialDate = BillingPeriodUtils.getDateFromId(
-      periodProv.selectedPeriodId,
+      billingPeriodProv.selectedBillingPeriodId,
     );
 
     showModalBottomSheet(
@@ -210,7 +210,7 @@ class _PeriodSelector extends StatelessWidget {
             settingsProv.settings.startDay,
           );
 
-          periodProv.selectPeriod(newId);
+          billingPeriodProv.selectPeriod(newId);
 
           Provider.of<MovementProvider>(
             context,
@@ -225,15 +225,15 @@ class _PeriodSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final periodProv = context.watch<BillingPeriodProvider>();
+    final billingPeriodProv = context.watch<BillingPeriodProvider>();
     final settingsProv = context.watch<SettingsProvider>();
 
-    final activeViewId = periodProv.selectedPeriodId;
+    final activeViewId = billingPeriodProv.selectedBillingPeriodId;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
       child: InkWell(
-        onTap: () => _showPicker(context, periodProv, settingsProv),
+        onTap: () => _showPicker(context, billingPeriodProv, settingsProv),
         borderRadius: BorderRadius.circular(12),
         child: InputDecorator(
           decoration: InputDecoration(
@@ -265,7 +265,7 @@ class _PeriodSelector extends StatelessWidget {
             ),
           ),
           child: Text(
-            periodProv.formatId(activeViewId),
+            billingPeriodProv.formatId(activeViewId),
             style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
           ),
         ),
@@ -309,13 +309,12 @@ class _PendingMovementsItem extends StatelessWidget {
             .where((m) => !m.isCompleted)
             .length;
 
-        // Solo aplicamos negrita si hay elementos pendientes
         final bool hasPending = pendingCount > 0;
 
         return _DrawerItem(
           icon: Icons.pending_actions,
           label: "Pendientes",
-          isBold: hasPending, // Pasamos la condición
+          isBold: hasPending,
           iconColor: AppColors.iconWarning,
           trailing: hasPending
               ? Badge(
@@ -351,10 +350,17 @@ class _FrequentItem extends StatelessWidget {
       SettingsProvider
     >(
       builder:
-          (context, freqProv, periodProv, movementProv, settingsProv, child) {
+          (
+            context,
+            freqProv,
+            billingPeriodProv,
+            movementProv,
+            settingsProv,
+            child,
+          ) {
             final pendingCount = freqProv
                 .getPendingForBillingPeriod(
-                  periodProv.selectedPeriodId,
+                  billingPeriodProv.selectedBillingPeriodId,
                   settingsProv.settings.startDay,
                   movementProv.movements,
                 )
