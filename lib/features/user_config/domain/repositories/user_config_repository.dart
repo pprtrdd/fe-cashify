@@ -57,15 +57,18 @@ class UserConfigRepository {
       );
     }
 
-    final String currentPeriodId = BillingPeriodUtils.generateId(now, startDay);
+    final String currentBillingPeriodId = BillingPeriodUtils.generateId(
+      now,
+      startDay,
+    );
 
     batch.set(
       _firestore
           .collection('users')
           .doc(uid)
           .collection('billing_periods')
-          .doc(currentPeriodId),
-      {'id': currentPeriodId, 'createdAt': FieldValue.serverTimestamp()},
+          .doc(currentBillingPeriodId),
+      {'id': currentBillingPeriodId, 'createdAt': FieldValue.serverTimestamp()},
     );
 
     final configUserEntity = UserConfigEntity(

@@ -28,9 +28,9 @@ class _MovementHistoryScreenState extends State<MovementHistoryScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    final periodProv = context.watch<BillingPeriodProvider>();
+    final billingPeriodProv = context.watch<BillingPeriodProvider>();
     final movementProv = context.read<MovementProvider>();
-    final activeId = periodProv.selectedPeriodId;
+    final activeId = billingPeriodProv.selectedBillingPeriodId;
 
     if (_lastPeriodSynced != activeId) {
       _lastPeriodSynced = activeId;

@@ -38,8 +38,10 @@ class MovementUseCase {
     return await repository.fetchLastMovementsPerFrequent();
   }
 
-  Future<List<MovementEntity>> fetchByBillingPeriod(String periodId) async {
-    return await repository.fetchByBillingPeriod(periodId);
+  Future<List<MovementEntity>> fetchByBillingPeriodId(
+    String billingPeriodId,
+  ) async {
+    return await repository.fetchByBillingPeriodId(billingPeriodId);
   }
 
   void _validate(MovementEntity movement) {

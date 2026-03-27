@@ -6,6 +6,6 @@ class BillingPeriodUsecases {
   BillingPeriodUsecases({required this.repository});
 
   Future<List<String>> fetchAll() async {
-    return await repository.getAllPeriodIds();
+    return await repository.getAllBillingPeriodIds();
   }
 }

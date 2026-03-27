@@ -17,7 +17,7 @@ class BillingPeriodRepository {
         .collection('billing_periods');
   }
 
-  Future<List<String>> getAllPeriodIds() async {
+  Future<List<String>> getAllBillingPeriodIds() async {
     try {
       final ref = _billingPeriodsRef;
       if (ref == null) throw Exception('ref is null');

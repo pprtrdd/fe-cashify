@@ -15,7 +15,7 @@ const FIREBASE_CONFIG = {
 const USER_ID = "...";
 const DEBUG_MODE = false;
 
-const SessionCache = { periods: {}, categories: {} };
+const SessionCache = { billingPeriodIds: {}, categories: {} };
 
 function exportFullSpreadsheetToFirestore() {
   const firestore = FirestoreApp.getFirestore(
@@ -67,15 +67,15 @@ function exportFullSpreadsheetToFirestore() {
         const targetDate = new Date(dateInfo.year, (dateInfo.month - 1) + offset, 2);
         const tYear = targetDate.getFullYear();
         const tMonth = targetDate.getMonth() + 1;
-        const tPeriodId = `${tYear}_${tMonth}`;
+        const tBillingPeriodId = `${tYear}_${tMonth}`;
         const isOriginal = (n === currentInst);
 
         if (!DEBUG_MODE) {
-          if (!SessionCache.periods[tPeriodId]) {
-            ensureExists(firestore, `users/${USER_ID}/billing_periods`, tPeriodId, {
-              id: tPeriodId, year: tYear, month: tMonth, lastUpdate: new Date(), status: "active"
+          if (!SessionCache.billingPeriodIds[tBillingPeriodId]) {
+            ensureExists(firestore, `users/${USER_ID}/billing_periods`, tBillingPeriodId, {
+              id: tBillingPeriodId, year: tYear, month: tMonth, lastUpdate: new Date(), status: "active"
             });
-            SessionCache.periods[tPeriodId] = true;
+            SessionCache.billingPeriodIds[tBillingPeriodId] = true;
           }
 
           const movement = {
@@ -90,7 +90,7 @@ function exportFullSpreadsheetToFirestore() {
             paymentMethodId: methodId,
             billingPeriodMonth: tMonth,
             billingPeriodYear: tYear,
-            billingPeriodId: tPeriodId,
+            billingPeriodId: tBillingPeriodId,
             notes: row[7] ? row[7].toString() : null,
             createdAt: new Date(),
             updatedAt: new Date(),
@@ -98,7 +98,7 @@ function exportFullSpreadsheetToFirestore() {
             isCompleted: isOriginal ? (Number(row[2]) !== 0) : false,
           };
 
-          firestore.createDocument(`users/${USER_ID}/billing_periods/${tPeriodId}/movements`, movement);
+          firestore.createDocument(`users/${USER_ID}/billing_periods/${tBillingPeriodId}/movements`, movement);
           totalDocs++;
           categoryTotalDocs++;
         }

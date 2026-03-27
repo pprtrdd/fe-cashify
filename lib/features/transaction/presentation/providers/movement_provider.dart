@@ -178,7 +178,7 @@ class MovementProvider extends ChangeNotifier {
   }
 
   Future<void> _fetchMovementsOnly(String billingPeriodId) async {
-    _movements = await movementUseCase.fetchByBillingPeriod(billingPeriodId);
+    _movements = await movementUseCase.fetchByBillingPeriodId(billingPeriodId);
     _calculateDashboardData();
     notifyListeners();
   }
@@ -196,7 +196,7 @@ class MovementProvider extends ChangeNotifier {
       final results = await Future.wait([
         categoryUsecases.fetchAll(),
         paymentMethodUsecases.fetchAll(),
-        movementUseCase.fetchByBillingPeriod(billingPeriodId),
+        movementUseCase.fetchByBillingPeriodId(billingPeriodId),
       ]);
 
       _categories = results[0] as List<CategoryEntity>;
@@ -245,7 +245,7 @@ class MovementProvider extends ChangeNotifier {
             2,
           );
 
-          final nextPeriodId = BillingPeriodUtils.generateId(
+          final nextBillingPeriodId = BillingPeriodUtils.generateId(
             nextDate,
             startDay,
           );
@@ -256,7 +256,7 @@ class MovementProvider extends ChangeNotifier {
               currentInstallment: movement.currentInstallment + i,
               billingPeriodYear: nextDate.year,
               billingPeriodMonth: nextDate.month,
-              billingPeriodId: nextPeriodId,
+              billingPeriodId: nextBillingPeriodId,
               isCompleted: false,
             ),
           );

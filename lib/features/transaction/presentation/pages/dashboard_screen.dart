@@ -25,8 +25,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    final periodProv = context.watch<BillingPeriodProvider>();
-    final targetPeriod = periodProv.selectedPeriodId;
+    final billingPeriodProv = context.watch<BillingPeriodProvider>();
+    final targetPeriod = billingPeriodProv.selectedBillingPeriodId;
 
     if (_lastPeriodLoaded != targetPeriod) {
       _lastPeriodLoaded = targetPeriod;
@@ -36,7 +36,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _refreshData() async {
     final settingsProv = context.read<SettingsProvider>();
-    final periodProv = context.read<BillingPeriodProvider>();
+    final billingPeriodProv = context.read<BillingPeriodProvider>();
     final movementProv = context.read<MovementProvider>();
 
     if (settingsProv.settings.startDay == 1 && !settingsProv.isLoading) {
@@ -50,7 +50,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     if (!mounted) return;
 
-    await movementProv.loadDataByBillingPeriod(periodProv.selectedPeriodId);
+    await movementProv.loadDataByBillingPeriod(
+      billingPeriodProv.selectedBillingPeriodId,
+    );
   }
 
   @override
@@ -139,12 +141,12 @@ class _CurrentPeriodLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final periodProv = context.watch<BillingPeriodProvider>();
+    final billingPeriodProv = context.watch<BillingPeriodProvider>();
     final settingsProv = context.watch<SettingsProvider>();
 
-    final activeId = periodProv.selectedPeriodId;
+    final activeId = billingPeriodProv.selectedBillingPeriodId;
 
-    final range = periodProv.getRangeFromId(
+    final range = billingPeriodProv.getRangeFromBillingPeriodId(
       activeId,
       settingsProv.settings.startDay,
     );
@@ -159,7 +161,7 @@ class _CurrentPeriodLabel extends StatelessWidget {
         ),
         const SizedBox(width: 6),
         Text(
-          "${periodProv.formatId(activeId)} (${range.start.day}/${range.start.month} - ${range.end.day}/${range.end.month})",
+          "${billingPeriodProv.formatId(activeId)} (${range.start.day}/${range.start.month} - ${range.end.day}/${range.end.month})",
           style: TextStyle(
             fontSize: 12,
             color: AppColors.textLight.withValues(alpha: 0.8),

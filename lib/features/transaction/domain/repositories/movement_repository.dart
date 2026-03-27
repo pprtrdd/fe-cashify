@@ -12,7 +12,9 @@ class MovementRepository {
   String get _currentUid =>
       _auth.currentUser?.uid ?? (throw Exception("Usuario no autenticado"));
 
-  DocumentReference<Map<String, dynamic>> _periodDoc(String billingPeriodId) {
+  DocumentReference<Map<String, dynamic>> _billingPeriodDoc(
+    String billingPeriodId,
+  ) {
     return _firestore
         .collection("users")
         .doc(_currentUid)
@@ -23,7 +25,7 @@ class MovementRepository {
   CollectionReference<Map<String, dynamic>> _movementsRef(
     String billingPeriodId,
   ) {
-    return _periodDoc(billingPeriodId).collection("movements");
+    return _billingPeriodDoc(billingPeriodId).collection("movements");
   }
 
   Future<void> save(MovementEntity m) async => saveMultiple([m]);
@@ -36,19 +38,19 @@ class MovementRepository {
 
     try {
       for (var m in movements) {
-        final periodId = m.billingPeriodId;
-        final periodRef = _periodDoc(periodId);
-        final movementRef = _movementsRef(periodId).doc();
+        final billingPeriodId = m.billingPeriodId;
+        final billingPeriodRef = _billingPeriodDoc(billingPeriodId);
+        final movementRef = _movementsRef(billingPeriodId).doc();
 
-        if (!updatedPeriods.contains(periodId)) {
-          batch.set(periodRef, {
-            'id': periodId,
+        if (!updatedPeriods.contains(billingPeriodId)) {
+          batch.set(billingPeriodRef, {
+            'id': billingPeriodId,
             'year': m.billingPeriodYear,
             'month': m.billingPeriodMonth,
             'lastUpdate': FieldValue.serverTimestamp(),
             'status': 'active',
           }, SetOptions(merge: true));
-          updatedPeriods.add(periodId);
+          updatedPeriods.add(billingPeriodId);
         }
 
         batch.set(
@@ -139,7 +141,7 @@ class MovementRepository {
     }
   }
 
-  Future<List<MovementEntity>> fetchByBillingPeriod(
+  Future<List<MovementEntity>> fetchByBillingPeriodId(
     String billingPeriodId,
   ) async {
     try {
