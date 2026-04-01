@@ -20,7 +20,7 @@ enum FrequentFrequency {
   }
 }
 
-class FrequentMovementEntity extends Equatable {
+class FrequentTransactionEntity extends Equatable {
   final String id;
   final String categoryId;
   final String description;
@@ -31,7 +31,7 @@ class FrequentMovementEntity extends Equatable {
   final DateTime createdAt;
   final DateTime updatedAt;
 
-  const FrequentMovementEntity({
+  const FrequentTransactionEntity({
     required this.id,
     required this.categoryId,
     required this.description,
@@ -56,7 +56,7 @@ class FrequentMovementEntity extends Equatable {
     updatedAt,
   ];
 
-  FrequentMovementEntity copyWith({
+  FrequentTransactionEntity copyWith({
     String? id,
     String? categoryId,
     String? description,
@@ -66,7 +66,7 @@ class FrequentMovementEntity extends Equatable {
     bool? isArchived,
     DateTime? updatedAt,
   }) {
-    return FrequentMovementEntity(
+    return FrequentTransactionEntity(
       id: id ?? this.id,
       categoryId: categoryId ?? this.categoryId,
       description: description ?? this.description,

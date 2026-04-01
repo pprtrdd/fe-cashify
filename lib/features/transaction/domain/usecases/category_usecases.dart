@@ -18,24 +18,24 @@ class CategoryUsecases {
     isExtra: isExtra,
   );
 
-  Future<bool> hasMovements(String categoryId) =>
-      repository.checkCategoryHasMovements(categoryId);
+  Future<bool> hasTransactions(String categoryId) =>
+      repository.checkCategoryHasTransactions(categoryId);
 
   Future<void> delete(String categoryId) =>
       repository.deleteCategory(categoryId);
 
-  Future<void> migrateMovements({
+  Future<void> migrateTransactions({
     required String fromCategoryId,
     required String toCategoryId,
-  }) => repository.migrateMovements(
+  }) => repository.migrateTransactions(
     fromCategoryId: fromCategoryId,
     toCategoryId: toCategoryId,
   );
 
-  Future<void> migrateMovementsAndDelete({
+  Future<void> migrateTransactionsAndDelete({
     required String fromCategoryId,
     required String toCategoryId,
-  }) => repository.migrateMovementsAndDelete(
+  }) => repository.migrateTransactionsAndDelete(
     fromCategoryId: fromCategoryId,
     toCategoryId: toCategoryId,
   );

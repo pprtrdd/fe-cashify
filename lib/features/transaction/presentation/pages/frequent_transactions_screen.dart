@@ -1,29 +1,29 @@
 import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/core/widgets/primary_app_bar.dart';
 import 'package:cashify/features/settings/presentation/providers/settings_provider.dart';
-import 'package:cashify/features/transaction/domain/entities/frequent_movement_entity.dart';
+import 'package:cashify/features/transaction/domain/entities/frequent_transaction_entity.dart';
 import 'package:cashify/features/transaction/presentation/pages/frequent_form_screen.dart';
 import 'package:cashify/features/transaction/presentation/providers/billing_period_provider.dart';
-import 'package:cashify/features/transaction/presentation/providers/frequent_movement_provider.dart';
-import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
+import 'package:cashify/features/transaction/presentation/providers/frequent_transaction_provider.dart';
+import 'package:cashify/features/transaction/presentation/providers/transaction_provider.dart';
 import 'package:cashify/features/transaction/presentation/widgets/frequent_dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class FrequentMovementsScreen extends StatefulWidget {
-  const FrequentMovementsScreen({super.key});
+class FrequentTransactionsScreen extends StatefulWidget {
+  const FrequentTransactionsScreen({super.key});
 
   @override
-  State<FrequentMovementsScreen> createState() =>
-      _FrequentMovementsScreenState();
+  State<FrequentTransactionsScreen> createState() =>
+      _FrequentTransactionsScreenState();
 }
 
-class _FrequentMovementsScreenState extends State<FrequentMovementsScreen> {
+class _FrequentTransactionsScreenState extends State<FrequentTransactionsScreen> {
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<FrequentMovementProvider>().loadFrequent();
+      context.read<FrequentTransactionProvider>().loadFrequent();
     });
   }
 
@@ -39,7 +39,7 @@ class _FrequentMovementsScreenState extends State<FrequentMovementsScreen> {
           MaterialPageRoute(builder: (_) => const FrequentFormScreen()),
         ),
       ),
-      body: Consumer<FrequentMovementProvider>(
+      body: Consumer<FrequentTransactionProvider>(
         builder: (context, provider, child) {
           if (provider.isLoading) {
             return const Center(child: CircularProgressIndicator());
@@ -62,18 +62,18 @@ class _FrequentMovementsScreenState extends State<FrequentMovementsScreen> {
 
   List<Widget> _buildListItems(
     BuildContext context,
-    FrequentMovementProvider provider,
+    FrequentTransactionProvider provider,
   ) {
     final billingPeriodProv = context.watch<BillingPeriodProvider>();
     final settingsProv = context.watch<SettingsProvider>();
-    final movementProv = context.watch<MovementProvider>();
+    final transactionProv = context.watch<TransactionProvider>();
     final selectedBillingPeriodId = billingPeriodProv.selectedBillingPeriodId;
     final list = provider.frequents.map((f) {
       final status = provider.getStatus(
         f,
         selectedBillingPeriodId,
         settingsProv.settings.startDay,
-        movementProv.movements,
+        transactionProv.transactions,
       );
       final billingPeriodsAway = provider.getBillingPeriodsAway(
         f,
@@ -108,14 +108,14 @@ class _FrequentMovementsScreenState extends State<FrequentMovementsScreen> {
       final int pB = b['priority'] as int;
       if (pA != pB) return pA.compareTo(pB);
 
-      final FrequentMovementEntity fA = a['frequent'] as FrequentMovementEntity;
-      final FrequentMovementEntity fB = b['frequent'] as FrequentMovementEntity;
+      final FrequentTransactionEntity fA = a['frequent'] as FrequentTransactionEntity;
+      final FrequentTransactionEntity fB = b['frequent'] as FrequentTransactionEntity;
       return fA.description.compareTo(fB.description);
     });
 
     return list.map((item) {
       return _FrequentItemRow(
-        frequent: item['frequent'] as FrequentMovementEntity,
+        frequent: item['frequent'] as FrequentTransactionEntity,
         status: item['status'] as FrequentStatus,
         billingPeriodsAway: item['billingPeriodsAway'] as int?,
         noHistory: item['noHistory'] as bool,
@@ -125,7 +125,7 @@ class _FrequentMovementsScreenState extends State<FrequentMovementsScreen> {
 }
 
 class _FrequentItemRow extends StatelessWidget {
-  final FrequentMovementEntity frequent;
+  final FrequentTransactionEntity frequent;
   final FrequentStatus status;
   final int? billingPeriodsAway;
   final bool noHistory;
@@ -225,7 +225,7 @@ class _FrequentItemRow extends StatelessWidget {
   }
 
   Widget _buildStatusIcon(FrequentStatus status, {bool noHistory = false}) {
-    /* 1. Without movements (gray + plus icon) */
+    /* 1. Without transactions (gray + plus icon) */
     if (noHistory) {
       return Container(
         width: 32,
@@ -312,8 +312,8 @@ class _FrequentItemRow extends StatelessWidget {
 
   String _getCategoryName(BuildContext context, String catId) {
     try {
-      final movementProv = context.read<MovementProvider>();
-      return movementProv.categories.firstWhere((c) => c.id == catId).name;
+      final transactionProv = context.read<TransactionProvider>();
+      return transactionProv.categories.firstWhere((c) => c.id == catId).name;
     } catch (_) {
       return "Sin Categoría";
     }
@@ -321,8 +321,8 @@ class _FrequentItemRow extends StatelessWidget {
 
   bool _isIncome(BuildContext context, String catId) {
     try {
-      final movementProv = context.read<MovementProvider>();
-      return movementProv.incomeCategoryIds.contains(catId);
+      final transactionProv = context.read<TransactionProvider>();
+      return transactionProv.incomeCategoryIds.contains(catId);
     } catch (_) {
       return false;
     }

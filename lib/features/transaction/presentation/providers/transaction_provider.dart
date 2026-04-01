@@ -1,21 +1,21 @@
 import 'package:cashify/core/utils/billing_period_utils.dart';
 import 'package:cashify/features/transaction/domain/entities/category_entity.dart';
-import 'package:cashify/features/transaction/domain/entities/movement_entity.dart';
+import 'package:cashify/features/transaction/domain/entities/transaction_entity.dart';
 import 'package:cashify/features/transaction/domain/entities/payment_method_entity.dart';
 import 'package:cashify/features/transaction/domain/usecases/category_usecases.dart';
-import 'package:cashify/features/transaction/domain/usecases/movement_usecases.dart';
+import 'package:cashify/features/transaction/domain/usecases/transaction_usecases.dart';
 import 'package:cashify/features/transaction/domain/usecases/payment_method_usecases.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
-class MovementProvider extends ChangeNotifier {
-  final MovementUseCase movementUseCase;
+class TransactionProvider extends ChangeNotifier {
+  final TransactionUseCase transactionUseCase;
   String? get lastLoadedBillingPeriodId => _lastLoadedBillingPeriodId;
   final CategoryUsecases categoryUsecases;
   final PaymentMethodUsecases paymentMethodUsecases;
 
-  MovementProvider({
-    required this.movementUseCase,
+  TransactionProvider({
+    required this.transactionUseCase,
     required this.categoryUsecases,
     required this.paymentMethodUsecases,
   });
@@ -23,7 +23,7 @@ class MovementProvider extends ChangeNotifier {
   bool _isLoading = false;
 
   List<CategoryEntity> _categories = [];
-  List<MovementEntity> _movements = [];
+  List<TransactionEntity> _transactions = [];
   List<PaymentMethodEntity> _paymentMethods = [];
   Map<String, CategoryEntity> _categoryMap = {};
   Set<String> _incomeCategoryIds = {};
@@ -49,7 +49,7 @@ class MovementProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
 
   List<CategoryEntity> get categories => _categories;
-  List<MovementEntity> get movements => _movements;
+  List<TransactionEntity> get transactions => _transactions;
   List<PaymentMethodEntity> get paymentMethods => _paymentMethods;
 
   double get realTotal => _realTotal;
@@ -63,13 +63,13 @@ class MovementProvider extends ChangeNotifier {
   Map<String, int> get extraGrouped => _extraGrouped;
 
   String get searchQuery => _searchQuery;
-  int get movementsPerPage => _pageSize;
+  int get transactionsPerPage => _pageSize;
 
   bool get hasExtraCategories => _categories.any((c) => c.isExtra);
   Set<String> get incomeCategoryIds => _incomeCategoryIds;
 
-  List<MovementEntity> get filteredMovements {
-    return _movements.where((m) {
+  List<TransactionEntity> get filteredTransactions {
+    return _transactions.where((m) {
       final matchesSearch =
           m.description.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           m.source.toLowerCase().contains(_searchQuery.toLowerCase()) ||
@@ -85,8 +85,8 @@ class MovementProvider extends ChangeNotifier {
     }).toList();
   }
 
-  List<MovementEntity> get pagedFilteredMovements {
-    final fullList = filteredMovements;
+  List<TransactionEntity> get pagedFilteredTransactions {
+    final fullList = filteredTransactions;
     final end = _currentPage * _pageSize;
 
     return fullList
@@ -139,7 +139,7 @@ class MovementProvider extends ChangeNotifier {
       }
     }
 
-    for (final mov in _movements) {
+    for (final mov in _transactions) {
       if (!mov.isCompleted) continue;
 
       final cat = _categoryMap[mov.categoryId];
@@ -177,8 +177,8 @@ class MovementProvider extends ChangeNotifier {
         .toSet();
   }
 
-  Future<void> _fetchMovementsOnly(String billingPeriodId) async {
-    _movements = await movementUseCase.fetchByBillingPeriodId(billingPeriodId);
+  Future<void> _fetchTransactionsOnly(String billingPeriodId) async {
+    _transactions = await transactionUseCase.fetchByBillingPeriodId(billingPeriodId);
     _calculateDashboardData();
     notifyListeners();
   }
@@ -188,7 +188,7 @@ class MovementProvider extends ChangeNotifier {
 
     _lastLoadedBillingPeriodId = billingPeriodId;
     _isLoading = true;
-    _movements = [];
+    _transactions = [];
     _resetTotals();
     notifyListeners();
 
@@ -196,12 +196,12 @@ class MovementProvider extends ChangeNotifier {
       final results = await Future.wait([
         categoryUsecases.fetchAll(),
         paymentMethodUsecases.fetchAll(),
-        movementUseCase.fetchByBillingPeriodId(billingPeriodId),
+        transactionUseCase.fetchByBillingPeriodId(billingPeriodId),
       ]);
 
       _categories = results[0] as List<CategoryEntity>;
       _paymentMethods = results[1] as List<PaymentMethodEntity>;
-      _movements = results[2] as List<MovementEntity>;
+      _transactions = results[2] as List<TransactionEntity>;
 
       _rebuildCategoryCache();
       _calculateDashboardData();
@@ -219,8 +219,8 @@ class MovementProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> createMovement(
-    MovementEntity movement,
+  Future<void> createTransaction(
+    TransactionEntity transaction,
     String currentViewId,
     int startDay,
     VoidCallback onPeriodsCreated,
@@ -230,18 +230,18 @@ class MovementProvider extends ChangeNotifier {
       notifyListeners();
 
       final String groupId = const Uuid().v4();
-      final baseMovement = movement.copyWith(groupId: groupId);
-      List<MovementEntity> movementsToSave = [baseMovement];
+      final baseTransaction = transaction.copyWith(groupId: groupId);
+      List<TransactionEntity> transactionsToSave = [baseTransaction];
 
-      if (movement.totalInstallments > 1 &&
-          movement.currentInstallment < movement.totalInstallments) {
+      if (transaction.totalInstallments > 1 &&
+          transaction.currentInstallment < transaction.totalInstallments) {
         final int totalGenerar =
-            movement.totalInstallments - movement.currentInstallment;
+            transaction.totalInstallments - transaction.currentInstallment;
 
         for (int i = 1; i <= totalGenerar; i++) {
           final nextDate = DateTime(
-            movement.billingPeriodYear,
-            movement.billingPeriodMonth + i,
+            transaction.billingPeriodYear,
+            transaction.billingPeriodMonth + i,
             2,
           );
 
@@ -250,10 +250,10 @@ class MovementProvider extends ChangeNotifier {
             startDay,
           );
 
-          movementsToSave.add(
-            baseMovement.copyWith(
+          transactionsToSave.add(
+            baseTransaction.copyWith(
               id: '',
-              currentInstallment: movement.currentInstallment + i,
+              currentInstallment: transaction.currentInstallment + i,
               billingPeriodYear: nextDate.year,
               billingPeriodMonth: nextDate.month,
               billingPeriodId: nextBillingPeriodId,
@@ -263,9 +263,9 @@ class MovementProvider extends ChangeNotifier {
         }
       }
 
-      await movementUseCase.addAll(movementsToSave);
+      await transactionUseCase.addAll(transactionsToSave);
       onPeriodsCreated();
-      await _fetchMovementsOnly(currentViewId);
+      await _fetchTransactionsOnly(currentViewId);
     } catch (e) {
       rethrow;
     } finally {
@@ -274,16 +274,16 @@ class MovementProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> updateMovement(MovementEntity movement) async {
+  Future<void> updateTransaction(TransactionEntity transaction) async {
     _isLoading = true;
     notifyListeners();
 
     try {
-      await movementUseCase.update(movement);
-      final index = _movements.indexWhere((m) => m.id == movement.id);
+      await transactionUseCase.update(transaction);
+      final index = _transactions.indexWhere((m) => m.id == transaction.id);
 
       if (index != -1) {
-        _movements[index] = movement;
+        _transactions[index] = transaction;
         _calculateDashboardData();
       }
     } catch (e) {
@@ -294,18 +294,18 @@ class MovementProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> updateMovementGroup({
-    required MovementEntity baseMovement,
+  Future<void> updateTransactionGroup({
+    required TransactionEntity baseTransaction,
     required bool onlyPending,
   }) async {
     _isLoading = true;
     notifyListeners();
 
     try {
-      await movementUseCase.updateGroup(baseMovement, onlyPending);
+      await transactionUseCase.updateGroup(baseTransaction, onlyPending);
 
       if (_lastLoadedBillingPeriodId != null) {
-        await _fetchMovementsOnly(_lastLoadedBillingPeriodId!);
+        await _fetchTransactionsOnly(_lastLoadedBillingPeriodId!);
       }
     } catch (e) {
       rethrow;
@@ -315,13 +315,13 @@ class MovementProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> deleteMovement(MovementEntity movement) async {
+  Future<void> deleteTransaction(TransactionEntity transaction) async {
     _isLoading = true;
     notifyListeners();
 
     try {
-      await movementUseCase.delete(movement);
-      _movements.removeWhere((m) => m.id == movement.id);
+      await transactionUseCase.delete(transaction);
+      _transactions.removeWhere((m) => m.id == transaction.id);
       _calculateDashboardData();
     } catch (e) {
       rethrow;
@@ -331,21 +331,21 @@ class MovementProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> deleteMovementGroup(MovementEntity movement) async {
-    if (movement.groupId.isEmpty) {
-      return deleteMovement(movement);
+  Future<void> deleteTransactionGroup(TransactionEntity transaction) async {
+    if (transaction.groupId.isEmpty) {
+      return deleteTransaction(transaction);
     }
 
     _isLoading = true;
     notifyListeners();
 
     try {
-      await movementUseCase.deleteGroup(
-        movement.billingPeriodId,
-        movement.groupId,
+      await transactionUseCase.deleteGroup(
+        transaction.billingPeriodId,
+        transaction.groupId,
       );
 
-      await _fetchMovementsOnly(movement.billingPeriodId);
+      await _fetchTransactionsOnly(transaction.billingPeriodId);
     } catch (e) {
       rethrow;
     } finally {
@@ -354,19 +354,19 @@ class MovementProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> toggleCompletion(MovementEntity movement) async {
-    final updatedMovement = movement.copyWith(
-      isCompleted: !movement.isCompleted,
+  Future<void> toggleCompletion(TransactionEntity transaction) async {
+    final updatedTransaction = transaction.copyWith(
+      isCompleted: !transaction.isCompleted,
     );
-    final index = _movements.indexWhere((m) => m.id == movement.id);
+    final index = _transactions.indexWhere((m) => m.id == transaction.id);
     if (index != -1) {
-      _movements[index] = updatedMovement;
+      _transactions[index] = updatedTransaction;
       _calculateDashboardData();
       notifyListeners();
     }
 
     try {
-      await movementUseCase.update(updatedMovement);
+      await transactionUseCase.update(updatedTransaction);
     } catch (e) {
       if (_lastLoadedBillingPeriodId != null) {
         await loadDataByBillingPeriod(_lastLoadedBillingPeriodId!);
@@ -378,25 +378,25 @@ class MovementProvider extends ChangeNotifier {
     return _categoryMap[id]?.name ?? "Categoría no encontrada";
   }
 
-  Future<void> confirmAndCompleteMovement(
-    MovementEntity movement,
+  Future<void> confirmAndCompleteTransaction(
+    TransactionEntity transaction,
     int finalAmount,
   ) async {
     _isLoading = true;
     notifyListeners();
 
-    final updatedMovement = movement.copyWith(
+    final updatedTransaction = transaction.copyWith(
       amount: finalAmount,
       isCompleted: true,
     );
 
     try {
-      await movementUseCase.update(updatedMovement);
-      final index = _movements.indexWhere((m) => m.id == movement.id);
+      await transactionUseCase.update(updatedTransaction);
+      final index = _transactions.indexWhere((m) => m.id == transaction.id);
 
       if (index != -1) {
-        _movements[index] = updatedMovement;
-        _movements = List.from(_movements);
+        _transactions[index] = updatedTransaction;
+        _transactions = List.from(_transactions);
 
         _calculateDashboardData();
       }
@@ -425,13 +425,13 @@ class MovementProvider extends ChangeNotifier {
   }
 
   void loadNextPage() {
-    if (_currentPage * _pageSize < filteredMovements.length) {
+    if (_currentPage * _pageSize < filteredTransactions.length) {
       _currentPage++;
       notifyListeners();
     }
   }
 
-  MovementEntity prepareCopy(MovementEntity original) {
+  TransactionEntity prepareCopy(TransactionEntity original) {
     return original.copyWith(id: '', groupId: '');
   }
 

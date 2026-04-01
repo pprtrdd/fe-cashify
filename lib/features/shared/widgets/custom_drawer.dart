@@ -4,12 +4,12 @@ import 'package:cashify/core/utils/billing_period_utils.dart';
 import 'package:cashify/features/settings/presentation/pages/settings_screen.dart';
 import 'package:cashify/features/settings/presentation/providers/settings_provider.dart';
 import 'package:cashify/features/transaction/presentation/pages/categories_screen.dart';
-import 'package:cashify/features/transaction/presentation/pages/frequent_movements_screen.dart';
-import 'package:cashify/features/transaction/presentation/pages/movements_screen.dart';
-import 'package:cashify/features/transaction/presentation/pages/pending_movements_screen.dart';
+import 'package:cashify/features/transaction/presentation/pages/frequent_transactions_screen.dart';
+import 'package:cashify/features/transaction/presentation/pages/transactions_screen.dart';
+import 'package:cashify/features/transaction/presentation/pages/pending_transactions_screen.dart';
 import 'package:cashify/features/transaction/presentation/providers/billing_period_provider.dart';
-import 'package:cashify/features/transaction/presentation/providers/frequent_movement_provider.dart';
-import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
+import 'package:cashify/features/transaction/presentation/providers/frequent_transaction_provider.dart';
+import 'package:cashify/features/transaction/presentation/providers/transaction_provider.dart';
 import 'package:cashify/features/transaction/presentation/widgets/month_year_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -31,8 +31,8 @@ class CustomDrawer extends StatelessWidget {
             child: ListView(
               padding: EdgeInsets.zero,
               children: [
-                const _MovementsItem(),
-                const _PendingMovementsItem(),
+                const _TransactionsItem(),
+                const _PendingTransactionsItem(),
                 const _FrequentItem(),
                 const _CategoriesItem(),
               ],
@@ -212,7 +212,7 @@ class _PeriodSelector extends StatelessWidget {
 
           billingPeriodProv.selectPeriod(newId);
 
-          Provider.of<MovementProvider>(
+          Provider.of<TransactionProvider>(
             context,
             listen: false,
           ).loadDataByBillingPeriod(newId);
@@ -274,12 +274,12 @@ class _PeriodSelector extends StatelessWidget {
   }
 }
 
-class _MovementsItem extends StatelessWidget {
-  const _MovementsItem();
+class _TransactionsItem extends StatelessWidget {
+  const _TransactionsItem();
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<MovementProvider>(
+    return Consumer<TransactionProvider>(
       builder: (context, provider, child) {
         return _DrawerItem(
           icon: Icons.history,
@@ -289,7 +289,7 @@ class _MovementsItem extends StatelessWidget {
             Navigator.pop(context);
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const MovementHistoryScreen()),
+              MaterialPageRoute(builder: (_) => const TransactionHistoryScreen()),
             );
           },
         );
@@ -298,14 +298,14 @@ class _MovementsItem extends StatelessWidget {
   }
 }
 
-class _PendingMovementsItem extends StatelessWidget {
-  const _PendingMovementsItem();
+class _PendingTransactionsItem extends StatelessWidget {
+  const _PendingTransactionsItem();
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<MovementProvider>(
+    return Consumer<TransactionProvider>(
       builder: (context, provider, child) {
-        final pendingCount = provider.movements
+        final pendingCount = provider.transactions
             .where((m) => !m.isCompleted)
             .length;
 
@@ -329,7 +329,7 @@ class _PendingMovementsItem extends StatelessWidget {
             Navigator.pop(context);
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const PendingMovementsScreen()),
+              MaterialPageRoute(builder: (_) => const PendingTransactionsScreen()),
             );
           },
         );
@@ -344,9 +344,9 @@ class _FrequentItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer4<
-      FrequentMovementProvider,
+      FrequentTransactionProvider,
       BillingPeriodProvider,
-      MovementProvider,
+      TransactionProvider,
       SettingsProvider
     >(
       builder:
@@ -354,7 +354,7 @@ class _FrequentItem extends StatelessWidget {
             context,
             freqProv,
             billingPeriodProv,
-            movementProv,
+            transactionProv,
             settingsProv,
             child,
           ) {
@@ -362,7 +362,7 @@ class _FrequentItem extends StatelessWidget {
                 .getPendingForBillingPeriod(
                   billingPeriodProv.selectedBillingPeriodId,
                   settingsProv.settings.startDay,
-                  movementProv.movements,
+                  transactionProv.transactions,
                 )
                 .length;
 
@@ -387,7 +387,7 @@ class _FrequentItem extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => const FrequentMovementsScreen(),
+                    builder: (_) => const FrequentTransactionsScreen(),
                   ),
                 );
               },

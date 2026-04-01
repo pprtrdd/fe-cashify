@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-class MovementEntity extends Equatable {
+class TransactionEntity extends Equatable {
   final String id;
   final String userId;
   final String groupId;
@@ -21,7 +21,7 @@ class MovementEntity extends Equatable {
   final DateTime updatedAt;
   final String? frequentId;
 
-  const MovementEntity({
+  const TransactionEntity({
     required this.id,
     required this.userId,
     required this.groupId,
@@ -66,7 +66,7 @@ class MovementEntity extends Equatable {
     frequentId,
   ];
 
-  MovementEntity copyWith({
+  TransactionEntity copyWith({
     String? id,
     String? groupId,
     String? categoryId,
@@ -84,7 +84,7 @@ class MovementEntity extends Equatable {
     bool? isCompleted,
     String? frequentId,
   }) {
-    return MovementEntity(
+    return TransactionEntity(
       id: id ?? this.id,
       userId: userId,
       groupId: groupId ?? this.groupId,

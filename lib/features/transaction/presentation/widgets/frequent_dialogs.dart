@@ -1,28 +1,28 @@
 import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/core/utils/formatters.dart';
 import 'package:cashify/features/settings/presentation/providers/settings_provider.dart';
-import 'package:cashify/features/transaction/domain/entities/frequent_movement_entity.dart';
-import 'package:cashify/features/transaction/presentation/components/movement_dialogs.dart';
+import 'package:cashify/features/transaction/domain/entities/frequent_transaction_entity.dart';
+import 'package:cashify/features/transaction/presentation/components/transaction_dialogs.dart';
 import 'package:cashify/features/transaction/presentation/pages/frequent_form_screen.dart';
 import 'package:cashify/features/transaction/presentation/providers/billing_period_provider.dart';
-import 'package:cashify/features/transaction/presentation/providers/frequent_movement_provider.dart';
-import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
+import 'package:cashify/features/transaction/presentation/providers/frequent_transaction_provider.dart';
+import 'package:cashify/features/transaction/presentation/providers/transaction_provider.dart';
 import 'package:cashify/features/transaction/presentation/widgets/custom_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class FrequentDetailDialog extends StatelessWidget {
-  final FrequentMovementEntity frequent;
+  final FrequentTransactionEntity frequent;
 
   const FrequentDetailDialog({super.key, required this.frequent});
 
   @override
   Widget build(BuildContext context) {
-    final movementProv = context.watch<MovementProvider>();
-    final isIncome = movementProv.incomeCategoryIds.contains(
+    final transactionProv = context.watch<TransactionProvider>();
+    final isIncome = transactionProv.incomeCategoryIds.contains(
       frequent.categoryId,
     );
-    final categoryName = movementProv.getCategoryName(frequent.categoryId);
+    final categoryName = transactionProv.getCategoryName(frequent.categoryId);
     final color = isIncome ? AppColors.income : AppColors.expense;
     final amountStyle = TextStyle(
       fontSize: 28,
@@ -113,13 +113,13 @@ class FrequentDetailDialog extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  MovementActionButton(
+                  TransactionActionButton(
                     icon: Icons.add_circle_outline_rounded,
                     label: "Ingresar",
                     color: AppColors.primary,
-                    onTap: () => _showEnterMovementDialog(context),
+                    onTap: () => _showEnterTransactionDialog(context),
                   ),
-                  MovementActionButton(
+                  TransactionActionButton(
                     icon: Icons.edit_rounded,
                     label: "Editar",
                     onTap: () {
@@ -133,7 +133,7 @@ class FrequentDetailDialog extends StatelessWidget {
                       );
                     },
                   ),
-                  MovementActionButton(
+                  TransactionActionButton(
                     icon: Icons.delete_outline_rounded,
                     label: "Eliminar",
                     color: AppColors.expense,
@@ -156,11 +156,11 @@ class FrequentDetailDialog extends StatelessWidget {
     );
   }
 
-  void _showEnterMovementDialog(BuildContext context) {
+  void _showEnterTransactionDialog(BuildContext context) {
     Navigator.pop(context);
     showDialog(
       context: context,
-      builder: (_) => _EnterFrequentMovementDialog(frequent: frequent),
+      builder: (_) => _EnterFrequentTransactionDialog(frequent: frequent),
     );
   }
 
@@ -188,7 +188,7 @@ class FrequentDetailDialog extends StatelessWidget {
           ),
           ElevatedButton(
             onPressed: () async {
-              await context.read<FrequentMovementProvider>().archiveFrequent(
+              await context.read<FrequentTransactionProvider>().archiveFrequent(
                 frequent.id,
               );
               if (ctx.mounted) {
@@ -211,18 +211,18 @@ class FrequentDetailDialog extends StatelessWidget {
   }
 }
 
-class _EnterFrequentMovementDialog extends StatefulWidget {
-  final FrequentMovementEntity frequent;
+class _EnterFrequentTransactionDialog extends StatefulWidget {
+  final FrequentTransactionEntity frequent;
 
-  const _EnterFrequentMovementDialog({required this.frequent});
+  const _EnterFrequentTransactionDialog({required this.frequent});
 
   @override
-  State<_EnterFrequentMovementDialog> createState() =>
-      _EnterFrequentMovementDialogState();
+  State<_EnterFrequentTransactionDialog> createState() =>
+      _EnterFrequentTransactionDialogState();
 }
 
-class _EnterFrequentMovementDialogState
-    extends State<_EnterFrequentMovementDialog> {
+class _EnterFrequentTransactionDialogState
+    extends State<_EnterFrequentTransactionDialog> {
   final _amountController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   String? _selectedPaymentMethod;
@@ -241,7 +241,7 @@ class _EnterFrequentMovementDialogState
 
   @override
   Widget build(BuildContext context) {
-    final movementProv = context.watch<MovementProvider>();
+    final transactionProv = context.watch<TransactionProvider>();
 
     return AlertDialog(
       backgroundColor: AppColors.surface,
@@ -285,7 +285,7 @@ class _EnterFrequentMovementDialogState
               isNumeric: true,
             ),
             const SizedBox(height: 8),
-            _buildPaymentMethodDropdown(movementProv),
+            _buildPaymentMethodDropdown(transactionProv),
           ],
         ),
       ),
@@ -321,7 +321,7 @@ class _EnterFrequentMovementDialogState
     );
   }
 
-  Widget _buildPaymentMethodDropdown(MovementProvider provider) {
+  Widget _buildPaymentMethodDropdown(TransactionProvider provider) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -381,12 +381,12 @@ class _EnterFrequentMovementDialogState
 
   void _enter(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
-      final frequentProv = context.read<FrequentMovementProvider>();
+      final frequentProv = context.read<FrequentTransactionProvider>();
       final billingPeriodProv = context.read<BillingPeriodProvider>();
       final settingsProv = context.read<SettingsProvider>();
-      final movementProv = context.read<MovementProvider>();
+      final transactionProv = context.read<TransactionProvider>();
 
-      await frequentProv.enterMovement(
+      await frequentProv.enterTransaction(
         frequent: widget.frequent,
         amount: int.parse(_amountController.text),
         paymentMethodId: _selectedPaymentMethod!,
@@ -394,7 +394,7 @@ class _EnterFrequentMovementDialogState
         startDay: settingsProv.settings.startDay,
       );
 
-      await movementProv.refreshData();
+      await transactionProv.refreshData();
 
       if (context.mounted) Navigator.pop(context);
     }

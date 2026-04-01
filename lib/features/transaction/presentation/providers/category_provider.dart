@@ -52,8 +52,8 @@ class CategoryProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> hasMovements(String categoryId) async {
-    return categoryUsecases.hasMovements(categoryId);
+  Future<bool> hasTransactions(String categoryId) async {
+    return categoryUsecases.hasTransactions(categoryId);
   }
 
   Future<bool> deleteCategory(String categoryId) async {
@@ -69,12 +69,12 @@ class CategoryProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> migrateMovements({
+  Future<bool> migrateTransactions({
     required String fromCategoryId,
     required String toCategoryId,
   }) async {
     try {
-      await categoryUsecases.migrateMovements(
+      await categoryUsecases.migrateTransactions(
         fromCategoryId: fromCategoryId,
         toCategoryId: toCategoryId,
       );
@@ -92,7 +92,7 @@ class CategoryProvider extends ChangeNotifier {
     required String toCategoryId,
   }) async {
     try {
-      await categoryUsecases.migrateMovementsAndDelete(
+      await categoryUsecases.migrateTransactionsAndDelete(
         fromCategoryId: fromCategoryId,
         toCategoryId: toCategoryId,
       );

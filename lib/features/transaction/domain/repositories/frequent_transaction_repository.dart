@@ -1,13 +1,13 @@
-import 'package:cashify/features/transaction/data/models/frequent_movement_model.dart';
-import 'package:cashify/features/transaction/domain/entities/frequent_movement_entity.dart';
+import 'package:cashify/features/transaction/data/models/frequent_transaction_model.dart';
+import 'package:cashify/features/transaction/domain/entities/frequent_transaction_entity.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-class FrequentMovementRepository {
+class FrequentTransactionRepository {
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
 
-  FrequentMovementRepository(this._firestore, this._auth);
+  FrequentTransactionRepository(this._firestore, this._auth);
 
   String get _currentUid =>
       _auth.currentUser?.uid ?? (throw Exception("Usuario no autenticado"));
@@ -15,17 +15,17 @@ class FrequentMovementRepository {
   CollectionReference<Map<String, dynamic>> get _frequentRef =>
       _firestore.collection("users").doc(_currentUid).collection("frequent");
 
-  Future<void> save(FrequentMovementEntity f) async {
+  Future<void> save(FrequentTransactionEntity f) async {
     try {
       if (f.id.isEmpty) {
         await _frequentRef.add(
-          FrequentMovementModel.fromEntity(f).toFirestore(),
+          FrequentTransactionModel.fromEntity(f).toFirestore(),
         );
       } else {
         await _frequentRef
             .doc(f.id)
             .set(
-              FrequentMovementModel.fromEntity(f).toFirestore(),
+              FrequentTransactionModel.fromEntity(f).toFirestore(),
               SetOptions(merge: true),
             );
       }
@@ -34,11 +34,11 @@ class FrequentMovementRepository {
     }
   }
 
-  Future<void> update(FrequentMovementEntity f) async {
+  Future<void> update(FrequentTransactionEntity f) async {
     try {
       await _frequentRef
           .doc(f.id)
-          .update(FrequentMovementModel.fromEntity(f).toFirestore());
+          .update(FrequentTransactionModel.fromEntity(f).toFirestore());
     } catch (e) {
       rethrow;
     }
@@ -55,7 +55,7 @@ class FrequentMovementRepository {
     }
   }
 
-  Future<List<FrequentMovementEntity>> fetchAll() async {
+  Future<List<FrequentTransactionEntity>> fetchAll() async {
     try {
       final snapshot = await _frequentRef
           .where('isArchived', isEqualTo: false)
@@ -63,8 +63,8 @@ class FrequentMovementRepository {
           .get();
 
       return snapshot.docs
-          .map((doc) => FrequentMovementModel.fromFirestore(doc.data(), doc.id))
-          .cast<FrequentMovementEntity>()
+          .map((doc) => FrequentTransactionModel.fromFirestore(doc.data(), doc.id))
+          .cast<FrequentTransactionEntity>()
           .toList();
     } catch (e) {
       rethrow;

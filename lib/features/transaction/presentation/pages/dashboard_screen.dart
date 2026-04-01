@@ -4,10 +4,10 @@ import 'package:cashify/core/widgets/primary_app_bar.dart';
 import 'package:cashify/features/settings/presentation/providers/settings_provider.dart';
 import 'package:cashify/features/shared/helpers/ui_helper.dart';
 import 'package:cashify/features/shared/widgets/custom_drawer.dart';
-import 'package:cashify/features/transaction/presentation/pages/movement_form_screen.dart';
-import 'package:cashify/features/transaction/presentation/pages/pending_movements_screen.dart';
+import 'package:cashify/features/transaction/presentation/pages/transaction_form_screen.dart';
+import 'package:cashify/features/transaction/presentation/pages/pending_transactions_screen.dart';
 import 'package:cashify/features/transaction/presentation/providers/billing_period_provider.dart';
-import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
+import 'package:cashify/features/transaction/presentation/providers/transaction_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -37,7 +37,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _refreshData() async {
     final settingsProv = context.read<SettingsProvider>();
     final billingPeriodProv = context.read<BillingPeriodProvider>();
-    final movementProv = context.read<MovementProvider>();
+    final transactionProv = context.read<TransactionProvider>();
 
     if (settingsProv.settings.startDay == 1 && !settingsProv.isLoading) {
       try {
@@ -50,7 +50,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     if (!mounted) return;
 
-    await movementProv.loadDataByBillingPeriod(
+    await transactionProv.loadDataByBillingPeriod(
       billingPeriodProv.selectedBillingPeriodId,
     );
   }
@@ -64,7 +64,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         title: "Cashify",
         actions: [_NotificationBadge()],
       ),
-      body: Consumer<MovementProvider>(
+      body: Consumer<TransactionProvider>(
         builder: (context, provider, child) {
           if (provider.isLoading) {
             return const Center(child: CircularProgressIndicator());
@@ -126,7 +126,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         onPressed: () async {
           await Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const MovementFormScreen()),
+            MaterialPageRoute(builder: (_) => const TransactionFormScreen()),
           );
           if (mounted) _refreshData();
         },
@@ -418,9 +418,9 @@ class _NotificationBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<MovementProvider>(
+    return Consumer<TransactionProvider>(
       builder: (context, provider, _) {
-        final pendingCount = provider.movements
+        final pendingCount = provider.transactions
             .where((m) => !m.isCompleted)
             .length;
         return IconButton(
@@ -438,7 +438,7 @@ class _NotificationBadge extends StatelessWidget {
           ),
           onPressed: () => Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const PendingMovementsScreen()),
+            MaterialPageRoute(builder: (_) => const PendingTransactionsScreen()),
           ),
         );
       },
