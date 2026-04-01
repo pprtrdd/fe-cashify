@@ -58,8 +58,9 @@ class CategoryRepository {
 
   Future<bool> checkCategoryHasTransactions(String categoryId) async {
     try {
+      /* TODO: Rename collection 'movements' to 'transactions' */
       final snapshot = await _firestore
-          .collectionGroup('transactions')
+          .collectionGroup('movements')
           .where('userId', isEqualTo: _currentUid)
           .where('categoryId', isEqualTo: categoryId)
           .limit(1)
@@ -83,8 +84,9 @@ class CategoryRepository {
     required String toCategoryId,
   }) async {
     try {
+      /* TODO: Rename collection 'movements' to 'transactions' */
       final snapshot = await _firestore
-          .collectionGroup('transactions')
+          .collectionGroup('movements')
           .where('userId', isEqualTo: _currentUid)
           .where('categoryId', isEqualTo: fromCategoryId)
           .get();
