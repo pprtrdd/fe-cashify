@@ -3,7 +3,7 @@ import 'package:cashify/core/widgets/primary_app_bar.dart';
 import 'package:cashify/features/transaction/domain/entities/category_entity.dart';
 import 'package:cashify/features/transaction/presentation/components/category_dialogs.dart';
 import 'package:cashify/features/transaction/presentation/providers/category_provider.dart';
-import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
+import 'package:cashify/features/transaction/presentation/providers/transaction_provider.dart';
 import 'package:cashify/features/transaction/presentation/widgets/category_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -144,7 +144,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     );
 
     if (success == true && context.mounted) {
-      context.read<MovementProvider>().refreshData();
+      context.read<TransactionProvider>().refreshData();
       _showSnack(context, 'Categoría gestionada correctamente', true);
     }
   }

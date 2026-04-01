@@ -1,29 +1,29 @@
 import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/core/utils/formatters.dart';
-import 'package:cashify/features/transaction/domain/entities/movement_entity.dart';
-import 'package:cashify/features/transaction/presentation/pages/movement_form_screen.dart';
-import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
+import 'package:cashify/features/transaction/domain/entities/transaction_entity.dart';
+import 'package:cashify/features/transaction/presentation/pages/transaction_form_screen.dart';
+import 'package:cashify/features/transaction/presentation/providers/transaction_provider.dart';
 import 'package:flutter/material.dart';
 
-class MovementDialogs {
+class TransactionDialogs {
   static void showDetail({
     required BuildContext context,
-    required MovementEntity movement,
-    required MovementProvider provider,
+    required TransactionEntity transaction,
+    required TransactionProvider provider,
   }) {
     showDialog(
       context: context,
       builder: (_) =>
-          MovementDetailDialog(movement: movement, provider: provider),
+          TransactionDetailDialog(transaction: transaction, provider: provider),
     );
   }
 
   static void showDeleteConfirmation({
     required BuildContext context,
-    required MovementEntity movement,
-    required MovementProvider provider,
+    required TransactionEntity transaction,
+    required TransactionProvider provider,
   }) {
-    final hasMoreInstallments = movement.totalInstallments > 1;
+    final hasMoreInstallments = transaction.totalInstallments > 1;
 
     showDialog(
       context: context,
@@ -57,7 +57,7 @@ class MovementDialogs {
               Text(
                 hasMoreInstallments
                     ? "Este movimiento tiene cuotas. ¿Deseas eliminar solo esta o todas las restantes?"
-                    : "Estás a punto de borrar '${movement.description}'.",
+                    : "Estás a punto de borrar '${transaction.description}'.",
                 textAlign: TextAlign.center,
                 style: TextStyle(color: AppColors.textLight, height: 1.4),
               ),
@@ -75,7 +75,7 @@ class MovementDialogs {
                     ),
                     onPressed: () async {
                       Navigator.pop(context);
-                      await provider.deleteMovement(movement);
+                      await provider.deleteTransaction(transaction);
                     },
                     child: Text(
                       hasMoreInstallments ? "Solo esta cuota" : "Eliminar",
@@ -93,7 +93,7 @@ class MovementDialogs {
                       ),
                       onPressed: () async {
                         Navigator.pop(context);
-                        await provider.deleteMovementGroup(movement);
+                        await provider.deleteTransactionGroup(transaction);
                       },
                       child: const Text("Todas las cuotas del grupo"),
                     ),
@@ -116,33 +116,33 @@ class MovementDialogs {
 
   static void showCompleteConfirmation({
     required BuildContext context,
-    required MovementEntity movement,
-    required MovementProvider provider,
+    required TransactionEntity transaction,
+    required TransactionProvider provider,
   }) {
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) =>
-          _CompleteMovementDialog(movement: movement, provider: provider),
+          _CompleteTransactionDialog(transaction: transaction, provider: provider),
     );
   }
 }
 
-class _CompleteMovementDialog extends StatefulWidget {
-  final MovementEntity movement;
-  final MovementProvider provider;
+class _CompleteTransactionDialog extends StatefulWidget {
+  final TransactionEntity transaction;
+  final TransactionProvider provider;
 
-  const _CompleteMovementDialog({
-    required this.movement,
+  const _CompleteTransactionDialog({
+    required this.transaction,
     required this.provider,
   });
 
   @override
-  State<_CompleteMovementDialog> createState() =>
-      _CompleteMovementDialogState();
+  State<_CompleteTransactionDialog> createState() =>
+      _CompleteTransactionDialogState();
 }
 
-class _CompleteMovementDialogState extends State<_CompleteMovementDialog> {
+class _CompleteTransactionDialogState extends State<_CompleteTransactionDialog> {
   late TextEditingController _amountController;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
@@ -150,7 +150,7 @@ class _CompleteMovementDialogState extends State<_CompleteMovementDialog> {
   void initState() {
     super.initState();
     _amountController = TextEditingController(
-      text: (widget.movement.amount * widget.movement.quantity).toString(),
+      text: (widget.transaction.amount * widget.transaction.quantity).toString(),
     );
   }
 
@@ -191,7 +191,7 @@ class _CompleteMovementDialogState extends State<_CompleteMovementDialog> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              "Confirma el monto final para '${widget.movement.description}':",
+              "Confirma el monto final para '${widget.transaction.description}':",
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 13, color: AppColors.textLight),
             ),
@@ -249,8 +249,8 @@ class _CompleteMovementDialogState extends State<_CompleteMovementDialog> {
                   if (_formKey.currentState!.validate()) {
                     final newAmount = int.parse(_amountController.text);
                     Navigator.pop(context);
-                    await widget.provider.confirmAndCompleteMovement(
-                      widget.movement,
+                    await widget.provider.confirmAndCompleteTransaction(
+                      widget.transaction,
                       newAmount,
                     );
                   }
@@ -265,22 +265,22 @@ class _CompleteMovementDialogState extends State<_CompleteMovementDialog> {
   }
 }
 
-class MovementDetailDialog extends StatelessWidget {
-  final MovementEntity movement;
-  final MovementProvider provider;
+class TransactionDetailDialog extends StatelessWidget {
+  final TransactionEntity transaction;
+  final TransactionProvider provider;
 
-  const MovementDetailDialog({
+  const TransactionDetailDialog({
     super.key,
-    required this.movement,
+    required this.transaction,
     required this.provider,
   });
 
   @override
   Widget build(BuildContext context) {
-    final isIncome = provider.incomeCategoryIds.contains(movement.categoryId);
-    final categoryName = provider.getCategoryName(movement.categoryId);
+    final isIncome = provider.incomeCategoryIds.contains(transaction.categoryId);
+    final categoryName = provider.getCategoryName(transaction.categoryId);
     final paymentMethodName = provider.getPaymentMethodName(
-      movement.paymentMethodId,
+      transaction.paymentMethodId,
     );
     final color = isIncome ? AppColors.income : AppColors.expense;
     final amountStyle = TextStyle(
@@ -290,8 +290,8 @@ class MovementDetailDialog extends StatelessWidget {
     );
 
     final billingDate = DateTime(
-      movement.billingPeriodYear,
-      movement.billingPeriodMonth,
+      transaction.billingPeriodYear,
+      transaction.billingPeriodMonth,
     );
 
     return Dialog(
@@ -320,7 +320,7 @@ class MovementDetailDialog extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    Formatters.currencyWithSymbol(movement.totalAmount),
+                    Formatters.currencyWithSymbol(transaction.totalAmount),
                     style: amountStyle,
                   ),
                   const SizedBox(height: 8),
@@ -329,7 +329,7 @@ class MovementDetailDialog extends StatelessWidget {
                     children: [
                       Flexible(
                         child: Text(
-                          movement.description,
+                          transaction.description,
                           textAlign: TextAlign.center,
                           style: const TextStyle(
                             fontSize: 18,
@@ -338,7 +338,7 @@ class MovementDetailDialog extends StatelessWidget {
                           ),
                         ),
                       ),
-                      if (movement.frequentId != null)
+                      if (transaction.frequentId != null)
                         const Padding(
                           padding: EdgeInsets.only(left: 8),
                           child: Icon(
@@ -379,8 +379,8 @@ class MovementDetailDialog extends StatelessWidget {
                     child: DetailRow(
                       icon: Icons.info_outline_rounded,
                       label: "Estado",
-                      value: movement.isCompleted ? "Completado" : "Pendiente",
-                      valueColor: movement.isCompleted
+                      value: transaction.isCompleted ? "Completado" : "Pendiente",
+                      valueColor: transaction.isCompleted
                           ? AppColors.success
                           : AppColors.warning,
                     ),
@@ -399,7 +399,7 @@ class MovementDetailDialog extends StatelessWidget {
               DetailRow(
                 icon: Icons.store_rounded,
                 label: "Origen/Lugar",
-                value: movement.source,
+                value: transaction.source,
               ),
               const Divider(height: 24, color: AppColors.background),
               Row(
@@ -409,7 +409,7 @@ class MovementDetailDialog extends StatelessWidget {
                     child: DetailRow(
                       icon: Icons.numbers_rounded,
                       label: "Cantidad",
-                      value: movement.quantity.toString(),
+                      value: transaction.quantity.toString(),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -417,7 +417,7 @@ class MovementDetailDialog extends StatelessWidget {
                     child: DetailRow(
                       icon: Icons.attach_money_rounded,
                       label: "Monto Unitario",
-                      value: Formatters.currencyWithSymbol(movement.amount),
+                      value: Formatters.currencyWithSymbol(transaction.amount),
                     ),
                   ),
                 ],
@@ -431,7 +431,7 @@ class MovementDetailDialog extends StatelessWidget {
                       icon: Icons.pie_chart_rounded,
                       label: "Cuotas",
                       value:
-                          "${movement.currentInstallment}/${movement.totalInstallments}",
+                          "${transaction.currentInstallment}/${transaction.totalInstallments}",
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -439,7 +439,7 @@ class MovementDetailDialog extends StatelessWidget {
                     child: DetailRow(
                       icon: Icons.calendar_today_rounded,
                       label: "Fecha Registro",
-                      value: Formatters.date(movement.createdAt),
+                      value: Formatters.date(transaction.createdAt),
                     ),
                   ),
                 ],
@@ -450,19 +450,19 @@ class MovementDetailDialog extends StatelessWidget {
                 label: "Método de Pago",
                 value: paymentMethodName,
               ),
-              if (movement.notes != null && movement.notes!.isNotEmpty) ...[
+              if (transaction.notes != null && transaction.notes!.isNotEmpty) ...[
                 const Divider(height: 24, color: AppColors.background),
                 DetailRow(
                   icon: Icons.notes_rounded,
                   label: "Notas",
-                  value: movement.notes!,
+                  value: transaction.notes!,
                 ),
               ],
               const SizedBox(height: 32),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  MovementActionButton(
+                  TransactionActionButton(
                     icon: Icons.edit_rounded,
                     label: "Editar",
                     onTap: () {
@@ -471,12 +471,12 @@ class MovementDetailDialog extends StatelessWidget {
                         context,
                         MaterialPageRoute(
                           builder: (_) =>
-                              MovementFormScreen(movement: movement),
+                              TransactionFormScreen(transaction: transaction),
                         ),
                       );
                     },
                   ),
-                  MovementActionButton(
+                  TransactionActionButton(
                     icon: Icons.copy_rounded,
                     label: "Copiar",
                     onTap: () {
@@ -484,36 +484,36 @@ class MovementDetailDialog extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => MovementFormScreen(
-                            movement: provider.prepareCopy(movement),
+                          builder: (_) => TransactionFormScreen(
+                            transaction: provider.prepareCopy(transaction),
                           ),
                         ),
                       );
                     },
                   ),
-                  if (!movement.isCompleted)
-                    MovementActionButton(
+                  if (!transaction.isCompleted)
+                    TransactionActionButton(
                       icon: Icons.check_circle_outline_rounded,
                       label: "Completar",
                       color: AppColors.success,
                       onTap: () {
                         Navigator.pop(context);
-                        MovementDialogs.showCompleteConfirmation(
+                        TransactionDialogs.showCompleteConfirmation(
                           context: context,
-                          movement: movement,
+                          transaction: transaction,
                           provider: provider,
                         );
                       },
                     ),
-                  MovementActionButton(
+                  TransactionActionButton(
                     icon: Icons.delete_outline_rounded,
                     label: "Eliminar",
                     color: AppColors.expense,
                     onTap: () {
                       Navigator.pop(context);
-                      MovementDialogs.showDeleteConfirmation(
+                      TransactionDialogs.showDeleteConfirmation(
                         context: context,
-                        movement: movement,
+                        transaction: transaction,
                         provider: provider,
                       );
                     },
@@ -586,13 +586,13 @@ class DetailRow extends StatelessWidget {
   }
 }
 
-class MovementActionButton extends StatelessWidget {
+class TransactionActionButton extends StatelessWidget {
   final IconData icon;
   final String label;
   final VoidCallback onTap;
   final Color? color;
 
-  const MovementActionButton({
+  const TransactionActionButton({
     super.key,
     required this.icon,
     required this.label,

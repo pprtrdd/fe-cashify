@@ -1,8 +1,8 @@
-import 'package:cashify/features/transaction/domain/entities/frequent_movement_entity.dart';
+import 'package:cashify/features/transaction/domain/entities/frequent_transaction_entity.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class FrequentMovementModel extends FrequentMovementEntity {
-  const FrequentMovementModel({
+class FrequentTransactionModel extends FrequentTransactionEntity {
+  const FrequentTransactionModel({
     required super.id,
     required super.categoryId,
     required super.description,
@@ -14,11 +14,11 @@ class FrequentMovementModel extends FrequentMovementEntity {
     required super.updatedAt,
   });
 
-  factory FrequentMovementModel.fromFirestore(
+  factory FrequentTransactionModel.fromFirestore(
     Map<String, dynamic> json,
     String docId,
   ) {
-    return FrequentMovementModel(
+    return FrequentTransactionModel(
       id: docId,
       categoryId: json['categoryId'],
       description: json['description'],
@@ -46,8 +46,8 @@ class FrequentMovementModel extends FrequentMovementEntity {
     };
   }
 
-  factory FrequentMovementModel.fromEntity(FrequentMovementEntity e) {
-    return FrequentMovementModel(
+  factory FrequentTransactionModel.fromEntity(FrequentTransactionEntity e) {
+    return FrequentTransactionModel(
       id: e.id,
       categoryId: e.categoryId,
       description: e.description,

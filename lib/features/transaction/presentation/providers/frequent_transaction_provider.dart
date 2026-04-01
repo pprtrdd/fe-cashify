@@ -1,33 +1,33 @@
 import 'package:cashify/core/utils/billing_period_utils.dart';
-import 'package:cashify/features/transaction/domain/entities/frequent_movement_entity.dart';
-import 'package:cashify/features/transaction/domain/entities/movement_entity.dart';
+import 'package:cashify/features/transaction/domain/entities/frequent_transaction_entity.dart';
+import 'package:cashify/features/transaction/domain/entities/transaction_entity.dart';
 import 'package:cashify/features/transaction/domain/usecases/category_usecases.dart';
-import 'package:cashify/features/transaction/domain/usecases/frequent_movement_usecases.dart';
-import 'package:cashify/features/transaction/domain/usecases/movement_usecases.dart';
+import 'package:cashify/features/transaction/domain/usecases/frequent_transaction_usecases.dart';
+import 'package:cashify/features/transaction/domain/usecases/transaction_usecases.dart';
 import 'package:cashify/features/transaction/domain/usecases/payment_method_usecases.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 enum FrequentStatus { pending, completed, overdue, none }
 
-class FrequentMovementProvider extends ChangeNotifier {
-  final FrequentMovementUsecases usecases;
-  final MovementUseCase movementUsecases;
+class FrequentTransactionProvider extends ChangeNotifier {
+  final FrequentTransactionUsecases usecases;
+  final TransactionUseCase transactionUsecases;
   final CategoryUsecases categoryUsecases;
   final PaymentMethodUsecases paymentMethodUsecases;
 
-  List<FrequentMovementEntity> _frequents = [];
+  List<FrequentTransactionEntity> _frequents = [];
   Map<String, String> _lastMovePeriodByFrequent = {};
   bool _isLoading = false;
 
-  FrequentMovementProvider({
+  FrequentTransactionProvider({
     required this.usecases,
-    required this.movementUsecases,
+    required this.transactionUsecases,
     required this.categoryUsecases,
     required this.paymentMethodUsecases,
   });
 
-  List<FrequentMovementEntity> get frequents => _frequents;
+  List<FrequentTransactionEntity> get frequents => _frequents;
   Map<String, String> get lastMovePeriodByFrequent => _lastMovePeriodByFrequent;
   bool get isLoading => _isLoading;
 
@@ -37,9 +37,9 @@ class FrequentMovementProvider extends ChangeNotifier {
     try {
       final results = await Future.wait([
         usecases.fetchAll(),
-        movementUsecases.fetchLastMovementsPerFrequent(),
+        transactionUsecases.fetchLastTransactionsPerFrequent(),
       ]);
-      _frequents = results[0] as List<FrequentMovementEntity>;
+      _frequents = results[0] as List<FrequentTransactionEntity>;
       _lastMovePeriodByFrequent = results[1] as Map<String, String>;
     } catch (e) {
       rethrow;
@@ -50,7 +50,7 @@ class FrequentMovementProvider extends ChangeNotifier {
   }
 
   bool shouldEnterInBillingPeriod(
-    FrequentMovementEntity frequent,
+    FrequentTransactionEntity frequent,
     String billingPeriodId,
   ) {
     if (frequent.isArchived) return false;
@@ -72,7 +72,7 @@ class FrequentMovementProvider extends ChangeNotifier {
   }
 
   int? getBillingPeriodsAway(
-    FrequentMovementEntity frequent,
+    FrequentTransactionEntity frequent,
     String currentBillingPeriodId,
   ) {
     if (frequent.isArchived) return null;
@@ -101,17 +101,17 @@ class FrequentMovementProvider extends ChangeNotifier {
   }
 
   FrequentStatus getStatus(
-    FrequentMovementEntity frequent,
+    FrequentTransactionEntity frequent,
     String selectedBillingPeriodId,
     int startDay,
-    List<MovementEntity> movements,
+    List<TransactionEntity> transactions,
   ) {
     final selParts = selectedBillingPeriodId.split('_');
     final selYear = int.parse(selParts[0]);
     final selMonth = int.parse(selParts[1]);
     final normalizedSelectedId = "${selYear}_$selMonth";
 
-    final exists = movements.any((m) {
+    final exists = transactions.any((m) {
       final mParts = m.billingPeriodId.split('_');
       final mYear = int.parse(mParts[0]);
       final mMonth = int.parse(mParts[1]);
@@ -144,24 +144,24 @@ class FrequentMovementProvider extends ChangeNotifier {
     return FrequentStatus.pending;
   }
 
-  List<FrequentMovementEntity> getPendingForBillingPeriod(
+  List<FrequentTransactionEntity> getPendingForBillingPeriod(
     String billingPeriodId,
     int startDay,
-    List<MovementEntity> movements,
+    List<TransactionEntity> transactions,
   ) {
     return _frequents
         .where(
           (f) =>
-              getStatus(f, billingPeriodId, startDay, movements) ==
+              getStatus(f, billingPeriodId, startDay, transactions) ==
                   FrequentStatus.pending ||
-              getStatus(f, billingPeriodId, startDay, movements) ==
+              getStatus(f, billingPeriodId, startDay, transactions) ==
                   FrequentStatus.overdue,
         )
         .toList();
   }
 
-  Future<void> enterMovement({
-    required FrequentMovementEntity frequent,
+  Future<void> enterTransaction({
+    required FrequentTransactionEntity frequent,
     required int amount,
     required String paymentMethodId,
     required String billingPeriodId,
@@ -171,7 +171,7 @@ class FrequentMovementProvider extends ChangeNotifier {
     final year = int.parse(parts[0]);
     final month = int.parse(parts[1]);
     final now = DateTime.now();
-    final movement = MovementEntity(
+    final transaction = TransactionEntity(
       id: '',
       userId: '',
       groupId: const Uuid().v4(),
@@ -192,7 +192,7 @@ class FrequentMovementProvider extends ChangeNotifier {
       frequentId: frequent.id,
     );
 
-    await movementUsecases.add(movement);
+    await transactionUsecases.add(transaction);
 
     final updatedFrequent = frequent.copyWith(updatedAt: now);
 
@@ -200,7 +200,7 @@ class FrequentMovementProvider extends ChangeNotifier {
     await loadFrequent();
   }
 
-  Future<void> saveFrequent(FrequentMovementEntity frequent) async {
+  Future<void> saveFrequent(FrequentTransactionEntity frequent) async {
     await usecases.save(frequent);
     await loadFrequent();
   }

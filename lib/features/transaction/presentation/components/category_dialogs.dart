@@ -1,9 +1,9 @@
 import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/features/transaction/domain/entities/category_entity.dart';
 import 'package:cashify/features/transaction/presentation/providers/category_provider.dart';
-import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
+import 'package:cashify/features/transaction/presentation/providers/transaction_provider.dart';
 import 'package:cashify/features/transaction/presentation/widgets/delete_category_dialog.dart';
-import 'package:cashify/features/transaction/presentation/widgets/migrate_movements_dialog.dart';
+import 'package:cashify/features/transaction/presentation/widgets/migrate_transactions_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -25,11 +25,11 @@ class CategoryDialogs {
     required CategoryEntity category,
     required CategoryProvider provider,
   }) async {
-    final hasMovements = await provider.hasMovements(category.id);
+    final hasTransactions = await provider.hasTransactions(category.id);
 
     if (!context.mounted) return false;
 
-    if (!hasMovements) {
+    if (!hasTransactions) {
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (_) => AlertDialog(
@@ -232,7 +232,7 @@ class _CategoryDetailDialog extends StatelessWidget {
       context: context,
       builder: (_) => ChangeNotifierProvider.value(
         value: provider,
-        child: MigrateMovementsDialog(
+        child: MigrateTransactionsDialog(
           sourceCategory: category,
           availableCategories: provider.categories,
         ),
@@ -240,7 +240,7 @@ class _CategoryDetailDialog extends StatelessWidget {
     );
 
     if (result == true && context.mounted) {
-      context.read<MovementProvider>().refreshData();
+      context.read<TransactionProvider>().refreshData();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Movimientos migrados correctamente'),
@@ -296,7 +296,7 @@ class _CategoryDetailDialog extends StatelessWidget {
         isArchived: isArchiving,
       );
       if (success && context.mounted) {
-        context.read<MovementProvider>().refreshData();
+        context.read<TransactionProvider>().refreshData();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -320,7 +320,7 @@ class _CategoryDetailDialog extends StatelessWidget {
     );
 
     if (success == true && context.mounted) {
-      context.read<MovementProvider>().refreshData();
+      context.read<TransactionProvider>().refreshData();
       Navigator.pop(context, 'delete_success');
     }
   }

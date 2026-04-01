@@ -78,7 +78,7 @@ function exportFullSpreadsheetToFirestore() {
             SessionCache.billingPeriodIds[tBillingPeriodId] = true;
           }
 
-          const movement = {
+          const transaction = {
             userId: USER_ID,
             categoryId,
             description: row[0].toString(),
@@ -98,7 +98,8 @@ function exportFullSpreadsheetToFirestore() {
             isCompleted: isOriginal ? (Number(row[2]) !== 0) : false,
           };
 
-          firestore.createDocument(`users/${USER_ID}/billing_periods/${tBillingPeriodId}/movements`, movement);
+          /* TODO: Rename collection 'movements' to 'transactions' */
+          firestore.createDocument(`users/${USER_ID}/billing_periods/${tBillingPeriodId}/movements`, transaction);
           totalDocs++;
           categoryTotalDocs++;
         }

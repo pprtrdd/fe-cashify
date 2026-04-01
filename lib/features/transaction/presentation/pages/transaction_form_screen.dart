@@ -3,9 +3,9 @@ import 'package:cashify/core/utils/billing_period_utils.dart';
 import 'package:cashify/core/widgets/primary_app_bar.dart';
 import 'package:cashify/features/settings/presentation/providers/settings_provider.dart';
 import 'package:cashify/features/shared/helpers/ui_helper.dart';
-import 'package:cashify/features/transaction/domain/entities/movement_entity.dart';
+import 'package:cashify/features/transaction/domain/entities/transaction_entity.dart';
 import 'package:cashify/features/transaction/presentation/providers/billing_period_provider.dart';
-import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
+import 'package:cashify/features/transaction/presentation/providers/transaction_provider.dart';
 import 'package:cashify/features/transaction/presentation/widgets/category_dropdown_field.dart';
 import 'package:cashify/features/transaction/presentation/widgets/custom_text_field.dart';
 import 'package:cashify/features/transaction/presentation/widgets/month_year_picker.dart';
@@ -13,16 +13,16 @@ import 'package:cashify/features/transaction/presentation/widgets/save_button.da
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class MovementFormScreen extends StatefulWidget {
-  final MovementEntity? movement;
+class TransactionFormScreen extends StatefulWidget {
+  final TransactionEntity? transaction;
 
-  const MovementFormScreen({super.key, this.movement});
+  const TransactionFormScreen({super.key, this.transaction});
 
   @override
-  State<MovementFormScreen> createState() => _MovementFormScreenState();
+  State<TransactionFormScreen> createState() => _TransactionFormScreenState();
 }
 
-class _MovementFormScreenState extends State<MovementFormScreen> {
+class _TransactionFormScreenState extends State<TransactionFormScreen> {
   final _formKey = GlobalKey<FormState>();
   DateTime _createdAt = DateTime.now();
   DateTime _selectedDate = DateTime.now();
@@ -50,29 +50,29 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
     super.initState();
     _initializeDefaults();
 
-    if (widget.movement != null) {
-      isEditing = widget.movement!.id.isNotEmpty;
-      isCopying = widget.movement!.id.isEmpty;
+    if (widget.transaction != null) {
+      isEditing = widget.transaction!.id.isNotEmpty;
+      isCopying = widget.transaction!.id.isEmpty;
 
-      _idController.text = isEditing ? widget.movement!.id : '';
-      _groupIdController.text = isEditing ? widget.movement!.groupId : '';
-      _userIdController.text = isEditing ? widget.movement!.userId : '';
-      _selectedCategory = widget.movement!.categoryId;
-      _descController.text = widget.movement!.description;
-      _sourceController.text = widget.movement!.source;
-      _qtyController.text = widget.movement!.quantity.toString();
-      _amountController.text = widget.movement!.amount.toString();
-      _currentInstallmentController.text = widget.movement!.currentInstallment
+      _idController.text = isEditing ? widget.transaction!.id : '';
+      _groupIdController.text = isEditing ? widget.transaction!.groupId : '';
+      _userIdController.text = isEditing ? widget.transaction!.userId : '';
+      _selectedCategory = widget.transaction!.categoryId;
+      _descController.text = widget.transaction!.description;
+      _sourceController.text = widget.transaction!.source;
+      _qtyController.text = widget.transaction!.quantity.toString();
+      _amountController.text = widget.transaction!.amount.toString();
+      _currentInstallmentController.text = widget.transaction!.currentInstallment
           .toString();
-      _totalInstallmentsController.text = widget.movement!.totalInstallments
+      _totalInstallmentsController.text = widget.transaction!.totalInstallments
           .toString();
-      _selectedPaymentMethod = widget.movement!.paymentMethodId;
-      _notesController.text = (widget.movement!.notes ?? '');
-      _isCompleted = widget.movement!.isCompleted;
-      _createdAt = widget.movement!.createdAt;
-      _originalBillingPeriodId = widget.movement!.billingPeriodId;
+      _selectedPaymentMethod = widget.transaction!.paymentMethodId;
+      _notesController.text = (widget.transaction!.notes ?? '');
+      _isCompleted = widget.transaction!.isCompleted;
+      _createdAt = widget.transaction!.createdAt;
+      _originalBillingPeriodId = widget.transaction!.billingPeriodId;
       _selectedDate = BillingPeriodUtils.getDateFromId(
-        widget.movement!.billingPeriodId,
+        widget.transaction!.billingPeriodId,
       );
     }
 
@@ -87,7 +87,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
       }
       _updateBillingPeriodTextField(_selectedDate);
 
-      context.read<MovementProvider>().loadDataByBillingPeriod(activeId);
+      context.read<TransactionProvider>().loadDataByBillingPeriod(activeId);
     });
   }
 
@@ -137,7 +137,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: Consumer<MovementProvider>(
+      body: Consumer<TransactionProvider>(
         builder: (context, provider, child) {
           return Column(
             children: [
@@ -281,7 +281,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
     );
   }
 
-  Widget _buildPaymentMethodDropdown(MovementProvider provider) {
+  Widget _buildPaymentMethodDropdown(TransactionProvider provider) {
     return Stack(
       children: [
         Positioned(
@@ -382,18 +382,18 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
     if (_formKey.currentState!.validate()) {
       final settingsProv = context.read<SettingsProvider>();
       final billingPeriodProv = context.read<BillingPeriodProvider>();
-      final movementProv = context.read<MovementProvider>();
-      final movement = _createMovementEntity(billingPeriodProv, settingsProv);
+      final transactionProv = context.read<TransactionProvider>();
+      final transaction = _createTransactionEntity(billingPeriodProv, settingsProv);
 
       try {
         if (isEditing) {
-          await movementProv.updateMovement(movement);
+          await transactionProv.updateTransaction(transaction);
           if (context.mounted) {
             context.showSuccessSnackBar("Movimiento actualizado");
           }
         } else {
-          await movementProv.createMovement(
-            movement,
+          await transactionProv.createTransaction(
+            transaction,
             billingPeriodProv.selectedBillingPeriodId,
             settingsProv.settings.startDay,
             () async {
@@ -414,12 +414,12 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
         Navigator.pop(context);
       } catch (e) {
         if (!context.mounted) return;
-        context.showErrorSnackBar('Error saving movement: $e');
+        context.showErrorSnackBar('Error saving transaction: $e');
       }
     }
   }
 
-  MovementEntity _createMovementEntity(
+  TransactionEntity _createTransactionEntity(
     BillingPeriodProvider billingPeriodProv,
     SettingsProvider settingsProv,
   ) {
@@ -430,7 +430,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
             settingsProv.settings.startDay,
           );
 
-    return MovementEntity(
+    return TransactionEntity(
       id: _idController.text,
       userId: _userIdController.text,
       groupId: _groupIdController.text,

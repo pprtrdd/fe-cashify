@@ -4,8 +4,8 @@ import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/features/settings/presentation/providers/settings_provider.dart';
 import 'package:cashify/features/transaction/presentation/providers/billing_period_provider.dart';
 import 'package:cashify/features/transaction/presentation/providers/category_provider.dart';
-import 'package:cashify/features/transaction/presentation/providers/frequent_movement_provider.dart';
-import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
+import 'package:cashify/features/transaction/presentation/providers/frequent_transaction_provider.dart';
+import 'package:cashify/features/transaction/presentation/providers/transaction_provider.dart';
 import 'package:cashify/features/user_config/presentation/providers/user_config_provider.dart';
 import 'package:cashify/firebase_options.dart';
 import 'package:cashify/injection_container.dart' as di;
@@ -25,7 +25,7 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => sl<MovementProvider>()),
+        ChangeNotifierProvider(create: (_) => sl<TransactionProvider>()),
         ChangeNotifierProvider(
           create: (_) => sl<SettingsProvider>()..loadSettings(),
         ),
@@ -43,7 +43,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => sl<UserConfigProvider>()),
         ChangeNotifierProvider(create: (_) => sl<CategoryProvider>()),
         ChangeNotifierProvider(
-          create: (_) => sl<FrequentMovementProvider>()..loadFrequent(),
+          create: (_) => sl<FrequentTransactionProvider>()..loadFrequent(),
         ),
       ],
       child: const MainApp(),

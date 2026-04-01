@@ -1,13 +1,14 @@
-import 'package:cashify/features/transaction/data/models/movement_model.dart';
-import 'package:cashify/features/transaction/domain/entities/movement_entity.dart';
+import 'package:cashify/features/transaction/data/models/transaction_model.dart';
+import 'package:cashify/features/transaction/domain/entities/transaction_entity.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-class MovementRepository {
+/* TODO: Rename collection 'movements' to 'transactions' */
+class TransactionRepository {
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
 
-  MovementRepository(this._firestore, this._auth);
+  TransactionRepository(this._firestore, this._auth);
 
   String get _currentUid =>
       _auth.currentUser?.uid ?? (throw Exception("Usuario no autenticado"));
@@ -22,25 +23,25 @@ class MovementRepository {
         .doc(billingPeriodId);
   }
 
-  CollectionReference<Map<String, dynamic>> _movementsRef(
+  CollectionReference<Map<String, dynamic>> _transactionsRef(
     String billingPeriodId,
   ) {
-    return _billingPeriodDoc(billingPeriodId).collection("movements");
+    return _billingPeriodDoc(billingPeriodId).collection('movements');
   }
 
-  Future<void> save(MovementEntity m) async => saveMultiple([m]);
+  Future<void> save(TransactionEntity m) async => saveMultiple([m]);
 
-  Future<void> saveMultiple(List<MovementEntity> movements) async {
-    if (movements.isEmpty) return;
+  Future<void> saveMultiple(List<TransactionEntity> transactions) async {
+    if (transactions.isEmpty) return;
 
     final batch = _firestore.batch();
     final updatedPeriods = <String>{};
 
     try {
-      for (var m in movements) {
+      for (var m in transactions) {
         final billingPeriodId = m.billingPeriodId;
         final billingPeriodRef = _billingPeriodDoc(billingPeriodId);
-        final movementRef = _movementsRef(billingPeriodId).doc();
+        final transactionRef = _transactionsRef(billingPeriodId).doc();
 
         if (!updatedPeriods.contains(billingPeriodId)) {
           batch.set(billingPeriodRef, {
@@ -54,8 +55,8 @@ class MovementRepository {
         }
 
         batch.set(
-          movementRef,
-          MovementModel.fromEntity(m).toFirestore(_currentUid),
+          transactionRef,
+          TransactionModel.fromEntity(m).toFirestore(_currentUid),
         );
       }
 
@@ -65,24 +66,24 @@ class MovementRepository {
     }
   }
 
-  Future<void> update(MovementEntity m) async {
+  Future<void> update(TransactionEntity m) async {
     try {
-      await _movementsRef(
-        m.billingPeriodId,
-      ).doc(m.id).update(MovementModel.fromEntity(m).toFirestore(_currentUid));
+      await _transactionsRef(m.billingPeriodId)
+          .doc(m.id)
+          .update(TransactionModel.fromEntity(m).toFirestore(_currentUid));
     } catch (e) {
       rethrow;
     }
   }
 
   Future<void> updateGroup(
-    MovementEntity baseMovement,
+    TransactionEntity baseTransaction,
     bool onlyPending,
   ) async {
     try {
       final snapshot = await _firestore
           .collectionGroup('movements')
-          .where('groupId', isEqualTo: baseMovement.groupId)
+          .where('groupId', isEqualTo: baseTransaction.groupId)
           .get();
 
       final batch = _firestore.batch();
@@ -92,17 +93,18 @@ class MovementRepository {
         final bool isCompleted = data['isCompleted'];
         final String docId = doc.id;
 
-        if (onlyPending && isCompleted && docId != baseMovement.id) {
+        if (onlyPending && isCompleted && docId != baseTransaction.id) {
           continue;
         }
 
         batch.update(doc.reference, {
-          'description': baseMovement.description,
-          'amount': baseMovement.amount,
-          'categoryId': baseMovement.categoryId,
-          'paymentMethodId': baseMovement.paymentMethodId,
-          'source': baseMovement.source,
-          if (docId == baseMovement.id) 'isCompleted': baseMovement.isCompleted,
+          'description': baseTransaction.description,
+          'amount': baseTransaction.amount,
+          'categoryId': baseTransaction.categoryId,
+          'paymentMethodId': baseTransaction.paymentMethodId,
+          'source': baseTransaction.source,
+          if (docId == baseTransaction.id)
+            'isCompleted': baseTransaction.isCompleted,
         });
       }
 
@@ -112,9 +114,9 @@ class MovementRepository {
     }
   }
 
-  Future<void> delete(MovementEntity m) async {
+  Future<void> delete(TransactionEntity m) async {
     try {
-      await _movementsRef(m.billingPeriodId).doc(m.id).delete();
+      await _transactionsRef(m.billingPeriodId).doc(m.id).delete();
     } catch (e) {
       rethrow;
     }
@@ -141,26 +143,26 @@ class MovementRepository {
     }
   }
 
-  Future<List<MovementEntity>> fetchByBillingPeriodId(
+  Future<List<TransactionEntity>> fetchByBillingPeriodId(
     String billingPeriodId,
   ) async {
     try {
-      final snapshot = await _movementsRef(
+      final snapshot = await _transactionsRef(
         billingPeriodId,
       ).orderBy('createdAt', descending: true).get();
 
       return snapshot.docs
           .map((doc) {
-            return MovementModel.fromFirestore(doc.data(), doc.id);
+            return TransactionModel.fromFirestore(doc.data(), doc.id);
           })
-          .cast<MovementEntity>()
+          .cast<TransactionEntity>()
           .toList();
     } catch (e) {
       rethrow;
     }
   }
 
-  Future<Map<String, String>> fetchLastMovementsPerFrequent() async {
+  Future<Map<String, String>> fetchLastTransactionsPerFrequent() async {
     try {
       final snapshot = await _firestore
           .collectionGroup('movements')

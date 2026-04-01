@@ -1,7 +1,7 @@
 import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/features/transaction/domain/entities/category_entity.dart';
 import 'package:cashify/features/transaction/presentation/providers/category_provider.dart';
-import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
+import 'package:cashify/features/transaction/presentation/providers/transaction_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -260,7 +260,7 @@ class _CategoryBottomSheetState extends State<CategoryBottomSheet> {
 
     if (!context.mounted) return;
     if (success) {
-      context.read<MovementProvider>().refreshData();
+      context.read<TransactionProvider>().refreshData();
       Navigator.pop(context);
     } else {
       setState(() => _isSaving = false);

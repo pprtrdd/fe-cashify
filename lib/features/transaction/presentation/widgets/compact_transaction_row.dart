@@ -1,18 +1,18 @@
 import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/core/utils/formatters.dart';
-import 'package:cashify/features/transaction/domain/entities/movement_entity.dart';
-import 'package:cashify/features/transaction/presentation/components/movement_dialogs.dart';
-import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
+import 'package:cashify/features/transaction/domain/entities/transaction_entity.dart';
+import 'package:cashify/features/transaction/presentation/components/transaction_dialogs.dart';
+import 'package:cashify/features/transaction/presentation/providers/transaction_provider.dart';
 import 'package:flutter/material.dart';
 
-class CompactMovementRow extends StatelessWidget {
-  final MovementEntity movement;
-  final MovementProvider provider;
+class CompactTransactionRow extends StatelessWidget {
+  final TransactionEntity transaction;
+  final TransactionProvider provider;
   final bool showStatusIcon;
 
-  const CompactMovementRow({
+  const CompactTransactionRow({
     super.key,
-    required this.movement,
+    required this.transaction,
     required this.provider,
     this.showStatusIcon = true,
   });
@@ -20,9 +20,9 @@ class CompactMovementRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isIncome = provider.incomeCategoryIds.contains(
-      movement.categoryId,
+      transaction.categoryId,
     );
-    final String categoryName = provider.getCategoryName(movement.categoryId);
+    final String categoryName = provider.getCategoryName(transaction.categoryId);
     final Color categoryColor = isIncome
         ? AppColors.iconIncome
         : AppColors.iconExpense;
@@ -38,11 +38,11 @@ class CompactMovementRow extends StatelessWidget {
             children: [
               if (showStatusIcon) ...[
                 Icon(
-                  movement.isCompleted
+                  transaction.isCompleted
                       ? Icons.check_circle_rounded
                       : Icons.pending_rounded,
                   size: 18,
-                  color: movement.isCompleted
+                  color: transaction.isCompleted
                       ? AppColors.iconSuccess
                       : AppColors.iconWarning,
                 ),
@@ -57,7 +57,7 @@ class CompactMovementRow extends StatelessWidget {
                       children: [
                         Flexible(
                           child: Text(
-                            movement.description,
+                            transaction.description,
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 15,
@@ -67,11 +67,11 @@ class CompactMovementRow extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        if (movement.totalInstallments > 1)
+                        if (transaction.totalInstallments > 1)
                           Padding(
                             padding: const EdgeInsets.only(left: 6),
                             child: Text(
-                              "[${movement.currentInstallment}/${movement.totalInstallments}]",
+                              "[${transaction.currentInstallment}/${transaction.totalInstallments}]",
                               style: const TextStyle(
                                 color: AppColors.primary,
                                 fontSize: 12,
@@ -79,7 +79,7 @@ class CompactMovementRow extends StatelessWidget {
                               ),
                             ),
                           ),
-                        if (movement.frequentId != null)
+                        if (transaction.frequentId != null)
                           const Padding(
                             padding: EdgeInsets.only(left: 6),
                             child: Icon(
@@ -112,7 +112,7 @@ class CompactMovementRow extends StatelessWidget {
                             ),
                           ),
                           TextSpan(
-                            text: movement.source,
+                            text: transaction.source,
                             style: TextStyle(
                               color: AppColors.textLight.withValues(alpha: 0.9),
                             ),
@@ -126,7 +126,7 @@ class CompactMovementRow extends StatelessWidget {
               Expanded(
                 flex: 2,
                 child: Text(
-                  Formatters.currencyWithSymbol(movement.totalAmount),
+                  Formatters.currencyWithSymbol(transaction.totalAmount),
                   textAlign: TextAlign.end,
                   style: TextStyle(
                     fontWeight: FontWeight.w900,
@@ -143,9 +143,9 @@ class CompactMovementRow extends StatelessWidget {
   }
 
   void _handleEdit(BuildContext context) {
-    MovementDialogs.showDetail(
+    TransactionDialogs.showDetail(
       context: context,
-      movement: movement,
+      transaction: transaction,
       provider: provider,
     );
   }

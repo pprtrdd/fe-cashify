@@ -60,7 +60,7 @@ export const migrateAllUserCategoriesFromTemplate = onRequest({ timeoutSeconds: 
 
         const usersSnapshot = await db.collection("users").get();
         let totalUsers = 0;
-        let totalMovementsUpdated = 0;
+        let totalTransactionsUpdated = 0;
 
         for (const userDoc of usersSnapshot.docs) {
             const uid = userDoc.id;
@@ -81,14 +81,15 @@ export const migrateAllUserCategoriesFromTemplate = onRequest({ timeoutSeconds: 
             const billingPeriodsSnapshot = await db.collection("users").doc(uid).collection("billing_periods").get();
 
             for (const billingPeriodDoc of billingPeriodsSnapshot.docs) {
-                const movementsRef = billingPeriodDoc.ref.collection("movements");
+                /* TODO: Rename collection 'movements' to 'transactions' */
+                const transactionsRef = billingPeriodDoc.ref.collection("movements");
 
                 for (const [oldId, newId] of Object.entries(oldIdToNewId)) {
-                    const movementsSnapshot = await movementsRef.where("categoryId", "==", oldId).get();
+                    const transactionsSnapshot = await transactionsRef.where("categoryId", "==", oldId).get();
 
-                    movementsSnapshot.forEach(movDoc => {
+                    transactionsSnapshot.forEach(movDoc => {
                         batch.update(movDoc.ref, { categoryId: newId });
-                        totalMovementsUpdated++;
+                        totalTransactionsUpdated++;
                     });
                 }
             }
@@ -102,7 +103,7 @@ export const migrateAllUserCategoriesFromTemplate = onRequest({ timeoutSeconds: 
         res.status(200).send({
             status: "success",
             usersProcessed: totalUsers,
-            movementsUpdated: totalMovementsUpdated,
+            transactionsUpdated: totalTransactionsUpdated,
             idMap: oldIdToNewId,
         });
 

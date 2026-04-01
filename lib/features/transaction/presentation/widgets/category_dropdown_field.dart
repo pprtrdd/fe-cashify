@@ -1,10 +1,10 @@
-import '../providers/movement_provider.dart';
+import '../providers/transaction_provider.dart';
 import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/features/shared/mixins/form_field_error_state_mixin.dart';
 import 'package:flutter/material.dart';
 
 class CategoryDropdownField extends FormField<String> {
-  final MovementProvider provider;
+  final TransactionProvider provider;
   final ValueChanged<String?> onChanged;
 
   CategoryDropdownField({

@@ -1,26 +1,26 @@
 import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/core/widgets/primary_app_bar.dart';
 import 'package:cashify/features/transaction/presentation/providers/billing_period_provider.dart';
-import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
-import 'package:cashify/features/transaction/presentation/widgets/compact_movement_row.dart';
+import 'package:cashify/features/transaction/presentation/providers/transaction_provider.dart';
+import 'package:cashify/features/transaction/presentation/widgets/compact_transaction_row.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class MovementHistoryScreen extends StatefulWidget {
-  const MovementHistoryScreen({super.key});
+class TransactionHistoryScreen extends StatefulWidget {
+  const TransactionHistoryScreen({super.key});
 
   @override
-  State<MovementHistoryScreen> createState() => _MovementHistoryScreenState();
+  State<TransactionHistoryScreen> createState() => _TransactionHistoryScreenState();
 }
 
-class _MovementHistoryScreenState extends State<MovementHistoryScreen> {
+class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   String? _lastPeriodSynced;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<MovementProvider>().clearFilters();
+      context.read<TransactionProvider>().clearFilters();
     });
   }
 
@@ -29,12 +29,12 @@ class _MovementHistoryScreenState extends State<MovementHistoryScreen> {
     super.didChangeDependencies();
 
     final billingPeriodProv = context.watch<BillingPeriodProvider>();
-    final movementProv = context.read<MovementProvider>();
+    final transactionProv = context.read<TransactionProvider>();
     final activeId = billingPeriodProv.selectedBillingPeriodId;
 
     if (_lastPeriodSynced != activeId) {
       _lastPeriodSynced = activeId;
-      Future.microtask(() => movementProv.loadDataByBillingPeriod(activeId));
+      Future.microtask(() => transactionProv.loadDataByBillingPeriod(activeId));
     }
   }
 
@@ -45,7 +45,7 @@ class _MovementHistoryScreenState extends State<MovementHistoryScreen> {
       appBar: PrimaryAppBar(
         title: "Historial",
         actions: [
-          Consumer<MovementProvider>(
+          Consumer<TransactionProvider>(
             builder: (context, provider, child) {
               final hasFilters =
                   provider.searchQuery.isNotEmpty ||
@@ -68,13 +68,13 @@ class _MovementHistoryScreenState extends State<MovementHistoryScreen> {
           _buildSearchBar(context),
           _buildFilterBar(context),
           Expanded(
-            child: Consumer<MovementProvider>(
+            child: Consumer<TransactionProvider>(
               builder: (context, provider, child) {
-                final movements = provider.pagedFilteredMovements;
-                final allFiltered = provider.filteredMovements;
-                final bool hasMore = movements.length < allFiltered.length;
+                final transactions = provider.pagedFilteredTransactions;
+                final allFiltered = provider.filteredTransactions;
+                final bool hasMore = transactions.length < allFiltered.length;
 
-                if (movements.isEmpty) {
+                if (transactions.isEmpty) {
                   return const Center(
                     child: Text("No se encontraron movimientos"),
                   );
@@ -82,9 +82,9 @@ class _MovementHistoryScreenState extends State<MovementHistoryScreen> {
 
                 return ListView.builder(
                   padding: const EdgeInsets.only(top: 8, bottom: 16),
-                  itemCount: movements.length + (hasMore ? 1 : 0),
+                  itemCount: transactions.length + (hasMore ? 1 : 0),
                   itemBuilder: (context, index) {
-                    if (index == movements.length) {
+                    if (index == transactions.length) {
                       return Padding(
                         padding: const EdgeInsets.symmetric(
                           vertical: 24,
@@ -109,9 +109,9 @@ class _MovementHistoryScreenState extends State<MovementHistoryScreen> {
                       );
                     }
 
-                    final movement = movements[index];
-                    return CompactMovementRow(
-                      movement: movement,
+                    final transaction = transactions[index];
+                    return CompactTransactionRow(
+                      transaction: transaction,
                       provider: provider,
                       showStatusIcon: true,
                     );
@@ -141,14 +141,14 @@ class _MovementHistoryScreenState extends State<MovementHistoryScreen> {
           ),
         ),
         onChanged: (value) {
-          context.read<MovementProvider>().setSearchQuery(value);
+          context.read<TransactionProvider>().setSearchQuery(value);
         },
       ),
     );
   }
 
   Widget _buildFilterBar(BuildContext context) {
-    return Consumer<MovementProvider>(
+    return Consumer<TransactionProvider>(
       builder: (context, provider, child) {
         return SingleChildScrollView(
           scrollDirection: Axis.horizontal,
@@ -181,7 +181,7 @@ class _MovementHistoryScreenState extends State<MovementHistoryScreen> {
     );
   }
 
-  void _showCategoryPicker(BuildContext context, MovementProvider provider) {
+  void _showCategoryPicker(BuildContext context, TransactionProvider provider) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -216,7 +216,7 @@ class _MovementHistoryScreenState extends State<MovementHistoryScreen> {
 
   void _showPaymentMethodPicker(
     BuildContext context,
-    MovementProvider provider,
+    TransactionProvider provider,
   ) {
     showModalBottomSheet(
       context: context,
