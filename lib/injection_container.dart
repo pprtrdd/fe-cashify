@@ -7,18 +7,18 @@ import 'package:cashify/features/settings/domain/usecases/settings_usecases.dart
 import 'package:cashify/features/settings/presentation/providers/settings_provider.dart';
 import 'package:cashify/features/transaction/domain/repositories/billing_period_repository.dart';
 import 'package:cashify/features/transaction/domain/repositories/category_repository.dart';
-import 'package:cashify/features/transaction/domain/repositories/frequent_movement_repository.dart';
-import 'package:cashify/features/transaction/domain/repositories/movement_repository.dart';
+import 'package:cashify/features/transaction/domain/repositories/frequent_transaction_repository.dart';
+import 'package:cashify/features/transaction/domain/repositories/transaction_repository.dart';
 import 'package:cashify/features/transaction/domain/repositories/payment_method_repository.dart';
 import 'package:cashify/features/transaction/domain/usecases/billing_period_usecases.dart';
 import 'package:cashify/features/transaction/domain/usecases/category_usecases.dart';
-import 'package:cashify/features/transaction/domain/usecases/frequent_movement_usecases.dart';
-import 'package:cashify/features/transaction/domain/usecases/movement_usecases.dart';
+import 'package:cashify/features/transaction/domain/usecases/frequent_transaction_usecases.dart';
+import 'package:cashify/features/transaction/domain/usecases/transaction_usecases.dart';
 import 'package:cashify/features/transaction/domain/usecases/payment_method_usecases.dart';
 import 'package:cashify/features/transaction/presentation/providers/billing_period_provider.dart';
 import 'package:cashify/features/transaction/presentation/providers/category_provider.dart';
-import 'package:cashify/features/transaction/presentation/providers/frequent_movement_provider.dart';
-import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
+import 'package:cashify/features/transaction/presentation/providers/frequent_transaction_provider.dart';
+import 'package:cashify/features/transaction/presentation/providers/transaction_provider.dart';
 import 'package:cashify/features/user_config/domain/repositories/user_config_repository.dart';
 import 'package:cashify/features/user_config/domain/usecases/user_config_usecases.dart';
 import 'package:cashify/features/user_config/presentation/providers/user_config_provider.dart';
@@ -34,8 +34,8 @@ Future<void> init() async {
   /* PROVIDERS (Factories)                                                       */
   /* --------------------------------------------------------------------------- */
   sl.registerFactory(
-    () => MovementProvider(
-      movementUseCase: sl(),
+    () => TransactionProvider(
+      transactionUseCase: sl(),
       categoryUsecases: sl(),
       paymentMethodUsecases: sl(),
     ),
@@ -48,9 +48,9 @@ Future<void> init() async {
   );
   sl.registerFactory(() => CategoryProvider(categoryUsecases: sl()));
   sl.registerFactory(
-    () => FrequentMovementProvider(
+    () => FrequentTransactionProvider(
       usecases: sl(),
-      movementUsecases: sl(),
+      transactionUsecases: sl(),
       categoryUsecases: sl(),
       paymentMethodUsecases: sl(),
     ),
@@ -59,20 +59,20 @@ Future<void> init() async {
   /* --------------------------------------------------------------------------- */
   /* USE CASES (Lazy Singletons)                                                 */
   /* --------------------------------------------------------------------------- */
-  sl.registerLazySingleton(() => MovementUseCase(repository: sl()));
+  sl.registerLazySingleton(() => TransactionUseCase(repository: sl()));
   sl.registerLazySingleton(() => CategoryUsecases(repository: sl()));
   sl.registerLazySingleton(() => PaymentMethodUsecases(repository: sl()));
   sl.registerLazySingleton(() => SettingsUsecases(repository: sl()));
   sl.registerLazySingleton(() => BillingPeriodUsecases(repository: sl()));
   sl.registerLazySingleton(() => AppConfigUsecases(repository: sl()));
   sl.registerLazySingleton(() => UserConfigUsecases(repository: sl()));
-  sl.registerLazySingleton(() => FrequentMovementUsecases(repository: sl()));
+  sl.registerLazySingleton(() => FrequentTransactionUsecases(repository: sl()));
 
   /* --------------------------------------------------------------------------- */
   /* REPOSITORIES (Lazy Singletons)                                              */
   /* --------------------------------------------------------------------------- */
   sl.registerLazySingleton(
-    () => MovementRepository(sl<FirebaseFirestore>(), sl<FirebaseAuth>()),
+    () => TransactionRepository(sl<FirebaseFirestore>(), sl<FirebaseAuth>()),
   );
   sl.registerLazySingleton(
     () => CategoryRepository(sl<FirebaseFirestore>(), sl<FirebaseAuth>()),
@@ -92,7 +92,7 @@ Future<void> init() async {
   );
   sl.registerLazySingleton(
     () =>
-        FrequentMovementRepository(sl<FirebaseFirestore>(), sl<FirebaseAuth>()),
+        FrequentTransactionRepository(sl<FirebaseFirestore>(), sl<FirebaseAuth>()),
   );
 
   /* --------------------------------------------------------------------------- */

@@ -4,21 +4,21 @@ import 'package:cashify/features/transaction/presentation/providers/category_pro
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class MigrateMovementsDialog extends StatefulWidget {
+class MigrateTransactionsDialog extends StatefulWidget {
   final CategoryEntity sourceCategory;
   final List<CategoryEntity> availableCategories;
 
-  const MigrateMovementsDialog({
+  const MigrateTransactionsDialog({
     super.key,
     required this.sourceCategory,
     required this.availableCategories,
   });
 
   @override
-  State<MigrateMovementsDialog> createState() => _MigrateMovementsDialogState();
+  State<MigrateTransactionsDialog> createState() => _MigrateTransactionsDialogState();
 }
 
-class _MigrateMovementsDialogState extends State<MigrateMovementsDialog> {
+class _MigrateTransactionsDialogState extends State<MigrateTransactionsDialog> {
   CategoryEntity? _selectedTarget;
   bool _isMigrating = false;
 
@@ -154,7 +154,7 @@ class _MigrateMovementsDialogState extends State<MigrateMovementsDialog> {
     setState(() => _isMigrating = true);
 
     final provider = context.read<CategoryProvider>();
-    final bool success = await provider.migrateMovements(
+    final bool success = await provider.migrateTransactions(
       fromCategoryId: widget.sourceCategory.id,
       toCategoryId: _selectedTarget!.id,
     );

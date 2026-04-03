@@ -16,8 +16,8 @@ class BillingPeriodUtils {
     }
   }
 
-  static String getNextBillingPeriodId(String periodId) {
-    final parts = periodId.split('_');
+  static String getNextBillingPeriodId(String billingPeriodId) {
+    final parts = billingPeriodId.split('_');
     int year = int.parse(parts[0]);
     int month = int.parse(parts[1]);
     month++;

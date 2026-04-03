@@ -56,8 +56,9 @@ class CategoryRepository {
     }
   }
 
-  Future<bool> checkCategoryHasMovements(String categoryId) async {
+  Future<bool> checkCategoryHasTransactions(String categoryId) async {
     try {
+      /* TODO: Rename collection 'movements' to 'transactions' */
       final snapshot = await _firestore
           .collectionGroup('movements')
           .where('userId', isEqualTo: _currentUid)
@@ -78,11 +79,12 @@ class CategoryRepository {
     }
   }
 
-  Future<void> migrateMovements({
+  Future<void> migrateTransactions({
     required String fromCategoryId,
     required String toCategoryId,
   }) async {
     try {
+      /* TODO: Rename collection 'movements' to 'transactions' */
       final snapshot = await _firestore
           .collectionGroup('movements')
           .where('userId', isEqualTo: _currentUid)
@@ -101,12 +103,12 @@ class CategoryRepository {
     }
   }
 
-  Future<void> migrateMovementsAndDelete({
+  Future<void> migrateTransactionsAndDelete({
     required String fromCategoryId,
     required String toCategoryId,
   }) async {
     try {
-      await migrateMovements(
+      await migrateTransactions(
         fromCategoryId: fromCategoryId,
         toCategoryId: toCategoryId,
       );

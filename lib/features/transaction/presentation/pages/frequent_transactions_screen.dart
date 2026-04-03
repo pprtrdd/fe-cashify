@@ -1,29 +1,29 @@
 import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/core/widgets/primary_app_bar.dart';
 import 'package:cashify/features/settings/presentation/providers/settings_provider.dart';
-import 'package:cashify/features/transaction/domain/entities/frequent_movement_entity.dart';
+import 'package:cashify/features/transaction/domain/entities/frequent_transaction_entity.dart';
 import 'package:cashify/features/transaction/presentation/pages/frequent_form_screen.dart';
 import 'package:cashify/features/transaction/presentation/providers/billing_period_provider.dart';
-import 'package:cashify/features/transaction/presentation/providers/frequent_movement_provider.dart';
-import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
+import 'package:cashify/features/transaction/presentation/providers/frequent_transaction_provider.dart';
+import 'package:cashify/features/transaction/presentation/providers/transaction_provider.dart';
 import 'package:cashify/features/transaction/presentation/widgets/frequent_dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class FrequentMovementsScreen extends StatefulWidget {
-  const FrequentMovementsScreen({super.key});
+class FrequentTransactionsScreen extends StatefulWidget {
+  const FrequentTransactionsScreen({super.key});
 
   @override
-  State<FrequentMovementsScreen> createState() =>
-      _FrequentMovementsScreenState();
+  State<FrequentTransactionsScreen> createState() =>
+      _FrequentTransactionsScreenState();
 }
 
-class _FrequentMovementsScreenState extends State<FrequentMovementsScreen> {
+class _FrequentTransactionsScreenState extends State<FrequentTransactionsScreen> {
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<FrequentMovementProvider>().loadFrequent();
+      context.read<FrequentTransactionProvider>().loadFrequent();
     });
   }
 
@@ -39,7 +39,7 @@ class _FrequentMovementsScreenState extends State<FrequentMovementsScreen> {
           MaterialPageRoute(builder: (_) => const FrequentFormScreen()),
         ),
       ),
-      body: Consumer<FrequentMovementProvider>(
+      body: Consumer<FrequentTransactionProvider>(
         builder: (context, provider, child) {
           if (provider.isLoading) {
             return const Center(child: CircularProgressIndicator());
@@ -62,20 +62,23 @@ class _FrequentMovementsScreenState extends State<FrequentMovementsScreen> {
 
   List<Widget> _buildListItems(
     BuildContext context,
-    FrequentMovementProvider provider,
+    FrequentTransactionProvider provider,
   ) {
-    final periodProv = context.watch<BillingPeriodProvider>();
+    final billingPeriodProv = context.watch<BillingPeriodProvider>();
     final settingsProv = context.watch<SettingsProvider>();
-    final movementProv = context.watch<MovementProvider>();
-    final selectedPeriodId = periodProv.selectedPeriodId;
+    final transactionProv = context.watch<TransactionProvider>();
+    final selectedBillingPeriodId = billingPeriodProv.selectedBillingPeriodId;
     final list = provider.frequents.map((f) {
       final status = provider.getStatus(
         f,
-        selectedPeriodId,
+        selectedBillingPeriodId,
         settingsProv.settings.startDay,
-        movementProv.movements,
+        transactionProv.transactions,
       );
-      final periodsAway = provider.getPeriodsAway(f, selectedPeriodId);
+      final billingPeriodsAway = provider.getBillingPeriodsAway(
+        f,
+        selectedBillingPeriodId,
+      );
       final noHistory = provider.lastMovePeriodByFrequent[f.id] == null;
 
       int priority = 100;
@@ -94,7 +97,7 @@ class _FrequentMovementsScreenState extends State<FrequentMovementsScreen> {
       return {
         'frequent': f,
         'status': status,
-        'periodsAway': periodsAway,
+        'billingPeriodsAway': billingPeriodsAway,
         'noHistory': noHistory,
         'priority': priority,
       };
@@ -105,16 +108,16 @@ class _FrequentMovementsScreenState extends State<FrequentMovementsScreen> {
       final int pB = b['priority'] as int;
       if (pA != pB) return pA.compareTo(pB);
 
-      final FrequentMovementEntity fA = a['frequent'] as FrequentMovementEntity;
-      final FrequentMovementEntity fB = b['frequent'] as FrequentMovementEntity;
+      final FrequentTransactionEntity fA = a['frequent'] as FrequentTransactionEntity;
+      final FrequentTransactionEntity fB = b['frequent'] as FrequentTransactionEntity;
       return fA.description.compareTo(fB.description);
     });
 
     return list.map((item) {
       return _FrequentItemRow(
-        frequent: item['frequent'] as FrequentMovementEntity,
+        frequent: item['frequent'] as FrequentTransactionEntity,
         status: item['status'] as FrequentStatus,
-        periodsAway: item['periodsAway'] as int?,
+        billingPeriodsAway: item['billingPeriodsAway'] as int?,
         noHistory: item['noHistory'] as bool,
       );
     }).toList();
@@ -122,15 +125,15 @@ class _FrequentMovementsScreenState extends State<FrequentMovementsScreen> {
 }
 
 class _FrequentItemRow extends StatelessWidget {
-  final FrequentMovementEntity frequent;
+  final FrequentTransactionEntity frequent;
   final FrequentStatus status;
-  final int? periodsAway;
+  final int? billingPeriodsAway;
   final bool noHistory;
 
   const _FrequentItemRow({
     required this.frequent,
     required this.status,
-    required this.periodsAway,
+    required this.billingPeriodsAway,
     required this.noHistory,
   });
 
@@ -151,7 +154,7 @@ class _FrequentItemRow extends StatelessWidget {
             color: AppColors.textPrimary,
           ),
         ),
-        trailing: periodsAway != null
+        trailing: billingPeriodsAway != null
             ? Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 mainAxisSize: MainAxisSize.min,
@@ -162,13 +165,13 @@ class _FrequentItemRow extends StatelessWidget {
                       vertical: 2,
                     ),
                     decoration: BoxDecoration(
-                      color: _getPeriodsColor(
-                        periodsAway!,
+                      color: _getBillingPeriodsColor(
+                        billingPeriodsAway!,
                       ).withValues(alpha: 0.9),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
-                      _getPeriodsText(periodsAway!),
+                      _getbillingPeriodsText(billingPeriodsAway!),
                       style: const TextStyle(
                         fontSize: 9,
                         fontWeight: FontWeight.bold,
@@ -222,7 +225,7 @@ class _FrequentItemRow extends StatelessWidget {
   }
 
   Widget _buildStatusIcon(FrequentStatus status, {bool noHistory = false}) {
-    /* 1. Without movements (gray + plus icon) */
+    /* 1. Without transactions (gray + plus icon) */
     if (noHistory) {
       return Container(
         width: 32,
@@ -242,7 +245,7 @@ class _FrequentItemRow extends StatelessWidget {
     }
 
     switch (status) {
-      /* 2. Pending/Overdue in this period (Yellow + Clock) */
+      /* 2. Pending/Overdue in this billing period (Yellow + Clock) */
       case FrequentStatus.pending:
       case FrequentStatus.overdue:
         return Container(
@@ -261,7 +264,7 @@ class _FrequentItemRow extends StatelessWidget {
           ),
         );
 
-      /* 3. Already entered this period (Green + Check) */
+      /* 3. Already entered this billing period (Green + Check) */
       case FrequentStatus.completed:
         return const Icon(
           Icons.check_circle,
@@ -289,28 +292,28 @@ class _FrequentItemRow extends StatelessWidget {
     }
   }
 
-  Color _getPeriodsColor(int periodsAway) {
-    if (periodsAway > 3) {
+  Color _getBillingPeriodsColor(int billingPeriodsAway) {
+    if (billingPeriodsAway > 3) {
       return AppColors.iconSuccess;
-    } else if (periodsAway > 1) {
+    } else if (billingPeriodsAway > 1) {
       return AppColors.warning;
     } else {
       return Colors.orange;
     }
   }
 
-  String _getPeriodsText(int periodsAway) {
-    if (periodsAway == 1) {
+  String _getbillingPeriodsText(int billingPeriodsAway) {
+    if (billingPeriodsAway == 1) {
       return "PRÓXIMO PERÍODO";
     } else {
-      return "EN $periodsAway PERÍODOS";
+      return "EN $billingPeriodsAway PERÍODOS";
     }
   }
 
   String _getCategoryName(BuildContext context, String catId) {
     try {
-      final movementProv = context.read<MovementProvider>();
-      return movementProv.categories.firstWhere((c) => c.id == catId).name;
+      final transactionProv = context.read<TransactionProvider>();
+      return transactionProv.categories.firstWhere((c) => c.id == catId).name;
     } catch (_) {
       return "Sin Categoría";
     }
@@ -318,8 +321,8 @@ class _FrequentItemRow extends StatelessWidget {
 
   bool _isIncome(BuildContext context, String catId) {
     try {
-      final movementProv = context.read<MovementProvider>();
-      return movementProv.incomeCategoryIds.contains(catId);
+      final transactionProv = context.read<TransactionProvider>();
+      return transactionProv.incomeCategoryIds.contains(catId);
     } catch (_) {
       return false;
     }

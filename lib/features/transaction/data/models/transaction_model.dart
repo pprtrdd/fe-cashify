@@ -1,8 +1,8 @@
-import 'package:cashify/features/transaction/domain/entities/movement_entity.dart';
+import 'package:cashify/features/transaction/domain/entities/transaction_entity.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class MovementModel extends MovementEntity {
-  const MovementModel({
+class TransactionModel extends TransactionEntity {
+  const TransactionModel({
     required super.id,
     required super.userId,
     required super.groupId,
@@ -24,8 +24,11 @@ class MovementModel extends MovementEntity {
     super.frequentId,
   });
 
-  factory MovementModel.fromFirestore(Map<String, dynamic> json, String docId) {
-    return MovementModel(
+  factory TransactionModel.fromFirestore(
+    Map<String, dynamic> json,
+    String docId,
+  ) {
+    return TransactionModel(
       id: docId,
       userId: json['userId'],
       groupId: json['groupId'],
@@ -71,8 +74,8 @@ class MovementModel extends MovementEntity {
     };
   }
 
-  factory MovementModel.fromEntity(MovementEntity e) {
-    return MovementModel(
+  factory TransactionModel.fromEntity(TransactionEntity e) {
+    return TransactionModel(
       id: e.id,
       userId: e.userId,
       groupId: e.groupId,

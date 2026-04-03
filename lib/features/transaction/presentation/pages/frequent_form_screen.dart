@@ -1,9 +1,9 @@
 import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/core/widgets/primary_app_bar.dart';
 import 'package:cashify/features/shared/helpers/ui_helper.dart';
-import 'package:cashify/features/transaction/domain/entities/frequent_movement_entity.dart';
-import 'package:cashify/features/transaction/presentation/providers/frequent_movement_provider.dart';
-import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
+import 'package:cashify/features/transaction/domain/entities/frequent_transaction_entity.dart';
+import 'package:cashify/features/transaction/presentation/providers/frequent_transaction_provider.dart';
+import 'package:cashify/features/transaction/presentation/providers/transaction_provider.dart';
 import 'package:cashify/features/transaction/presentation/widgets/category_dropdown_field.dart';
 import 'package:cashify/features/transaction/presentation/widgets/custom_text_field.dart';
 import 'package:cashify/features/transaction/presentation/widgets/save_button.dart';
@@ -11,7 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class FrequentFormScreen extends StatefulWidget {
-  final FrequentMovementEntity? frequent;
+  final FrequentTransactionEntity? frequent;
 
   const FrequentFormScreen({super.key, this.frequent});
 
@@ -58,7 +58,7 @@ class _FrequentFormScreenState extends State<FrequentFormScreen> {
       appBar: PrimaryAppBar(
         title: isEditing ? "Editar Frecuente" : "Nuevo Frecuente",
       ),
-      body: Consumer<FrequentMovementProvider>(
+      body: Consumer<FrequentTransactionProvider>(
         builder: (context, provider, child) {
           return Column(
             children: [
@@ -72,7 +72,7 @@ class _FrequentFormScreenState extends State<FrequentFormScreen> {
                       children: [
                         CategoryDropdownField(
                           value: _selectedCategory,
-                          provider: context.read<MovementProvider>(),
+                          provider: context.read<TransactionProvider>(),
                           onChanged: (val) =>
                               setState(() => _selectedCategory = val),
                         ),
@@ -151,9 +151,9 @@ class _FrequentFormScreenState extends State<FrequentFormScreen> {
         return;
       }
 
-      final frequentProv = context.read<FrequentMovementProvider>();
+      final frequentProv = context.read<FrequentTransactionProvider>();
 
-      final frequent = FrequentMovementEntity(
+      final frequent = FrequentTransactionEntity(
         id: isEditing ? widget.frequent!.id : '',
         categoryId: _selectedCategory!,
         description: _descController.text,

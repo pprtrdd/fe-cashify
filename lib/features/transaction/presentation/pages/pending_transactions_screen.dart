@@ -1,24 +1,24 @@
 import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/core/utils/formatters.dart';
 import 'package:cashify/core/widgets/primary_app_bar.dart';
-import 'package:cashify/features/transaction/domain/entities/movement_entity.dart';
-import 'package:cashify/features/transaction/presentation/providers/movement_provider.dart';
-import 'package:cashify/features/transaction/presentation/widgets/compact_movement_row.dart';
+import 'package:cashify/features/transaction/domain/entities/transaction_entity.dart';
+import 'package:cashify/features/transaction/presentation/providers/transaction_provider.dart';
+import 'package:cashify/features/transaction/presentation/widgets/compact_transaction_row.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class PendingMovementsScreen extends StatelessWidget {
-  const PendingMovementsScreen({super.key});
+class PendingTransactionsScreen extends StatelessWidget {
+  const PendingTransactionsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: const PrimaryAppBar(title: "Movimientos Pendientes"),
-      body: Consumer<MovementProvider>(
+      body: Consumer<TransactionProvider>(
         builder: (context, provider, child) {
-          final pendingItems = provider.movements
+          final pendingItems = provider.transactions
               .where((m) => !m.isCompleted)
               .toList();
 
@@ -28,7 +28,7 @@ class PendingMovementsScreen extends StatelessWidget {
 
           final groupedItems = groupBy(
             pendingItems,
-            (MovementEntity m) => m.categoryId,
+            (TransactionEntity m) => m.categoryId,
           );
 
           return ListView.builder(
@@ -44,7 +44,7 @@ class PendingMovementsScreen extends StatelessWidget {
                 name: provider.getCategoryName(catId),
                 total: total,
                 isIncome: isIncome,
-                movements: movs,
+                transactions: movs,
                 provider: provider,
               );
             },
@@ -59,14 +59,14 @@ class _CategoryGroup extends StatefulWidget {
   final String name;
   final int total;
   final bool isIncome;
-  final List<MovementEntity> movements;
-  final MovementProvider provider;
+  final List<TransactionEntity> transactions;
+  final TransactionProvider provider;
 
   const _CategoryGroup({
     required this.name,
     required this.total,
     required this.isIncome,
-    required this.movements,
+    required this.transactions,
     required this.provider,
   });
 
@@ -137,9 +137,9 @@ class _CategoryGroupState extends State<_CategoryGroup> {
         ),
         AnimatedCrossFade(
           firstChild: Column(
-            children: widget.movements.map((m) {
-              return CompactMovementRow(
-                movement: m,
+            children: widget.transactions.map((m) {
+              return CompactTransactionRow(
+                transaction: m,
                 provider: widget.provider,
                 showStatusIcon: false,
               );
