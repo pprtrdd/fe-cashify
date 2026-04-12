@@ -2,7 +2,6 @@ import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/features/shared/widgets/dialog_action_button.dart';
 import 'package:flutter/material.dart';
 
-/// Configuración del header del dialog de detalle.
 class DialogHeader {
   final IconData icon;
   final Color color;
@@ -21,7 +20,6 @@ class DialogHeader {
   });
 }
 
-/// Configuración de una acción del dialog.
 class DialogAction {
   final IconData icon;
   final String label;
@@ -36,8 +34,6 @@ class DialogAction {
   });
 }
 
-/// Dialog genérico de detalle reutilizable para categorías, transacciones
-/// y movimientos frecuentes.
 class ItemDetailDialog extends StatelessWidget {
   final DialogHeader header;
   final List<Widget> detailSections;
