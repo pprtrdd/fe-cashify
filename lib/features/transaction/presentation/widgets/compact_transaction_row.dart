@@ -1,7 +1,7 @@
 import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/core/utils/formatters.dart';
 import 'package:cashify/features/transaction/domain/entities/transaction_entity.dart';
-import 'package:cashify/features/transaction/presentation/components/transaction_dialogs.dart';
+import 'package:cashify/features/transaction/presentation/widgets/transaction_dialogs.dart';
 import 'package:cashify/features/transaction/presentation/providers/transaction_provider.dart';
 import 'package:flutter/material.dart';
 

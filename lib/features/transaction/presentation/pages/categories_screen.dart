@@ -1,7 +1,7 @@
 import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/core/widgets/primary_app_bar.dart';
 import 'package:cashify/features/transaction/domain/entities/category_entity.dart';
-import 'package:cashify/features/transaction/presentation/components/category_dialogs.dart';
+import 'package:cashify/features/transaction/presentation/widgets/category_dialogs.dart';
 import 'package:cashify/features/transaction/presentation/providers/category_provider.dart';
 import 'package:cashify/features/transaction/presentation/providers/transaction_provider.dart';
 import 'package:cashify/features/transaction/presentation/widgets/category_bottom_sheet.dart';
