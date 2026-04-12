@@ -1,8 +1,8 @@
 import 'package:cashify/core/utils/billing_period_utils.dart';
-import 'package:cashify/features/transaction/domain/entities/category_entity.dart';
+import 'package:cashify/features/category/domain/entities/category_entity.dart';
 import 'package:cashify/features/transaction/domain/entities/transaction_entity.dart';
 import 'package:cashify/features/transaction/domain/entities/payment_method_entity.dart';
-import 'package:cashify/features/transaction/domain/usecases/category_usecases.dart';
+import 'package:cashify/features/category/domain/usecases/category_usecases.dart';
 import 'package:cashify/features/transaction/domain/usecases/transaction_usecases.dart';
 import 'package:cashify/features/transaction/domain/usecases/payment_method_usecases.dart';
 import 'package:flutter/material.dart';

@@ -2,7 +2,7 @@ import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/core/widgets/primary_app_bar.dart';
 import 'package:cashify/features/transaction/presentation/providers/billing_period_provider.dart';
 import 'package:cashify/features/transaction/presentation/providers/transaction_provider.dart';
-import 'package:cashify/features/transaction/presentation/widgets/compact_transaction_row.dart';
+import 'package:cashify/features/shared/widgets/compact_transaction_row.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

@@ -6,10 +6,10 @@ import 'package:cashify/features/shared/helpers/ui_helper.dart';
 import 'package:cashify/features/transaction/domain/entities/transaction_entity.dart';
 import 'package:cashify/features/transaction/presentation/providers/billing_period_provider.dart';
 import 'package:cashify/features/transaction/presentation/providers/transaction_provider.dart';
-import 'package:cashify/features/transaction/presentation/widgets/category_dropdown_field.dart';
-import 'package:cashify/features/transaction/presentation/widgets/custom_text_field.dart';
-import 'package:cashify/features/transaction/presentation/widgets/month_year_picker.dart';
-import 'package:cashify/features/transaction/presentation/widgets/save_button.dart';
+import 'package:cashify/features/category/presentation/widgets/category_dropdown_field.dart';
+import 'package:cashify/features/shared/widgets/custom_text_field.dart';
+import 'package:cashify/features/shared/widgets/month_year_picker.dart';
+import 'package:cashify/features/shared/widgets/save_button.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
