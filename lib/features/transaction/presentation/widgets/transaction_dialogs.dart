@@ -218,7 +218,7 @@ class _CompleteTransactionDialogState extends State<_CompleteTransactionDialog> 
                 ),
               ),
               validator: (v) =>
-                  (v == null || int.tryParse(v) == null || int.parse(v) <= 0)
+                  (v == null || int.tryParse(v) == null || int.parse(v) < 0)
                   ? "Monto inválido"
                   : null,
             ),
