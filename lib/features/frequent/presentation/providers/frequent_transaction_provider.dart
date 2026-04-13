@@ -20,6 +20,12 @@ class FrequentTransactionProvider extends ChangeNotifier {
   Map<String, String> _lastMovePeriodByFrequent = {};
   bool _isLoading = false;
 
+  String _searchQuery = "";
+  String? _filterCategoryId;
+  String? _filterType;
+  FrequentStatus? _filterStatus;
+  FrequentFrequency? _filterFrequency;
+
   FrequentTransactionProvider({
     required this.usecases,
     required this.transactionUsecases,
@@ -30,6 +36,39 @@ class FrequentTransactionProvider extends ChangeNotifier {
   List<FrequentTransactionEntity> get frequents => _frequents;
   Map<String, String> get lastMovePeriodByFrequent => _lastMovePeriodByFrequent;
   bool get isLoading => _isLoading;
+
+  String get searchQuery => _searchQuery;
+  String? get filterCategoryId => _filterCategoryId;
+  String? get filterType => _filterType;
+  FrequentStatus? get filterStatus => _filterStatus;
+  FrequentFrequency? get filterFrequency => _filterFrequency;
+
+  void setSearchQuery(String query) {
+    _searchQuery = query;
+    notifyListeners();
+  }
+
+  void setFilters({
+    String? categoryId,
+    String? type,
+    FrequentStatus? status,
+    FrequentFrequency? frequency,
+  }) {
+    _filterCategoryId = categoryId;
+    _filterType = type;
+    _filterStatus = status;
+    _filterFrequency = frequency;
+    notifyListeners();
+  }
+
+  void clearFilters() {
+    _searchQuery = "";
+    _filterCategoryId = null;
+    _filterType = null;
+    _filterStatus = null;
+    _filterFrequency = null;
+    notifyListeners();
+  }
 
   Future<void> loadFrequent() async {
     _isLoading = true;

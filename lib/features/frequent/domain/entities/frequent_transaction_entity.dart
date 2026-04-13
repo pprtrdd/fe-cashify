@@ -1,16 +1,17 @@
 import 'package:equatable/equatable.dart';
 
 enum FrequentFrequency {
-  monthly(1, 'Mensual (cada un mes)'),
-  bimonthly(2, 'Bimestral (cada dos meses)'),
-  trimestral(3, 'Trimestral (cada tres meses)'),
-  cuatrimestral(4, 'Cuatrimestral (cada cuatro meses)'),
-  semestral(6, 'Semestral (cada seis meses)'),
-  anual(12, 'Anual (cada doce meses)');
+  monthly(1, 'Mensual (cada un mes)', 'Mensual'),
+  bimonthly(2, 'Bimestral (cada dos meses)', 'Bimestral'),
+  trimestral(3, 'Trimestral (cada tres meses)', 'Trimestral'),
+  cuatrimestral(4, 'Cuatrimestral (cada cuatro meses)', 'Cuatrimestral'),
+  semestral(6, 'Semestral (cada seis meses)', 'Semestral'),
+  anual(12, 'Anual (cada doce meses)', 'Anual');
 
   final int months;
   final String label;
-  const FrequentFrequency(this.months, this.label);
+  final String shortLabel;
+  const FrequentFrequency(this.months, this.label, this.shortLabel);
 
   static FrequentFrequency fromMonths(int months) {
     return FrequentFrequency.values.firstWhere(

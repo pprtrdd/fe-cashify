@@ -124,15 +124,6 @@ class _CategoryBottomSheetState extends State<CategoryBottomSheet> {
 
             Row(
               children: [
-                const Text(
-                  'Tipo:',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: AppColors.textLight,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(width: 12),
                 Expanded(
                   child: SegmentedButton<bool>(
                     segments: const [
