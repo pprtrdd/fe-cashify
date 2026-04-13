@@ -45,7 +45,7 @@ class TransactionUseCase {
   }
 
   void _validate(TransactionEntity transaction) {
-    if (transaction.amount <= 0 ||
+    if (transaction.amount < 0 ||
         transaction.quantity <= 0 ||
         transaction.currentInstallment <= 0 ||
         transaction.totalInstallments <= 0 ||

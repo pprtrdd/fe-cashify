@@ -2,7 +2,8 @@ import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/core/widgets/primary_app_bar.dart';
 import 'package:cashify/features/transaction/presentation/providers/billing_period_provider.dart';
 import 'package:cashify/features/transaction/presentation/providers/transaction_provider.dart';
-import 'package:cashify/features/transaction/presentation/widgets/compact_transaction_row.dart';
+import 'package:cashify/features/shared/widgets/compact_transaction_row.dart';
+import 'package:cashify/features/shared/widgets/transaction_filter_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -10,7 +11,8 @@ class TransactionHistoryScreen extends StatefulWidget {
   const TransactionHistoryScreen({super.key});
 
   @override
-  State<TransactionHistoryScreen> createState() => _TransactionHistoryScreenState();
+  State<TransactionHistoryScreen> createState() =>
+      _TransactionHistoryScreenState();
 }
 
 class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
@@ -48,16 +50,63 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
           Consumer<TransactionProvider>(
             builder: (context, provider, child) {
               final hasFilters =
-                  provider.searchQuery.isNotEmpty ||
                   provider.filterCategoryId != null ||
-                  provider.filterPaymentMethodId != null;
+                  provider.filterPaymentMethodId != null ||
+                  provider.filterType != null ||
+                  provider.filterIsCompleted != null;
 
-              if (!hasFilters) return const SizedBox.shrink();
-
-              return IconButton(
-                icon: const Icon(Icons.filter_alt_off),
-                tooltip: "Limpiar filtros",
-                onPressed: () => provider.clearFilters(),
+              return Stack(
+                alignment: Alignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.filter_alt),
+                    tooltip: "Filtros",
+                    onPressed: () {
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        builder: (context) => TransactionFilterBottomSheet(
+                          categories: provider.categories,
+                          paymentMethods: provider.paymentMethods,
+                          initialCategoryId: provider.filterCategoryId,
+                          initialPaymentMethodId:
+                              provider.filterPaymentMethodId,
+                          initialType: provider.filterType,
+                          initialIsCompleted: provider.filterIsCompleted,
+                          onApply:
+                              ({
+                                categoryId,
+                                paymentMethodId,
+                                type,
+                                isCompleted,
+                                frequency,
+                              }) {
+                                provider.setFilters(
+                                  categoryId: categoryId,
+                                  paymentMethodId: paymentMethodId,
+                                  type: type,
+                                  isCompleted: isCompleted,
+                                );
+                              },
+                        ),
+                      );
+                    },
+                  ),
+                  if (hasFilters)
+                    Positioned(
+                      top: 12,
+                      right: 12,
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                          color: AppColors.notification,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                ],
               );
             },
           ),
@@ -66,7 +115,6 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
       body: Column(
         children: [
           _buildSearchBar(context),
-          _buildFilterBar(context),
           Expanded(
             child: Consumer<TransactionProvider>(
               builder: (context, provider, child) {
@@ -130,7 +178,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
       child: TextField(
         decoration: InputDecoration(
-          hintText: "Buscar en descripción, origen o notas...",
+          hintText: "Buscar...",
           prefixIcon: const Icon(Icons.search, size: 20),
           isDense: true,
           filled: true,
@@ -143,165 +191,6 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
         onChanged: (value) {
           context.read<TransactionProvider>().setSearchQuery(value);
         },
-      ),
-    );
-  }
-
-  Widget _buildFilterBar(BuildContext context) {
-    return Consumer<TransactionProvider>(
-      builder: (context, provider, child) {
-        return SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-          child: Row(
-            children: [
-              _FilterChip(
-                label: provider.filterCategoryId == null
-                    ? "Categoría"
-                    : provider.getCategoryName(provider.filterCategoryId!),
-                isActive: provider.filterCategoryId != null,
-                onTap: () => _showCategoryPicker(context, provider),
-                onClear: () => provider.setCategoryId(null),
-              ),
-              const SizedBox(width: 8),
-              _FilterChip(
-                label: provider.filterPaymentMethodId == null
-                    ? "Pago"
-                    : provider.getPaymentMethodName(
-                        provider.filterPaymentMethodId!,
-                      ),
-                isActive: provider.filterPaymentMethodId != null,
-                onTap: () => _showPaymentMethodPicker(context, provider),
-                onClear: () => provider.setPaymentMethodId(null),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  void _showCategoryPicker(BuildContext context, TransactionProvider provider) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => ListView(
-        shrinkWrap: true,
-        children: [
-          const Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Text(
-              "Filtrar por Categoría",
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-          ...provider.categories.map(
-            (cat) => ListTile(
-              title: Text(cat.name),
-              trailing: provider.filterCategoryId == cat.id
-                  ? const Icon(Icons.check, color: AppColors.primary)
-                  : null,
-              onTap: () {
-                provider.setCategoryId(cat.id);
-                Navigator.pop(context);
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showPaymentMethodPicker(
-    BuildContext context,
-    TransactionProvider provider,
-  ) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => ListView(
-        shrinkWrap: true,
-        children: [
-          const Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Text(
-              "Filtrar por Método de Pago",
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-          ...provider.paymentMethods.map(
-            (pm) => ListTile(
-              title: Text(pm.name),
-              trailing: provider.filterPaymentMethodId == pm.id
-                  ? const Icon(Icons.check, color: AppColors.primary)
-                  : null,
-              onTap: () {
-                provider.setPaymentMethodId(pm.id);
-                Navigator.pop(context);
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _FilterChip extends StatelessWidget {
-  final String label;
-  final bool isActive;
-  final VoidCallback onTap;
-  final VoidCallback onClear;
-
-  const _FilterChip({
-    required this.label,
-    required this.isActive,
-    required this.onTap,
-    required this.onClear,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: isActive
-              ? AppColors.primary.withValues(alpha: 0.1)
-              : AppColors.surface,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isActive ? AppColors.primary : AppColors.border,
-          ),
-        ),
-        child: Row(
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                color: isActive ? AppColors.primary : AppColors.textLight,
-                fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-              ),
-            ),
-            if (isActive) ...[
-              const SizedBox(width: 4),
-              GestureDetector(
-                onTap: onClear,
-                child: const Icon(
-                  Icons.close,
-                  size: 14,
-                  color: AppColors.primary,
-                ),
-              ),
-            ],
-          ],
-        ),
       ),
     );
   }

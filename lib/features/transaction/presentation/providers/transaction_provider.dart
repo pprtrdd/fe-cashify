@@ -1,8 +1,8 @@
 import 'package:cashify/core/utils/billing_period_utils.dart';
-import 'package:cashify/features/transaction/domain/entities/category_entity.dart';
+import 'package:cashify/features/category/domain/entities/category_entity.dart';
 import 'package:cashify/features/transaction/domain/entities/transaction_entity.dart';
 import 'package:cashify/features/transaction/domain/entities/payment_method_entity.dart';
-import 'package:cashify/features/transaction/domain/usecases/category_usecases.dart';
+import 'package:cashify/features/category/domain/usecases/category_usecases.dart';
 import 'package:cashify/features/transaction/domain/usecases/transaction_usecases.dart';
 import 'package:cashify/features/transaction/domain/usecases/payment_method_usecases.dart';
 import 'package:flutter/material.dart';
@@ -45,6 +45,8 @@ class TransactionProvider extends ChangeNotifier {
 
   String? _filterCategoryId;
   String? _filterPaymentMethodId;
+  String? _filterType;
+  bool? _filterIsCompleted;
 
   bool get isLoading => _isLoading;
 
@@ -70,10 +72,12 @@ class TransactionProvider extends ChangeNotifier {
 
   List<TransactionEntity> get filteredTransactions {
     return _transactions.where((m) {
+      final queryLower = _searchQuery.toLowerCase();
       final matchesSearch =
-          m.description.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          m.source.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          (m.notes?.toLowerCase() ?? "").contains(_searchQuery.toLowerCase());
+          m.description.toLowerCase().contains(queryLower) ||
+          m.source.toLowerCase().contains(queryLower) ||
+          (m.notes?.toLowerCase() ?? "").contains(queryLower) ||
+          m.totalAmount.toString().contains(queryLower);
 
       final matchesCategory =
           _filterCategoryId == null || m.categoryId == _filterCategoryId;
@@ -81,7 +85,21 @@ class TransactionProvider extends ChangeNotifier {
           _filterPaymentMethodId == null ||
           m.paymentMethodId == _filterPaymentMethodId;
 
-      return matchesSearch && matchesCategory && matchesPayment;
+      final matchesStatus =
+          _filterIsCompleted == null || m.isCompleted == _filterIsCompleted;
+
+      bool matchesType = true;
+      if (_filterType == 'income') {
+        matchesType = incomeCategoryIds.contains(m.categoryId);
+      } else if (_filterType == 'expense') {
+        matchesType = !incomeCategoryIds.contains(m.categoryId);
+      }
+
+      return matchesSearch &&
+          matchesCategory &&
+          matchesPayment &&
+          matchesStatus &&
+          matchesType;
     }).toList();
   }
 
@@ -96,6 +114,8 @@ class TransactionProvider extends ChangeNotifier {
 
   String? get filterCategoryId => _filterCategoryId;
   String? get filterPaymentMethodId => _filterPaymentMethodId;
+  String? get filterType => _filterType;
+  bool? get filterIsCompleted => _filterIsCompleted;
 
   void setCategoryId(String? id) {
     _filterCategoryId = id;
@@ -178,7 +198,9 @@ class TransactionProvider extends ChangeNotifier {
   }
 
   Future<void> _fetchTransactionsOnly(String billingPeriodId) async {
-    _transactions = await transactionUseCase.fetchByBillingPeriodId(billingPeriodId);
+    _transactions = await transactionUseCase.fetchByBillingPeriodId(
+      billingPeriodId,
+    );
     _calculateDashboardData();
     notifyListeners();
   }
@@ -411,9 +433,16 @@ class TransactionProvider extends ChangeNotifier {
     }
   }
 
-  void setFilters({String? categoryId, String? paymentMethodId}) {
+  void setFilters({
+    String? categoryId,
+    String? paymentMethodId,
+    String? type,
+    bool? isCompleted,
+  }) {
     _filterCategoryId = categoryId;
     _filterPaymentMethodId = paymentMethodId;
+    _filterType = type;
+    _filterIsCompleted = isCompleted;
     notifyListeners();
   }
 
@@ -421,6 +450,8 @@ class TransactionProvider extends ChangeNotifier {
     _searchQuery = "";
     _filterCategoryId = null;
     _filterPaymentMethodId = null;
+    _filterType = null;
+    _filterIsCompleted = null;
     notifyListeners();
   }
 

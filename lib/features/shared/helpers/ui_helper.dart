@@ -3,26 +3,31 @@ import 'package:flutter/material.dart';
 
 extension UIHelpers on BuildContext {
   void showErrorSnackBar(String message) {
-    ScaffoldMessenger.of(this).clearSnackBars();
-    ScaffoldMessenger.of(this).showSnackBar(
+    final messenger = ScaffoldMessenger.of(this);
+    messenger.clearSnackBars();
+    messenger.showSnackBar(
       SnackBar(
-        content: Row(
-          children: [
-            const Icon(
-              Icons.error_outline_rounded,
-              color: AppColors.textOnPrimary,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                message,
-                style: const TextStyle(
-                  color: AppColors.textOnPrimary,
-                  fontWeight: FontWeight.bold,
+        content: GestureDetector(
+          onTap: () => messenger.hideCurrentSnackBar(),
+          behavior: HitTestBehavior.opaque,
+          child: Row(
+            children: [
+              const Icon(
+                Icons.error_outline_rounded,
+                color: AppColors.textOnPrimary,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  message,
+                  style: const TextStyle(
+                    color: AppColors.textOnPrimary,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         backgroundColor: AppColors.danger,
         behavior: SnackBarBehavior.floating,
@@ -33,21 +38,26 @@ extension UIHelpers on BuildContext {
   }
 
   void showSuccessSnackBar(String message) {
-    ScaffoldMessenger.of(this).clearSnackBars();
-    ScaffoldMessenger.of(this).showSnackBar(
+    final messenger = ScaffoldMessenger.of(this);
+    messenger.clearSnackBars();
+    messenger.showSnackBar(
       SnackBar(
-        content: Row(
-          children: [
-            const Icon(
-              Icons.check_circle_outline_rounded,
-              color: AppColors.textOnPrimary,
-            ),
-            const SizedBox(width: 12),
-            Text(
-              message,
-              style: const TextStyle(color: AppColors.textOnPrimary),
-            ),
-          ],
+        content: GestureDetector(
+          onTap: () => messenger.hideCurrentSnackBar(),
+          behavior: HitTestBehavior.opaque,
+          child: Row(
+            children: [
+              const Icon(
+                Icons.check_circle_outline_rounded,
+                color: AppColors.textOnPrimary,
+              ),
+              const SizedBox(width: 12),
+              Text(
+                message,
+                style: const TextStyle(color: AppColors.textOnPrimary),
+              ),
+            ],
+          ),
         ),
         backgroundColor: AppColors.income,
         behavior: SnackBarBehavior.floating,
