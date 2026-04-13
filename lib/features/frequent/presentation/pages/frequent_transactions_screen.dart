@@ -7,6 +7,9 @@ import 'package:cashify/features/transaction/presentation/providers/billing_peri
 import 'package:cashify/features/frequent/presentation/providers/frequent_transaction_provider.dart';
 import 'package:cashify/features/transaction/presentation/providers/transaction_provider.dart';
 import 'package:cashify/features/frequent/presentation/widgets/frequent_dialogs.dart';
+import 'package:cashify/features/shared/widgets/base_compact_item_row.dart';
+import 'package:cashify/features/shared/widgets/transaction_filter_bottom_sheet.dart';
+import 'package:cashify/core/utils/formatters.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -18,7 +21,8 @@ class FrequentTransactionsScreen extends StatefulWidget {
       _FrequentTransactionsScreenState();
 }
 
-class _FrequentTransactionsScreenState extends State<FrequentTransactionsScreen> {
+class _FrequentTransactionsScreenState
+    extends State<FrequentTransactionsScreen> {
   @override
   void initState() {
     super.initState();
@@ -38,23 +42,143 @@ class _FrequentTransactionsScreenState extends State<FrequentTransactionsScreen>
           context,
           MaterialPageRoute(builder: (_) => const FrequentFormScreen()),
         ),
+        actions: [
+          Consumer<FrequentTransactionProvider>(
+            builder: (context, provider, child) {
+              final hasFilters =
+                  provider.filterCategoryId != null ||
+                  provider.filterType != null ||
+                  provider.filterStatus != null ||
+                  provider.filterFrequency != null;
+
+              return Stack(
+                alignment: Alignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.filter_alt),
+                    tooltip: "Filtros",
+                    onPressed: () {
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        builder: (context) {
+                          final transactionProv = context
+                              .read<TransactionProvider>();
+                          return TransactionFilterBottomSheet(
+                            categories: transactionProv.categories,
+                            paymentMethods: null,
+                            initialCategoryId: provider.filterCategoryId,
+                            initialPaymentMethodId: null,
+                            initialType: provider.filterType,
+                            initialFrequency: provider.filterFrequency,
+                            showFrequencyFilter: true,
+                            initialIsCompleted:
+                                provider.filterStatus ==
+                                    FrequentStatus.completed
+                                ? true
+                                : provider.filterStatus ==
+                                      FrequentStatus.pending
+                                ? false
+                                : null,
+                            onApply:
+                                ({
+                                  categoryId,
+                                  paymentMethodId,
+                                  type,
+                                  isCompleted,
+                                  frequency,
+                                }) {
+                                  FrequentStatus? status;
+                                  if (isCompleted == true) {
+                                    status = FrequentStatus.completed;
+                                  } else if (isCompleted == false) {
+                                    status = FrequentStatus.pending;
+                                  }
+                                  provider.setFilters(
+                                    categoryId: categoryId,
+                                    type: type,
+                                    status: status,
+                                    frequency: frequency,
+                                  );
+                                },
+                          );
+                        },
+                      );
+                    },
+                  ),
+                  if (hasFilters)
+                    Positioned(
+                      top: 12,
+                      right: 12,
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                          color: AppColors.notification,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+        ],
       ),
-      body: Consumer<FrequentTransactionProvider>(
-        builder: (context, provider, child) {
-          if (provider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: Column(
+        children: [
+          _buildSearchBar(context),
+          Expanded(
+            child: Consumer<FrequentTransactionProvider>(
+              builder: (context, provider, child) {
+                if (provider.isLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-          if (provider.frequents.isEmpty) {
-            return const Center(
-              child: Text("No tienes movimientos frecuentes aún."),
-            );
-          }
+                if (provider.frequents.isEmpty) {
+                  return const Center(
+                    child: Text("No tienes movimientos frecuentes aún."),
+                  );
+                }
 
-          return ListView(
-            padding: const EdgeInsets.all(16),
-            children: _buildListItems(context, provider),
-          );
+                final items = _buildListItems(context, provider);
+
+                if (items.isEmpty) {
+                  return const Center(
+                    child: Text("No se encontraron resultados."),
+                  );
+                }
+
+                return ListView(
+                  padding: const EdgeInsets.only(top: 8, bottom: 16),
+                  children: items,
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchBar(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+      child: TextField(
+        decoration: InputDecoration(
+          hintText: "Buscar...",
+          prefixIcon: const Icon(Icons.search, size: 20),
+          isDense: true,
+          filled: true,
+          fillColor: AppColors.surface,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+        ),
+        onChanged: (value) {
+          context.read<FrequentTransactionProvider>().setSearchQuery(value);
         },
       ),
     );
@@ -108,12 +232,62 @@ class _FrequentTransactionsScreenState extends State<FrequentTransactionsScreen>
       final int pB = b['priority'] as int;
       if (pA != pB) return pA.compareTo(pB);
 
-      final FrequentTransactionEntity fA = a['frequent'] as FrequentTransactionEntity;
-      final FrequentTransactionEntity fB = b['frequent'] as FrequentTransactionEntity;
+      final FrequentTransactionEntity fA =
+          a['frequent'] as FrequentTransactionEntity;
+      final FrequentTransactionEntity fB =
+          b['frequent'] as FrequentTransactionEntity;
       return fA.description.compareTo(fB.description);
     });
 
-    return list.map((item) {
+    final filteredList = list.where((item) {
+      final freq = item['frequent'] as FrequentTransactionEntity;
+      final status = item['status'] as FrequentStatus;
+
+      final queryLower = provider.searchQuery.toLowerCase();
+      final matchesSearch =
+          freq.description.toLowerCase().contains(queryLower) ||
+          freq.source.toLowerCase().contains(queryLower) ||
+          freq.amount.toString().contains(queryLower);
+
+      final matchesCategory =
+          provider.filterCategoryId == null ||
+          freq.categoryId == provider.filterCategoryId;
+
+      bool matchesType = true;
+      if (provider.filterType == 'income') {
+        matchesType = transactionProv.incomeCategoryIds.contains(
+          freq.categoryId,
+        );
+      } else if (provider.filterType == 'expense') {
+        matchesType = !transactionProv.incomeCategoryIds.contains(
+          freq.categoryId,
+        );
+      }
+
+      bool matchesStatus = true;
+      if (provider.filterStatus != null) {
+        if (provider.filterStatus == FrequentStatus.pending) {
+          matchesStatus =
+              status == FrequentStatus.pending ||
+              status == FrequentStatus.overdue;
+        } else {
+          matchesStatus = status == provider.filterStatus;
+        }
+      }
+
+      bool matchesFrequency = true;
+      if (provider.filterFrequency != null) {
+        matchesFrequency = freq.frequency == provider.filterFrequency;
+      }
+
+      return matchesSearch &&
+          matchesCategory &&
+          matchesType &&
+          matchesStatus &&
+          matchesFrequency;
+    }).toList();
+
+    return filteredList.map((item) {
       return _FrequentItemRow(
         frequent: item['frequent'] as FrequentTransactionEntity,
         status: item['status'] as FrequentStatus,
@@ -139,86 +313,73 @@ class _FrequentItemRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 0,
-      color: AppColors.surface,
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: _buildStatusIcon(status, noHistory: noHistory),
-        title: Text(
-          frequent.description,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
+    final bool isIncome = _isIncome(context, frequent.categoryId);
+    final String categoryName = _getCategoryName(context, frequent.categoryId);
+    final Color categoryColor = isIncome ? AppColors.income : AppColors.expense;
+
+    return BaseCompactItemRow(
+      title: frequent.description,
+      onTap: () => showDialog(
+        context: context,
+        builder: (_) => FrequentDetailDialog(frequent: frequent),
+      ),
+      leftStatusIcon: _buildStatusIcon(status, noHistory: noHistory),
+      extraTags: [
+        if (billingPeriodsAway != null)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: _getBillingPeriodsColor(
+                billingPeriodsAway!,
+              ).withValues(alpha: 0.9),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Text(
+              _getbillingPeriodsText(billingPeriodsAway!),
+              style: const TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textOnPrimary,
+              ),
+            ),
           ),
+      ],
+      subtitle: RichText(
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        text: TextSpan(
+          style: const TextStyle(fontSize: 10.5),
+          children: [
+            TextSpan(
+              text: categoryName.toUpperCase(),
+              style: TextStyle(
+                color: categoryColor,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 0.3,
+              ),
+            ),
+            TextSpan(
+              text: " | ",
+              style: TextStyle(
+                color: AppColors.textLight.withValues(alpha: 0.4),
+              ),
+            ),
+            TextSpan(
+              text: frequent.source,
+              style: TextStyle(
+                color: AppColors.textLight.withValues(alpha: 0.9),
+              ),
+            ),
+          ],
         ),
-        trailing: billingPeriodsAway != null
-            ? Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: _getBillingPeriodsColor(
-                        billingPeriodsAway!,
-                      ).withValues(alpha: 0.9),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      _getbillingPeriodsText(billingPeriodsAway!),
-                      style: const TextStyle(
-                        fontSize: 9,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textOnPrimary,
-                      ),
-                    ),
-                  ),
-                ],
-              )
-            : null,
-        subtitle: RichText(
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          text: TextSpan(
-            style: const TextStyle(fontSize: 11),
-            children: [
-              TextSpan(
-                text: _getCategoryName(
-                  context,
-                  frequent.categoryId,
-                ).toUpperCase(),
-                style: TextStyle(
-                  color: _isIncome(context, frequent.categoryId)
-                      ? AppColors.income
-                      : AppColors.expense,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 0.3,
-                ),
-              ),
-              TextSpan(
-                text: " | ",
-                style: TextStyle(
-                  color: AppColors.textLight.withValues(alpha: 0.4),
-                ),
-              ),
-              TextSpan(
-                text: frequent.source,
-                style: TextStyle(
-                  color: AppColors.textLight.withValues(alpha: 0.9),
-                ),
-              ),
-            ],
-          ),
-        ),
-        onTap: () => showDialog(
-          context: context,
-          builder: (_) => FrequentDetailDialog(frequent: frequent),
+      ),
+      rightWidget: Text(
+        Formatters.currencyWithSymbol(frequent.amount),
+        textAlign: TextAlign.end,
+        style: TextStyle(
+          fontWeight: FontWeight.w900,
+          fontSize: 15,
+          color: categoryColor,
         ),
       ),
     );
