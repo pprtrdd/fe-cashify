@@ -5,6 +5,7 @@ import 'package:cashify/features/category/presentation/widgets/category_dialogs.
 import 'package:cashify/features/category/presentation/providers/category_provider.dart';
 import 'package:cashify/features/transaction/presentation/providers/transaction_provider.dart';
 import 'package:cashify/features/category/presentation/widgets/category_bottom_sheet.dart';
+import 'package:cashify/features/shared/helpers/ui_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -150,14 +151,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   }
 
   void _showSnack(BuildContext context, String message, bool success) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: success ? AppColors.success : AppColors.danger,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
+    if (success) {
+      context.showSuccessSnackBar(message);
+    } else {
+      context.showErrorSnackBar(message);
+    }
   }
 
   void _showAddSheet(BuildContext context, {CategoryEntity? categoryToEdit}) {
