@@ -5,7 +5,6 @@ import 'package:cashify/features/settings/presentation/providers/settings_provid
 import 'package:cashify/features/shared/helpers/ui_helper.dart';
 import 'package:cashify/features/dashboard/presentation/widgets/custom_drawer.dart';
 import 'package:cashify/features/transaction/presentation/pages/transaction_form_screen.dart';
-import 'package:cashify/features/pending/presentation/pages/pending_transactions_screen.dart';
 import 'package:cashify/features/transaction/presentation/providers/billing_period_provider.dart';
 import 'package:cashify/features/transaction/presentation/providers/transaction_provider.dart';
 import 'package:flutter/material.dart';
@@ -62,7 +61,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       drawer: const CustomDrawer(),
       appBar: const PrimaryAppBar(
         title: "Cashify",
-        actions: [_NotificationBadge()],
       ),
       body: Consumer<TransactionProvider>(
         builder: (context, provider, child) {
@@ -413,35 +411,3 @@ class _MiniInfoCard extends StatelessWidget {
   }
 }
 
-class _NotificationBadge extends StatelessWidget {
-  const _NotificationBadge();
-
-  @override
-  Widget build(BuildContext context) {
-    return Consumer<TransactionProvider>(
-      builder: (context, provider, _) {
-        final pendingCount = provider.transactions
-            .where((m) => !m.isCompleted)
-            .length;
-        return IconButton(
-          icon: Badge(
-            backgroundColor: AppColors.notification,
-            label: Text(
-              '$pendingCount',
-              style: const TextStyle(color: AppColors.textOnPrimary),
-            ),
-            isLabelVisible: pendingCount > 0,
-            child: const Icon(
-              Icons.notifications_none_rounded,
-              color: AppColors.iconOnPrimary,
-            ),
-          ),
-          onPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const PendingTransactionsScreen()),
-          ),
-        );
-      },
-    );
-  }
-}

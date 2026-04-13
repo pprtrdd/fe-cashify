@@ -2,6 +2,7 @@ import 'package:cashify/core/theme/app_colors.dart';
 import 'package:cashify/features/category/domain/entities/category_entity.dart';
 import 'package:cashify/features/category/presentation/providers/category_provider.dart';
 import 'package:cashify/features/transaction/presentation/providers/transaction_provider.dart';
+import 'package:cashify/features/shared/helpers/ui_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -255,15 +256,10 @@ class _CategoryBottomSheetState extends State<CategoryBottomSheet> {
       Navigator.pop(context);
     } else {
       setState(() => _isSaving = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            isEditing
-                ? 'Error al actualizar la categoría'
-                : 'Error al guardar la categoría',
-          ),
-          backgroundColor: AppColors.danger,
-        ),
+      context.showErrorSnackBar(
+        isEditing
+            ? 'Error al actualizar la categoría'
+            : 'Error al guardar la categoría',
       );
     }
   }

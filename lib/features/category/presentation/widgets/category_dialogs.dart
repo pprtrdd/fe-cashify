@@ -6,6 +6,7 @@ import 'package:cashify/features/category/presentation/providers/category_provid
 import 'package:cashify/features/transaction/presentation/providers/transaction_provider.dart';
 import 'package:cashify/features/category/presentation/widgets/delete_category_dialog.dart';
 import 'package:cashify/features/category/presentation/widgets/migrate_transactions_dialog.dart';
+import 'package:cashify/features/shared/helpers/ui_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -184,12 +185,7 @@ class _CategoryDetailDialog extends StatelessWidget {
 
     if (result == true && context.mounted) {
       context.read<TransactionProvider>().refreshData();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Movimientos migrados correctamente'),
-          backgroundColor: AppColors.success,
-        ),
-      );
+      context.showSuccessSnackBar('Movimientos migrados correctamente');
       Navigator.pop(context);
     }
   }
@@ -240,15 +236,10 @@ class _CategoryDetailDialog extends StatelessWidget {
       );
       if (success && context.mounted) {
         context.read<TransactionProvider>().refreshData();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              isArchiving
-                  ? 'Categoría archivada correctamente'
-                  : 'Categoría desarchivada correctamente',
-            ),
-            backgroundColor: AppColors.success,
-          ),
+        context.showSuccessSnackBar(
+          isArchiving
+              ? 'Categoría archivada correctamente'
+              : 'Categoría desarchivada correctamente',
         );
         Navigator.pop(context, 'archive_success');
       }
