@@ -289,8 +289,13 @@ class _FrequentTransactionsScreenState
 
       final total = items.fold<int>(
         0,
-        (sum, item) =>
-            sum + (item['frequent'] as FrequentTransactionEntity).amount,
+        (sum, item) {
+          final freq = item['frequent'] as FrequentTransactionEntity;
+          final isIncome = transactionProv.incomeCategoryIds.contains(
+            freq.categoryId,
+          );
+          return isIncome ? sum + freq.amount : sum - freq.amount;
+        },
       );
 
       return _FrequentGroup(
