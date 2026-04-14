@@ -4,6 +4,7 @@ import 'package:cashify/core/widgets/primary_app_bar.dart';
 import 'package:cashify/features/transaction/domain/entities/transaction_entity.dart';
 import 'package:cashify/features/transaction/presentation/providers/transaction_provider.dart';
 import 'package:cashify/features/shared/widgets/compact_transaction_row.dart';
+import 'package:cashify/features/shared/widgets/custom_search_bar.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -16,43 +17,73 @@ class PendingTransactionsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: const PrimaryAppBar(title: "Movimientos Pendientes"),
-      body: Consumer<TransactionProvider>(
-        builder: (context, provider, child) {
-          final pendingItems = provider.transactions
-              .where((m) => !m.isCompleted)
-              .toList();
-
-          if (pendingItems.isEmpty) {
-            return const Center(child: Text("¡Todo al día!"));
-          }
-
-          final groupedItems = groupBy(
-            pendingItems,
-            (TransactionEntity m) => m.categoryId,
-          );
-
-          return ListView.builder(
-            padding: EdgeInsets.zero,
-            itemCount: groupedItems.keys.length,
-            itemBuilder: (context, index) {
-              final catId = groupedItems.keys.elementAt(index);
-              final movs = groupedItems[catId]!;
-              final isIncome = provider.incomeCategoryIds.contains(catId);
-              final total = movs.fold<int>(0, (sum, m) => sum + m.totalAmount);
-
-              return _CategoryGroup(
-                name: provider.getCategoryName(catId),
-                total: total,
-                isIncome: isIncome,
-                transactions: movs,
-                provider: provider,
-              );
+      body: Column(
+        children: [
+          CustomSearchBar(
+            onChanged: (value) {
+              context.read<TransactionProvider>().setSearchQuery(value);
             },
-          );
-        },
+          ),
+          Expanded(
+            child: Consumer<TransactionProvider>(
+              builder: (context, provider, child) {
+                final queryLower = provider.searchQuery.toLowerCase();
+                final pendingItems =
+                    provider.transactions.where((m) {
+                      final isPending = !m.isCompleted;
+                      if (!isPending) return false;
+
+                      if (queryLower.isEmpty) return true;
+
+                      return m.description.toLowerCase().contains(queryLower) ||
+                          m.source.toLowerCase().contains(queryLower) ||
+                          m.totalAmount.toString().contains(queryLower);
+                    }).toList();
+
+                if (pendingItems.isEmpty) {
+                  return Center(
+                    child: Text(
+                      provider.searchQuery.isEmpty
+                          ? "¡Todo al día!"
+                          : "No se encontraron resultados.",
+                    ),
+                  );
+                }
+
+                final groupedItems = groupBy(
+                  pendingItems,
+                  (TransactionEntity m) => m.categoryId,
+                );
+
+                return ListView.builder(
+                  padding: const EdgeInsets.only(top: 8, bottom: 16),
+                  itemCount: groupedItems.keys.length,
+                  itemBuilder: (context, index) {
+                    final catId = groupedItems.keys.elementAt(index);
+                    final movs = groupedItems[catId]!;
+                    final isIncome = provider.incomeCategoryIds.contains(catId);
+                    final total = movs.fold<int>(
+                      0,
+                      (sum, m) => sum + m.totalAmount,
+                    );
+
+                    return _CategoryGroup(
+                      name: provider.getCategoryName(catId),
+                      total: total,
+                      isIncome: isIncome,
+                      transactions: movs,
+                      provider: provider,
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
+
 }
 
 class _CategoryGroup extends StatefulWidget {
