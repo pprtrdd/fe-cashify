@@ -118,9 +118,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
           Expanded(
             child: Consumer<TransactionProvider>(
               builder: (context, provider, child) {
-                final transactions = provider.pagedFilteredTransactions;
-                final allFiltered = provider.filteredTransactions;
-                final bool hasMore = transactions.length < allFiltered.length;
+                final transactions = provider.filteredTransactions;
 
                 if (transactions.isEmpty) {
                   return const Center(
@@ -130,33 +128,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
 
                 return ListView.builder(
                   padding: const EdgeInsets.only(top: 8, bottom: 16),
-                  itemCount: transactions.length + (hasMore ? 1 : 0),
+                  itemCount: transactions.length,
                   itemBuilder: (context, index) {
-                    if (index == transactions.length) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 24,
-                          horizontal: 16,
-                        ),
-                        child: Center(
-                          child: TextButton.icon(
-                            onPressed: () => provider.loadNextPage(),
-                            icon: const Icon(Icons.add, size: 18),
-                            label: const Text("Cargar más"),
-                            style: TextButton.styleFrom(
-                              foregroundColor: AppColors.primary,
-                              backgroundColor: AppColors.primary.withValues(
-                                alpha: 0.05,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    }
-
                     final transaction = transactions[index];
                     return CompactTransactionRow(
                       transaction: transaction,
