@@ -48,11 +48,14 @@ class _AppLogo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: const [
-        Icon(
-          Icons.account_balance_wallet,
-          size: 80,
-          color: AppColors.iconPrimary,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Image.asset(
+            'web/icons/Icon-192.png',
+            width: 80,
+            height: 80,
+          ),
         ),
         SizedBox(height: 20),
         Text(

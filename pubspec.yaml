@@ -1,7 +1,7 @@
 name: cashify
 description: "Para registrar tus movimientos financieros en pocos pasos."
 publish_to: 'none'
-version: 1.5.1+4
+version: 1.5.2+5
 
 environment:
   sdk: ^3.10.4
@@ -29,4 +29,6 @@ dev_dependencies:
 flutter:
   assets:
     - env/.env
+    - web/icons/Icon-192.png
+    - web/icons/Icon-512.png
   uses-material-design: true
