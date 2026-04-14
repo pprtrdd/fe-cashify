@@ -96,10 +96,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       applicationName: data.appName,
       applicationVersion: '${info['version']}+${info['buildNumber']}',
-      applicationIcon: const Icon(
-        Icons.account_balance_wallet,
-        size: 40,
-        color: AppColors.primary,
+      applicationIcon: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Image.asset(
+          'web/icons/Icon-192.png',
+          width: 40,
+          height: 40,
+        ),
       ),
       applicationLegalese: '© ${data.lastYearDeploy} ${data.author}',
       children: [
