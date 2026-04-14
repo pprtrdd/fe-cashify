@@ -4,6 +4,7 @@ import 'package:cashify/features/transaction/presentation/providers/billing_peri
 import 'package:cashify/features/transaction/presentation/providers/transaction_provider.dart';
 import 'package:cashify/features/shared/widgets/compact_transaction_row.dart';
 import 'package:cashify/features/shared/widgets/transaction_filter_bottom_sheet.dart';
+import 'package:cashify/features/shared/widgets/custom_search_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -114,13 +115,15 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
       ),
       body: Column(
         children: [
-          _buildSearchBar(context),
+          CustomSearchBar(
+            onChanged: (value) {
+              context.read<TransactionProvider>().setSearchQuery(value);
+            },
+          ),
           Expanded(
             child: Consumer<TransactionProvider>(
               builder: (context, provider, child) {
-                final transactions = provider.pagedFilteredTransactions;
-                final allFiltered = provider.filteredTransactions;
-                final bool hasMore = transactions.length < allFiltered.length;
+                final transactions = provider.filteredTransactions;
 
                 if (transactions.isEmpty) {
                   return const Center(
@@ -130,33 +133,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
 
                 return ListView.builder(
                   padding: const EdgeInsets.only(top: 8, bottom: 16),
-                  itemCount: transactions.length + (hasMore ? 1 : 0),
+                  itemCount: transactions.length,
                   itemBuilder: (context, index) {
-                    if (index == transactions.length) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 24,
-                          horizontal: 16,
-                        ),
-                        child: Center(
-                          child: TextButton.icon(
-                            onPressed: () => provider.loadNextPage(),
-                            icon: const Icon(Icons.add, size: 18),
-                            label: const Text("Cargar más"),
-                            style: TextButton.styleFrom(
-                              foregroundColor: AppColors.primary,
-                              backgroundColor: AppColors.primary.withValues(
-                                alpha: 0.05,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    }
-
                     final transaction = transactions[index];
                     return CompactTransactionRow(
                       transaction: transaction,
@@ -173,25 +151,4 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     );
   }
 
-  Widget _buildSearchBar(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
-      child: TextField(
-        decoration: InputDecoration(
-          hintText: "Buscar...",
-          prefixIcon: const Icon(Icons.search, size: 20),
-          isDense: true,
-          filled: true,
-          fillColor: AppColors.surface,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
-          ),
-        ),
-        onChanged: (value) {
-          context.read<TransactionProvider>().setSearchQuery(value);
-        },
-      ),
-    );
-  }
 }

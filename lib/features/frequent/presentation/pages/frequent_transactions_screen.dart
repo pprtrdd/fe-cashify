@@ -9,7 +9,9 @@ import 'package:cashify/features/transaction/presentation/providers/transaction_
 import 'package:cashify/features/frequent/presentation/widgets/frequent_dialogs.dart';
 import 'package:cashify/features/shared/widgets/base_compact_item_row.dart';
 import 'package:cashify/features/shared/widgets/transaction_filter_bottom_sheet.dart';
+import 'package:cashify/features/shared/widgets/custom_search_bar.dart';
 import 'package:cashify/core/utils/formatters.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -54,7 +56,7 @@ class _FrequentTransactionsScreenState
               return Stack(
                 alignment: Alignment.center,
                 children: [
-                  IconButton(
+                   IconButton(
                     icon: const Icon(Icons.filter_alt),
                     tooltip: "Filtros",
                     onPressed: () {
@@ -128,7 +130,11 @@ class _FrequentTransactionsScreenState
       ),
       body: Column(
         children: [
-          _buildSearchBar(context),
+          CustomSearchBar(
+            onChanged: (value) {
+              context.read<FrequentTransactionProvider>().setSearchQuery(value);
+            },
+          ),
           Expanded(
             child: Consumer<FrequentTransactionProvider>(
               builder: (context, provider, child) {
@@ -162,27 +168,6 @@ class _FrequentTransactionsScreenState
     );
   }
 
-  Widget _buildSearchBar(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
-      child: TextField(
-        decoration: InputDecoration(
-          hintText: "Buscar...",
-          prefixIcon: const Icon(Icons.search, size: 20),
-          isDense: true,
-          filled: true,
-          fillColor: AppColors.surface,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
-          ),
-        ),
-        onChanged: (value) {
-          context.read<FrequentTransactionProvider>().setSearchQuery(value);
-        },
-      ),
-    );
-  }
 
   List<Widget> _buildListItems(
     BuildContext context,
@@ -287,14 +272,150 @@ class _FrequentTransactionsScreenState
           matchesFrequency;
     }).toList();
 
-    return filteredList.map((item) {
-      return _FrequentItemRow(
-        frequent: item['frequent'] as FrequentTransactionEntity,
-        status: item['status'] as FrequentStatus,
-        billingPeriodsAway: item['billingPeriodsAway'] as int?,
-        noHistory: item['noHistory'] as bool,
+    final groupedItems = groupBy(
+      filteredList,
+      (item) => item['billingPeriodsAway'] as int?,
+    );
+
+    final sortedKeys =
+        groupedItems.keys.toList()..sort((a, b) {
+          if (a == null) return 1;
+          if (b == null) return -1;
+          return a.compareTo(b);
+        });
+
+    return sortedKeys.map((key) {
+      final items = groupedItems[key]!;
+
+      final total = items.fold<int>(
+        0,
+        (sum, item) =>
+            sum + (item['frequent'] as FrequentTransactionEntity).amount,
+      );
+
+      return _FrequentGroup(
+        name: _getGroupTitle(key),
+        total: total,
+        backgroundColor: _getUrgencyColor(key ?? 999),
+        children:
+            items.map((item) {
+              return _FrequentItemRow(
+                frequent: item['frequent'] as FrequentTransactionEntity,
+                status: item['status'] as FrequentStatus,
+                billingPeriodsAway: item['billingPeriodsAway'] as int?,
+                noHistory: item['noHistory'] as bool,
+              );
+            }).toList(),
       );
     }).toList();
+  }
+
+  String _getGroupTitle(int? billingPeriodsAway) {
+    if (billingPeriodsAway == null) {
+      return "Pendientes de Inicio";
+    }
+    if (billingPeriodsAway == 1) {
+      return "Próximo Período";
+    }
+    return "En $billingPeriodsAway Períodos";
+  }
+
+  Color _getUrgencyColor(int billingPeriodsAway) {
+    if (billingPeriodsAway > 3) {
+      return AppColors.iconSuccess;
+    } else if (billingPeriodsAway > 1) {
+      return AppColors.warning;
+    } else {
+      return Colors.orange;
+    }
+  }
+}
+
+class _FrequentGroup extends StatefulWidget {
+  final String name;
+  final int total;
+  final Color backgroundColor;
+  final List<Widget> children;
+
+  const _FrequentGroup({
+    required this.name,
+    required this.total,
+    required this.backgroundColor,
+    required this.children,
+  });
+
+  @override
+  State<_FrequentGroup> createState() => _FrequentGroupState();
+}
+
+class _FrequentGroupState extends State<_FrequentGroup> {
+  bool _isExpanded = true;
+
+  @override
+  Widget build(BuildContext context) {
+    const textColor = AppColors.background;
+
+    return Column(
+      children: [
+        GestureDetector(
+          onTap: () => setState(() => _isExpanded = !_isExpanded),
+          behavior: HitTestBehavior.opaque,
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: widget.backgroundColor,
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.shadow.withValues(alpha: 0.1),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: Text(
+                    widget.name.toUpperCase(),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 11,
+                      color: textColor,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                ),
+                Text(
+                  Formatters.currencyWithSymbol(widget.total),
+                  textAlign: TextAlign.end,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 14,
+                    color: textColor,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Icon(
+                  _isExpanded ? Icons.expand_less : Icons.expand_more,
+                  size: 20,
+                  color: textColor.withValues(alpha: 0.9),
+                ),
+              ],
+            ),
+          ),
+        ),
+        AnimatedCrossFade(
+          firstChild: Column(children: widget.children),
+          secondChild: const SizedBox(width: double.infinity),
+          crossFadeState:
+              _isExpanded ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+          duration: const Duration(milliseconds: 200),
+        ),
+        const SizedBox(height: 12),
+      ],
+    );
   }
 }
 
@@ -324,26 +445,7 @@ class _FrequentItemRow extends StatelessWidget {
         builder: (_) => FrequentDetailDialog(frequent: frequent),
       ),
       leftStatusIcon: _buildStatusIcon(status, noHistory: noHistory),
-      extraTags: [
-        if (billingPeriodsAway != null)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            decoration: BoxDecoration(
-              color: _getBillingPeriodsColor(
-                billingPeriodsAway!,
-              ).withValues(alpha: 0.9),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Text(
-              _getbillingPeriodsText(billingPeriodsAway!),
-              style: const TextStyle(
-                fontSize: 9,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textOnPrimary,
-              ),
-            ),
-          ),
-      ],
+      extraTags: null,
       subtitle: RichText(
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
@@ -386,7 +488,6 @@ class _FrequentItemRow extends StatelessWidget {
   }
 
   Widget _buildStatusIcon(FrequentStatus status, {bool noHistory = false}) {
-    /* 1. Without transactions (gray + plus icon) */
     if (noHistory) {
       return Container(
         width: 32,
@@ -406,7 +507,6 @@ class _FrequentItemRow extends StatelessWidget {
     }
 
     switch (status) {
-      /* 2. Pending/Overdue in this billing period (Yellow + Clock) */
       case FrequentStatus.pending:
       case FrequentStatus.overdue:
         return Container(
@@ -425,7 +525,6 @@ class _FrequentItemRow extends StatelessWidget {
           ),
         );
 
-      /* 3. Already entered this billing period (Green + Check) */
       case FrequentStatus.completed:
         return const Icon(
           Icons.check_circle,
@@ -433,7 +532,6 @@ class _FrequentItemRow extends StatelessWidget {
           size: 32,
         );
 
-      /* 4. No requires entry this month (Blue + Three dots) */
       case FrequentStatus.none:
         return Container(
           width: 32,
@@ -453,21 +551,12 @@ class _FrequentItemRow extends StatelessWidget {
     }
   }
 
-  Color _getBillingPeriodsColor(int billingPeriodsAway) {
-    if (billingPeriodsAway > 3) {
-      return AppColors.iconSuccess;
-    } else if (billingPeriodsAway > 1) {
-      return AppColors.warning;
-    } else {
-      return Colors.orange;
-    }
-  }
-
-  String _getbillingPeriodsText(int billingPeriodsAway) {
-    if (billingPeriodsAway == 1) {
-      return "PRÓXIMO PERÍODO";
-    } else {
-      return "EN $billingPeriodsAway PERÍODOS";
+  bool _isIncome(BuildContext context, String catId) {
+    try {
+      final transactionProv = context.read<TransactionProvider>();
+      return transactionProv.incomeCategoryIds.contains(catId);
+    } catch (_) {
+      return false;
     }
   }
 
@@ -477,15 +566,6 @@ class _FrequentItemRow extends StatelessWidget {
       return transactionProv.categories.firstWhere((c) => c.id == catId).name;
     } catch (_) {
       return "Sin Categoría";
-    }
-  }
-
-  bool _isIncome(BuildContext context, String catId) {
-    try {
-      final transactionProv = context.read<TransactionProvider>();
-      return transactionProv.incomeCategoryIds.contains(catId);
-    } catch (_) {
-      return false;
     }
   }
 }

@@ -40,10 +40,8 @@ class TransactionProvider extends ChangeNotifier {
   Map<String, int> _extraGrouped = {};
 
   String _searchQuery = "";
-  int _currentPage = 1;
-  final int _pageSize = 10;
-
   String? _filterCategoryId;
+
   String? _filterPaymentMethodId;
   String? _filterType;
   bool? _filterIsCompleted;
@@ -65,7 +63,6 @@ class TransactionProvider extends ChangeNotifier {
   Map<String, int> get extraGrouped => _extraGrouped;
 
   String get searchQuery => _searchQuery;
-  int get transactionsPerPage => _pageSize;
 
   bool get hasExtraCategories => _categories.any((c) => c.isExtra);
   Set<String> get incomeCategoryIds => _incomeCategoryIds;
@@ -103,14 +100,6 @@ class TransactionProvider extends ChangeNotifier {
     }).toList();
   }
 
-  List<TransactionEntity> get pagedFilteredTransactions {
-    final fullList = filteredTransactions;
-    final end = _currentPage * _pageSize;
-
-    return fullList
-        .take(end > fullList.length ? fullList.length : end)
-        .toList();
-  }
 
   String? get filterCategoryId => _filterCategoryId;
   String? get filterPaymentMethodId => _filterPaymentMethodId;
@@ -119,19 +108,16 @@ class TransactionProvider extends ChangeNotifier {
 
   void setCategoryId(String? id) {
     _filterCategoryId = id;
-    _currentPage = 1;
     notifyListeners();
   }
 
   void setPaymentMethodId(String? id) {
     _filterPaymentMethodId = id;
-    _currentPage = 1;
     notifyListeners();
   }
 
   void setSearchQuery(String query) {
     _searchQuery = query;
-    _currentPage = 1;
     notifyListeners();
   }
 
@@ -455,12 +441,6 @@ class TransactionProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void loadNextPage() {
-    if (_currentPage * _pageSize < filteredTransactions.length) {
-      _currentPage++;
-      notifyListeners();
-    }
-  }
 
   TransactionEntity prepareCopy(TransactionEntity original) {
     return original.copyWith(id: '', groupId: '');
