@@ -1,7 +1,7 @@
 name: cashify
 description: "Para registrar tus movimientos financieros en pocos pasos."
 publish_to: 'none'
-version: 1.5.1+4
+version: 1.5.2+5
 
 environment:
   sdk: ^3.10.4
