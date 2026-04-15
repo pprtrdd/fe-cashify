@@ -3,6 +3,7 @@ admin.initializeApp();
 
 export { migrateAllUserCategoriesFromTemplate } from "./seed/categories";
 export { migrateTransactionsFrequentId } from "./seed/transactions";
+export { migrateInstallments } from "./seed/installmentMigration";
 export { seedAppConfig } from "./seed/appConfig";
 export { seedDefaultCategories } from "./seed/defaultCategories";
 export { seedDefaultConfig } from "./seed/defaultConfig";
