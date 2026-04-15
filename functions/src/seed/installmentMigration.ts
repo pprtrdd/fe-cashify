@@ -15,53 +15,36 @@ export const migrateInstallments = onRequest({ timeoutSeconds: 540, memory: "1Gi
     let totalMovementsDeleted = 0;
 
     try {
-        console.log("Starting global installment migration...");
+        const usersSnapshot = await db.collection("users").get();
 
-        /* 1. Fetch ALL movements that might be orphaned installments */
-        /* We look for movements where totalInstallments > 1 and frequentId is missing/empty */
-        const movementsSnapshot = await db.collectionGroup("movements")
-            .where("totalInstallments", ">", 1)
-            .get();
-
-        if (movementsSnapshot.empty) {
-            res.status(200).send({
-                status: "success",
-                message: "No movements found needing migration.",
-            });
-            return;
-        }
-
-        /* Group docs by userId and then by "description|source" */
-        /* Map structure: userId -> (description|source) -> List of docs */
-        const userOrphanedGroups: { [userId: string]: { [groupKey: string]: admin.firestore.QueryDocumentSnapshot[] } } = {};
-
-        movementsSnapshot.docs.forEach(doc => {
-            const data = doc.data();
-            const freqId = data.frequentId;
-
-            /* Skip if already linked to a frequent transaction */
-            if (freqId && freqId !== "") return;
-
-            /* Find userId from path: users/{userId}/billing_periods/{periodId}/movements/{docId} */
-            const pathSegments = doc.ref.path.split("/");
-            const userId = pathSegments[1];
-
-            if (!userOrphanedGroups[userId]) {
-                userOrphanedGroups[userId] = {};
-            }
-
-            const key = `${data.description}|${data.source}`;
-            if (!userOrphanedGroups[userId][key]) {
-                userOrphanedGroups[userId][key] = [];
-            }
-            userOrphanedGroups[userId][key].push(doc);
-        });
-
-        for (const [userId, groups] of Object.entries(userOrphanedGroups)) {
+        for (const userDoc of usersSnapshot.docs) {
+            const userId = userDoc.id;
             let batch = db.batch();
             let batchCount = 0;
 
-            for (const [, docs] of Object.entries(groups)) {
+            const orphanedGroups: { [groupKey: string]: admin.firestore.QueryDocumentSnapshot[] } = {};
+
+            const periodsSnapshot = await db.collection("users").doc(userId).collection("billing_periods").get();
+
+            for (const periodDoc of periodsSnapshot.docs) {
+                const movementsSnapshot = await periodDoc.ref.collection("movements").get();
+
+                movementsSnapshot.docs.forEach(doc => {
+                    const data = doc.data();
+                    const freqId = data.frequentId;
+                    const totalIns = data.totalInstallments;
+
+                    if ((!freqId || freqId === "") && totalIns > 1) {
+                        const key = `${data.description}|${data.source}`;
+                        if (!orphanedGroups[key]) {
+                            orphanedGroups[key] = [];
+                        }
+                        orphanedGroups[key].push(doc);
+                    }
+                });
+            }
+
+            for (const [, docs] of Object.entries(orphanedGroups)) {
                 if (docs.length === 0) continue;
 
                 const firstData = docs[0].data();
@@ -71,7 +54,6 @@ export const migrateInstallments = onRequest({ timeoutSeconds: 540, memory: "1Gi
                     if (t && t > maxTotal) maxTotal = t;
                 });
 
-                /* Create a new FrequentTransaction doc */
                 const freqRef = db.collection("users").doc(userId).collection("frequent").doc();
                 const frequentId = freqRef.id;
 
@@ -80,7 +62,7 @@ export const migrateInstallments = onRequest({ timeoutSeconds: 540, memory: "1Gi
                     description: firstData.description,
                     source: firstData.source,
                     amount: firstData.amount,
-                    frequency: 1, /* Monthly default */
+                    frequency: 1,
                     totalInstallments: maxTotal,
                     isArchived: false,
                     createdAt: admin.firestore.FieldValue.serverTimestamp(),
