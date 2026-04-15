@@ -62,13 +62,17 @@ export const migrateAllUserCategoriesFromTemplate = onRequest({ timeoutSeconds: 
         let totalUsers = 0;
         let totalTransactionsUpdated = 0;
 
+        /* 1. Update Categories for all users */
         for (const userDoc of usersSnapshot.docs) {
             const uid = userDoc.id;
             const batch = db.batch();
             const userCatsRef = db.collection("users").doc(uid).collection("categories");
             const currentUserCats = await userCatsRef.get();
 
+            /* Clear current categories */
             currentUserCats.forEach(doc => batch.delete(doc.ref));
+
+            /* Set new categories from template */
             templateCategories.forEach(cat => {
                 const { createdAt: _c, updatedAt: _u, ...rest } = cat.data;
                 batch.set(userCatsRef.doc(cat.id), {
@@ -78,26 +82,36 @@ export const migrateAllUserCategoriesFromTemplate = onRequest({ timeoutSeconds: 
                 });
             });
 
-            const billingPeriodsSnapshot = await db.collection("users").doc(uid).collection("billing_periods").get();
+            await batch.commit();
+            totalUsers++;
+            console.log(`✅ Categorías de Usuario ${uid} actualizadas.`);
+        }
 
-            for (const billingPeriodDoc of billingPeriodsSnapshot.docs) {
-                /* TODO: Rename collection 'movements' to 'transactions' */
-                const transactionsRef = billingPeriodDoc.ref.collection("movements");
+        /* 2. Update all transactions (movements) across the entire system */
+        console.log("Iniciando migración de categorías en movimientos...");
+        let batch = db.batch();
+        let batchCount = 0;
 
-                for (const [oldId, newId] of Object.entries(oldIdToNewId)) {
-                    const transactionsSnapshot = await transactionsRef.where("categoryId", "==", oldId).get();
+        for (const [oldId, newId] of Object.entries(oldIdToNewId)) {
+            const transactionsSnapshot = await db.collectionGroup("movements")
+                .where("categoryId", "==", oldId)
+                .get();
 
-                    transactionsSnapshot.forEach(movDoc => {
-                        batch.update(movDoc.ref, { categoryId: newId });
-                        totalTransactionsUpdated++;
-                    });
+            for (const movDoc of transactionsSnapshot.docs) {
+                batch.update(movDoc.ref, { categoryId: newId });
+                batchCount++;
+                totalTransactionsUpdated++;
+
+                if (batchCount >= 450) {
+                    await batch.commit();
+                    batch = db.batch();
+                    batchCount = 0;
                 }
             }
+        }
 
+        if (batchCount > 0) {
             await batch.commit();
-
-            totalUsers++;
-            console.log(`✅ Usuario ${uid} migrado.`);
         }
 
         res.status(200).send({

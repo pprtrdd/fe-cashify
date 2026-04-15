@@ -12,42 +12,28 @@ export const migrateTransactionsFrequentId = onRequest({ timeoutSeconds: 540, me
     const db = admin.firestore();
 
     try {
-        const usersSnapshot = await db.collection("users").get();
-        let totalUsers = 0;
+        const movementsSnapshot = await db.collectionGroup("movements").get();
         let totalTransactionsUpdated = 0;
 
         let batch = db.batch();
         let batchCount = 0;
 
-        for (const userDoc of usersSnapshot.docs) {
-            const uid = userDoc.id;
-            const billingPeriodsSnapshot = await db.collection("users").doc(uid).collection("billing_periods").get();
+        for (const movDoc of movementsSnapshot.docs) {
+            const data = movDoc.data();
 
-            for (const billingPeriodDoc of billingPeriodsSnapshot.docs) {
-                const transactionsRef = billingPeriodDoc.ref.collection("movements");
-                const transactionsSnapshot = await transactionsRef.get();
+            /* Si el atributo frequentId no está definido, lo inicializamos en null */
+            if (data.frequentId === undefined) {
+                batch.update(movDoc.ref, { frequentId: null });
+                batchCount++;
+                totalTransactionsUpdated++;
 
-                for (const movDoc of transactionsSnapshot.docs) {
-                    const data = movDoc.data();
-                    
-                    // Si el atributo frequentId no está definido, lo inicializamos en null
-                    if (data.frequentId === undefined) {
-                        batch.update(movDoc.ref, { frequentId: null });
-                        batchCount++;
-                        totalTransactionsUpdated++;
-
-                        // Firestore limita los batches a 500 operaciones
-                        if (batchCount >= 450) {
-                            await batch.commit();
-                            batch = db.batch();
-                            batchCount = 0;
-                        }
-                    }
+                /* Firestore limita los batches a 500 operaciones */
+                if (batchCount >= 450) {
+                    await batch.commit();
+                    batch = db.batch();
+                    batchCount = 0;
                 }
             }
-            
-            totalUsers++;
-            console.log(`✅ Usuario ${uid} revisado. Movimientos actualizados hasta ahora: ${totalTransactionsUpdated}`);
         }
 
         if (batchCount > 0) {
@@ -57,7 +43,6 @@ export const migrateTransactionsFrequentId = onRequest({ timeoutSeconds: 540, me
         console.log(`🎉 Migración finalizada.`);
         res.status(200).send({
             status: "success",
-            usersProcessed: totalUsers,
             transactionsUpdated: totalTransactionsUpdated,
         });
 
