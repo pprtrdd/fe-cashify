@@ -20,14 +20,14 @@ export const migrateTransactionsFrequentId = onRequest({ timeoutSeconds: 540, me
 
         for (const movDoc of movementsSnapshot.docs) {
             const data = movDoc.data();
-            
-            // Si el atributo frequentId no está definido, lo inicializamos en null
+
+            /* Si el atributo frequentId no está definido, lo inicializamos en null */
             if (data.frequentId === undefined) {
                 batch.update(movDoc.ref, { frequentId: null });
                 batchCount++;
                 totalTransactionsUpdated++;
 
-                // Firestore limita los batches a 500 operaciones
+                /* Firestore limita los batches a 500 operaciones */
                 if (batchCount >= 450) {
                     await batch.commit();
                     batch = db.batch();
