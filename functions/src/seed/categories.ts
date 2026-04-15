@@ -62,7 +62,6 @@ export const migrateAllUserCategoriesFromTemplate = onRequest({ timeoutSeconds: 
         let totalUsers = 0;
         let totalTransactionsUpdated = 0;
 
-        /* 1. Update Categories for all users */
         for (const userDoc of usersSnapshot.docs) {
             const uid = userDoc.id;
             const batch = db.batch();
@@ -82,36 +81,24 @@ export const migrateAllUserCategoriesFromTemplate = onRequest({ timeoutSeconds: 
                 });
             });
 
-            await batch.commit();
-            totalUsers++;
-            console.log(`✅ Categorías de Usuario ${uid} actualizadas.`);
-        }
+            const billingPeriodsSnapshot = await db.collection("users").doc(uid).collection("billing_periods").get();
 
-        /* 2. Update all transactions (movements) across the entire system */
-        console.log("Iniciando migración de categorías en movimientos...");
-        let batch = db.batch();
-        let batchCount = 0;
+            for (const billingPeriodDoc of billingPeriodsSnapshot.docs) {
+                const transactionsRef = billingPeriodDoc.ref.collection("movements");
 
-        for (const [oldId, newId] of Object.entries(oldIdToNewId)) {
-            const transactionsSnapshot = await db.collectionGroup("movements")
-                .where("categoryId", "==", oldId)
-                .get();
+                for (const [oldId, newId] of Object.entries(oldIdToNewId)) {
+                    const transactionsSnapshot = await transactionsRef.where("categoryId", "==", oldId).get();
 
-            for (const movDoc of transactionsSnapshot.docs) {
-                batch.update(movDoc.ref, { categoryId: newId });
-                batchCount++;
-                totalTransactionsUpdated++;
-
-                if (batchCount >= 450) {
-                    await batch.commit();
-                    batch = db.batch();
-                    batchCount = 0;
+                    transactionsSnapshot.forEach(movDoc => {
+                        batch.update(movDoc.ref, { categoryId: newId });
+                        totalTransactionsUpdated++;
+                    });
                 }
             }
-        }
 
-        if (batchCount > 0) {
             await batch.commit();
+            totalUsers++;
+            console.log(`✅ Usuario ${uid} migrado.`);
         }
 
         res.status(200).send({
